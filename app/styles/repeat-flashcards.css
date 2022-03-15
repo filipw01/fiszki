@@ -1,8 +1,17 @@
+.flashcards-holder {
+  display: flex;
+  gap: 16px;
+}
+
 .flashcard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 50%;
   border-radius: 16px;
   padding: 32px;
   text-align: center;
-  font-size: 64px;
+  font-size: 3rem;
   box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.2);
 }
 
@@ -52,4 +61,45 @@ button:hover {
 .turn-button {
   --primary: rgba(0, 157, 255, 0.16);
   --secondary: rgb(0, 115, 199);
+}
+
+.check-button {
+  --primary: rgba(0, 247, 255, 0.16);
+  --secondary: rgb(0, 199, 192);
+  margin-top: 0;
+}
+
+.check-button[disabled] {
+  --primary: rgba(105, 60, 67, 0.16);
+  --secondary: rgb(89, 46, 50);
+}
+
+.check-button[disabled] {
+  cursor: not-allowed;
+  color: var(--secondary);
+  background-color: var(--primary);
+}
+
+.answer-holder .good-button {
+  margin-top: 0;
+}
+
+.answer-holder {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.answer-holder input {
+  width: 100%;
+  font-size: 2rem;
+  padding: 16px;
+  border-right: none;
+  margin-right: -8px;
+}
+
+.answer-holder input:focus-visible {
+  outline: none;
+  border: 2px solid rgb(0, 199, 192);
+  border-right: none;
 }

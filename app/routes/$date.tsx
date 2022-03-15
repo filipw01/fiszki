@@ -44,7 +44,6 @@ export default function RepeatFlashcards() {
   )
 
   const input = useRef<HTMLInputElement>(null)
-  const [isFront, setIsFront] = useState(true)
   const [wasTurned, setWasTurned] = useState(false)
   const [typedCorrectly, setTypedCorrectly] = useState<boolean | undefined>()
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState<number>(0)
@@ -55,7 +54,6 @@ export default function RepeatFlashcards() {
       (flashcard) => flashcard === currentFlashcard
     ) + 1
   const nextFlashcard = () => {
-    setIsFront(true)
     setWasTurned(false)
     setTypedCorrectly(undefined)
     if (input.current) {
@@ -101,9 +99,8 @@ export default function RepeatFlashcards() {
             })}
         </div>
       </div>
-
-      <div className="flashcard">
-        {isFront ? (
+      <div className="flashcards-holder">
+        <div className="flashcard">
           <div>
             {currentFlashcard.front}
             {currentFlashcard.frontExample && (
@@ -113,28 +110,35 @@ export default function RepeatFlashcards() {
               </>
             )}
           </div>
-        ) : (
-          <div>
-            {currentFlashcard.back}
-            {currentFlashcard.backExample && (
-              <>
-                <hr />
-                {currentFlashcard.backExample}
-              </>
-            )}
-          </div>
-        )}
+        </div>
+        <div className="flashcard">
+          {wasTurned ? (
+            <div>
+              {currentFlashcard.back}
+              {currentFlashcard.backExample && (
+                <>
+                  <hr />
+                  {currentFlashcard.backExample}
+                </>
+              )}
+            </div>
+          ) : (
+            <div>?</div>
+          )}
+        </div>
       </div>
+
       <div>
-        <button
-          className="turn-button"
-          onClick={() => {
-            setIsFront((prevState) => !prevState)
-            setWasTurned(true)
-          }}
-        >
-          odwróć
-        </button>
+        {!wasTurned && (
+          <button
+            className="turn-button"
+            onClick={() => {
+              setWasTurned(true)
+            }}
+          >
+            odwróć
+          </button>
+        )}
         {(wasTurned || typedCorrectly === false) && typedCorrectly !== true && (
           <>
             <Form method="post" onSubmit={handleCorrect}>
@@ -152,39 +156,41 @@ export default function RepeatFlashcards() {
         )}
         {(!wasTurned || typedCorrectly !== undefined) && (
           <>
-            <div className=''>
-              <input ref={input} type="text" />
-              {typedCorrectly === true && (
-                <div>
-                  <Form method="post" onSubmit={handleCorrect}>
-                    <input
-                      type="hidden"
-                      name="flashcardIndex"
-                      value={flashcardIndex}
-                    />
-                    <button className="good-button">Świetnie, idź dalej</button>
-                  </Form>
-                </div>
+            <div className="answer-holder">
+              <input
+                ref={input}
+                disabled={typedCorrectly !== undefined}
+                type="text"
+              />
+              {typedCorrectly !== true ? (
+                <button
+                  className="check-button"
+                  disabled={typedCorrectly === false}
+                  onClick={() => {
+                    if (
+                      input.current?.value.toLowerCase().trim() ===
+                      currentFlashcard.back.toLowerCase().trim()
+                    ) {
+                      setTypedCorrectly(true)
+                    } else {
+                      setTypedCorrectly(false)
+                    }
+                    setWasTurned(true)
+                  }}
+                >
+                  {typedCorrectly === false ? 'źle' : 'sprawdź'}
+                </button>
+              ) : (
+                <Form method="post" onSubmit={handleCorrect} style={{width: '100%'}}>
+                  <input
+                    type="hidden"
+                    name="flashcardIndex"
+                    value={flashcardIndex}
+                  />
+                  <button className="good-button">Świetnie, idź dalej</button>
+                </Form>
               )}
             </div>
-            {typedCorrectly === false && 'źle'}
-            {typedCorrectly === undefined && (
-              <button
-                onClick={() => {
-                  if (
-                    input.current?.value.toLowerCase().trim() ===
-                    currentFlashcard.back.toLowerCase().trim()
-                  ) {
-                    setTypedCorrectly(true)
-                  } else {
-                    setTypedCorrectly(false)
-                    setIsFront(false)
-                  }
-                }}
-              >
-                sprawdź
-              </button>
-            )}
           </>
         )}
       </div>
