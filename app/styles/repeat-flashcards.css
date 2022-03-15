@@ -1,0 +1,55 @@
+.flashcard {
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  font-size: 64px;
+  box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.2);
+}
+
+.folder-list {
+  display: flex;
+  margin-left: 32px;
+}
+
+.folder {
+  padding: 2px 4px;
+  margin-right: 8px;
+  border-radius: 4px;
+  color: white;
+  background-color: #4848ff;
+}
+
+button {
+  display: block;
+  font-size: 2rem;
+  width: 100%;
+  padding: 16px 32px;
+  margin-top: 8px;
+  background-color: var(--primary);
+  color: var(--secondary);
+  border: 2px solid var(--secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:focus-visible,
+button:hover {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.bad-button {
+  --primary: rgba(255, 0, 59, 0.16);
+  --secondary: rgb(199, 0, 17);
+}
+
+.good-button {
+  --primary: rgba(0, 255, 34, 0.16);
+  --secondary: rgb(0, 182, 10);
+}
+
+.turn-button {
+  --primary: rgba(0, 157, 255, 0.16);
+  --secondary: rgb(0, 115, 199);
+}

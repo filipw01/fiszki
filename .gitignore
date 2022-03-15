@@ -1,0 +1,14 @@
+# secrets
+.env
+secrets.json
+fly.toml
+
+# build
+.cache
+build
+public
+node_modules
+
+# miscellaneous
+.idea
+.DS_Store
