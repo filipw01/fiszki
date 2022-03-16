@@ -14,6 +14,7 @@ export interface Flashcard {
 }
 
 const range = 'Fiszki!A2:H1000'
+const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -45,7 +46,7 @@ export const indexLoader = async () => {
       hotStreak,
       nextStudy,
     ]) => {
-      const now = new Date().toISOString().slice(0, 10)
+      const now = daysFromNow(0)
       const updatedNextStudy =
         nextStudy === undefined ||
         new Date(nextStudy).getTime() < new Date(now).getTime()
@@ -119,19 +120,57 @@ export const actionSuccess = async (flashcardIndex: number) => {
     throw new Error('No data received from spreadsheet')
   }
 
+  const hotStreak = Number(values.data.values[0][0])
+  const numberOfDays = getNumberOfDays(hotStreak)
+
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
     range: `Fiszki!G${flashcardIndex}:H${flashcardIndex}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [
-        [
-          Number(values.data.values[0][0]) + 1,
-          new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .slice(0, 10),
-        ],
+        [Number(values.data.values[0][0]) + 1, daysFromNow(numberOfDays)],
       ],
     },
   })
+}
+
+export const actionFailure = async (flashcardIndex: number) => {
+  const auth = await google.auth.getClient({
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
+  const sheets = google.sheets({
+    version: 'v4',
+    auth,
+  })
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.SHEET_ID,
+    range: `Fiszki!G${flashcardIndex}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [[0]],
+    },
+  })
+}
+
+export const daysFromNow = (days: number) =>
+  new Date(Date.now() + days * MS_IN_DAY).toISOString().slice(0, 10)
+
+const randomNumber = (min: number, max: number) =>
+  min + Math.floor(Math.random() * (max - min + 1))
+
+const getNumberOfDays = (hotStreak: number) => {
+  switch (hotStreak) {
+    case 0:
+      return 3
+    case 1:
+      return randomNumber(6, 8)
+    case 2:
+      return randomNumber(18, 22)
+    case 3:
+      return randomNumber(40, 60)
+    default:
+      return 99999
+  }
 }

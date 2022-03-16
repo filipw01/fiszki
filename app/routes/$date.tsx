@@ -7,7 +7,12 @@ import {
   useLoaderData,
 } from 'remix'
 import repeatFlashcardsStyles from '~/styles/repeat-flashcards.css'
-import { actionSuccess, Flashcard, indexLoader } from '~/utils.server'
+import {
+  actionFailure,
+  actionSuccess,
+  Flashcard,
+  indexLoader,
+} from '~/utils.server'
 import { useMemo, useRef, useState } from 'react'
 import { shuffle } from 'lodash'
 
@@ -18,9 +23,15 @@ export const loader: LoaderFunction = async () => {
 export const action: ActionFunction = async ({ request }) => {
   const body = await request.formData()
   const flashcardIndex = body.get('flashcardIndex')
+  const action = body.get('action')
 
   if (flashcardIndex) {
-    actionSuccess(Number(flashcardIndex) + 1)
+    if (action === 'success') {
+      actionSuccess(Number(flashcardIndex) + 1)
+    }
+    if (action === 'failure') {
+      actionFailure(Number(flashcardIndex) + 1)
+    }
   }
   return null
 }
@@ -67,12 +78,6 @@ export default function RepeatFlashcards() {
     })
   }
 
-  const handleCorrect = () => {
-    nextFlashcard()
-  }
-  const handleWrong = () => {
-    nextFlashcard()
-  }
   if (currentFlashcard === undefined) {
     return (
       <div>
@@ -141,17 +146,24 @@ export default function RepeatFlashcards() {
         )}
         {(wasTurned || typedCorrectly === false) && typedCorrectly !== true && (
           <>
-            <Form method="post" onSubmit={handleCorrect}>
+            <Form method="post" onSubmit={nextFlashcard}>
               <input
                 type="hidden"
                 name="flashcardIndex"
                 value={flashcardIndex}
               />
+              <input type="hidden" name="action" value="success" />
               <button className="good-button">dobrze</button>
             </Form>
-            <button onClick={handleWrong} className="bad-button">
-              źle
-            </button>
+            <Form method="post" onSubmit={nextFlashcard}>
+              <input
+                type="hidden"
+                name="flashcardIndex"
+                value={flashcardIndex}
+              />
+              <input type="hidden" name="action" value="failure" />
+              <button className="bad-button">źle</button>
+            </Form>
           </>
         )}
         {(!wasTurned || typedCorrectly !== undefined) && (
@@ -181,12 +193,17 @@ export default function RepeatFlashcards() {
                   {typedCorrectly === false ? 'źle' : 'sprawdź'}
                 </button>
               ) : (
-                <Form method="post" onSubmit={handleCorrect} style={{width: '100%'}}>
+                <Form
+                  method="post"
+                  onSubmit={nextFlashcard}
+                  style={{ width: '100%' }}
+                >
                   <input
                     type="hidden"
                     name="flashcardIndex"
                     value={flashcardIndex}
                   />
+                  <input type="hidden" name="action" value="success" />
                   <button className="good-button">Świetnie, idź dalej</button>
                 </Form>
               )}

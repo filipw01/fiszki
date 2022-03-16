@@ -1,6 +1,6 @@
 import indexStyles from '~/styles/index.css'
 import { Link, LoaderFunction, useLoaderData } from 'remix'
-import { Flashcard, indexLoader } from '~/utils.server'
+import { daysFromNow, Flashcard, indexLoader } from '~/utils.server'
 import { groupBy } from 'lodash'
 
 export const loader: LoaderFunction = async () => {
@@ -53,9 +53,7 @@ export default function Index() {
         {Array(28 - normalizedCurrentWeekDay)
           .fill(undefined)
           .map((_, index) => {
-            const isoDate = new Date(Date.now() + index * MS_IN_DAY)
-              .toISOString()
-              .slice(0, 10)
+            const isoDate = daysFromNow(index)
             const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
             return (
               <Link
