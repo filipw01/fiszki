@@ -1,6 +1,7 @@
 import { google } from 'googleapis'
 import { isEqual } from 'lodash'
 import { json } from 'remix'
+import { daysFromNow } from './utils'
 
 export interface Flashcard {
   front: string
@@ -14,7 +15,6 @@ export interface Flashcard {
 }
 
 const range = 'Fiszki!A2:H1000'
-const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -153,9 +153,6 @@ export const actionFailure = async (flashcardIndex: number) => {
     },
   })
 }
-
-export const daysFromNow = (days: number) =>
-  new Date(Date.now() + days * MS_IN_DAY).toISOString().slice(0, 10)
 
 const randomNumber = (min: number, max: number) =>
   min + Math.floor(Math.random() * (max - min + 1))

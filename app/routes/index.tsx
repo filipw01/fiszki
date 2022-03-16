@@ -1,7 +1,8 @@
-import indexStyles from '~/styles/index.css'
 import { Link, LoaderFunction, useLoaderData } from 'remix'
-import { daysFromNow, Flashcard, indexLoader } from '~/utils.server'
 import { groupBy } from 'lodash'
+import { Flashcard, indexLoader } from '~/utils.server'
+import { daysFromNow } from '~/utils'
+import indexStyles from '~/styles/index.css'
 
 export const loader: LoaderFunction = async () => {
   return indexLoader()
