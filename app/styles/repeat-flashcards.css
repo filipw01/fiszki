@@ -58,15 +58,11 @@ button:hover {
   --secondary: rgb(0, 182, 10);
 }
 
-.turn-button {
-  --primary: rgba(0, 157, 255, 0.16);
-  --secondary: rgb(0, 115, 199);
-}
-
 .check-button {
   --primary: rgba(0, 247, 255, 0.16);
   --secondary: rgb(0, 199, 192);
   margin-top: 0;
+  flex: 0px 1 1;
 }
 
 .check-button[disabled] {
@@ -90,15 +86,15 @@ button:hover {
   align-items: center;
 }
 
-.answer-holder input {
-  width: 100%;
+.answer-holder textarea {
   font-size: 2rem;
   padding: 16px;
   border-right: none;
   margin-right: -8px;
+  width: 50%;
 }
 
-.answer-holder input:focus-visible {
+.answer-holder textarea:focus-visible {
   outline: none;
   border: 2px solid rgb(0, 199, 192);
   border-right: none;

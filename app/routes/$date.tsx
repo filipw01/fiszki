@@ -54,7 +54,7 @@ export default function RepeatFlashcards() {
     []
   )
 
-  const input = useRef<HTMLInputElement>(null)
+  const input = useRef<HTMLTextAreaElement>(null)
   const [wasTurned, setWasTurned] = useState(false)
   const [typedCorrectly, setTypedCorrectly] = useState<boolean | undefined>()
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState<number>(0)
@@ -134,16 +134,6 @@ export default function RepeatFlashcards() {
       </div>
 
       <div>
-        {!wasTurned && (
-          <button
-            className="turn-button"
-            onClick={() => {
-              setWasTurned(true)
-            }}
-          >
-            odwróć
-          </button>
-        )}
         {(wasTurned || typedCorrectly === false) && typedCorrectly !== true && (
           <>
             <Form method="post" onSubmit={nextFlashcard}>
@@ -169,11 +159,7 @@ export default function RepeatFlashcards() {
         {(!wasTurned || typedCorrectly !== undefined) && (
           <>
             <div className="answer-holder">
-              <input
-                ref={input}
-                disabled={typedCorrectly !== undefined}
-                type="text"
-              />
+              <textarea ref={input} disabled={typedCorrectly !== undefined} />
               {typedCorrectly !== true ? (
                 <button
                   className="check-button"
