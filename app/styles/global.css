@@ -1,6 +1,7 @@
 *,
 *::before,
 *::after {
+  font-family: 'Comfortaa', sans-serif;
   box-sizing: border-box;
 }
 
@@ -10,5 +11,5 @@ a {
 }
 
 body {
-  font-family: sans-serif;
+  background: #f8f8f8;
 }

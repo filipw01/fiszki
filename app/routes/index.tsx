@@ -15,7 +15,7 @@ export const links = () => {
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export default function Index() {
-  const flashcards = useLoaderData<Flashcard>()
+  const flashcards = useLoaderData<Flashcard[]>()
   const flashcardsByNextStudy = groupBy(flashcards, 'nextStudy')
 
   const currentWeekDay = new Date(Date.now()).getDay()
@@ -29,6 +29,12 @@ export default function Index() {
     'Sobota',
     'Niedziela',
   ]
+
+  const isoDate = daysFromNow(0)
+  const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
+  const seenAllFlashcardsToday = !todayFlashcards.some(
+    (flashcard) => flashcard.lastSeen === 0
+  )
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}>
@@ -68,6 +74,7 @@ export default function Index() {
             )
           })}
       </div>
+      {seenAllFlashcardsToday && <div>Wszystkie fiszki z dzisiaj widziane</div>}
     </div>
   )
 }

@@ -50,6 +50,8 @@ export default function RepeatFlashcards() {
         initialFlashcards.current.filter(
           (flashcard) => flashcard.nextStudy === date
         )
+      ).sort(
+        (flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen
       ),
     []
   )
@@ -95,13 +97,11 @@ export default function RepeatFlashcards() {
         <Link to="/">
           <h1>Fiszki</h1>
         </Link>
-        <div className="folder-list">
-          {currentFlashcard.folder
-            .split('/')
-            .slice(1)
-            .map((folder) => {
-              return <div className="folder">{folder}</div>
-            })}
+        <div className="tag-list">
+          <div className="folder">
+            <FolderIcon />
+            <span className="folder__text">{currentFlashcard.folder}</span>
+          </div>
         </div>
       </div>
       <div className="flashcards-holder">
@@ -200,3 +200,19 @@ export default function RepeatFlashcards() {
     </div>
   )
 }
+
+const FolderIcon = () => (
+  <svg
+    width="24"
+    height="20"
+    viewBox="0 0 24 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="folder-icon"
+  >
+    <path
+      d="M9.6 0H2.4C1.08 0 0.012 1.125 0.012 2.5L0 17.5C0 18.875 1.08 20 2.4 20H21.6C22.92 20 24 18.875 24 17.5V5C24 3.625 22.92 2.5 21.6 2.5H12L9.6 0Z"
+      fill="currentColor"
+    />
+  </svg>
+)

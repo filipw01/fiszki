@@ -12,9 +12,10 @@ export interface Flashcard {
   isDoubleSided: 'FALSE' | 'TRUE'
   hotStreak: string
   nextStudy: string
+  lastSeen: number
 }
 
-const range = 'Fiszki!A2:H1000'
+const range = 'Fiszki!A2:I1000'
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -45,6 +46,7 @@ export const indexLoader = async () => {
       isDoubleSided,
       hotStreak,
       nextStudy,
+      lastSeen,
     ]) => {
       const now = daysFromNow(0)
       const updatedNextStudy =
@@ -61,6 +63,7 @@ export const indexLoader = async () => {
         isDoubleSided,
         hotStreak ?? 0,
         updatedNextStudy,
+        lastSeen ?? 0,
       ]
     }
   )
@@ -86,6 +89,7 @@ export const indexLoader = async () => {
       isDoubleSided,
       hotStreak,
       nextStudy,
+      lastSeen,
     ]) => {
       return {
         front,
@@ -96,6 +100,7 @@ export const indexLoader = async () => {
         isDoubleSided,
         hotStreak,
         nextStudy,
+        lastSeen: Number(lastSeen),
       }
     }
   )
@@ -125,11 +130,11 @@ export const actionSuccess = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!G${flashcardIndex}:H${flashcardIndex}`,
+    range: `Fiszki!G${flashcardIndex}:I${flashcardIndex}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [
-        [Number(values.data.values[0][0]) + 1, daysFromNow(numberOfDays)],
+        [Number(values.data.values[0][0]) + 1, daysFromNow(numberOfDays), 0],
       ],
     },
   })
@@ -144,12 +149,21 @@ export const actionFailure = async (flashcardIndex: number) => {
     auth,
   })
 
+  const values = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.SHEET_ID,
+    range: `Fiszki!H${flashcardIndex}`,
+  })
+
+  if (!values.data.values) {
+    throw new Error('No data received from spreadsheet')
+  }
+
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!G${flashcardIndex}`,
+    range: `Fiszki!G${flashcardIndex}:I${flashcardIndex}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[0]],
+      values: [[0, values.data.values[0][0], Date.now()]],
     },
   })
 }

@@ -15,37 +15,48 @@
   box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.2);
 }
 
-.folder-list {
+.tag-list {
   display: flex;
   margin-left: 32px;
 }
 
 .folder {
-  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  padding: 5px 16px 5px;
   margin-right: 8px;
-  border-radius: 4px;
   color: white;
-  background-color: #4848ff;
+  font-size: 22px;
+  color: rgba(25, 130, 196, 1);
+  background: rgba(25, 130, 196, 0.25);
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.folder__text {
+  margin-top: 2px;
+}
+
+.folder-icon {
+  margin-right: 8px;
 }
 
 button {
-  display: block;
-  font-size: 2rem;
+  font-size: 20px;
   width: 100%;
   padding: 16px 32px;
-  margin-top: 8px;
   background-color: var(--primary);
   color: var(--secondary);
-  border: 2px solid var(--secondary);
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  border: 2px solid var(--primary);
+  border-radius: 0 0 20px 20px;
 }
 
 button:focus-visible,
 button:hover {
   background-color: var(--secondary);
-  color: white;
+  color: var(--primary);
 }
 
 .bad-button {
@@ -59,8 +70,8 @@ button:hover {
 }
 
 .check-button {
-  --primary: rgba(0, 247, 255, 0.16);
-  --secondary: rgb(0, 199, 192);
+  --primary: rgba(127, 158, 52, 1);
+  --secondary: #fff;
   margin-top: 0;
   flex: 0px 1 1;
 }
@@ -81,21 +92,23 @@ button:hover {
 }
 
 .answer-holder {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
+  background: #ffffff;
+  margin-top: 48px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 4px 0 rgba(183, 183, 183, 0.25);
 }
 
 .answer-holder textarea {
-  font-size: 2rem;
+  font-size: 20px;
   padding: 16px;
-  border-right: none;
   margin-right: -8px;
-  width: 50%;
+  border: none;
+  width: 100%;
+  height: 180px;
+  resize: none;
+  border-radius: 20px 20px 0 0;
 }
 
 .answer-holder textarea:focus-visible {
-  outline: none;
-  border: 2px solid rgb(0, 199, 192);
-  border-right: none;
 }
