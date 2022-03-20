@@ -32,13 +32,12 @@ export default function Index() {
 
   const isoDate = daysFromNow(0)
   const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
-  const seenAllFlashcardsToday = !todayFlashcards.some(
-    (flashcard) => flashcard.lastSeen === 0
+  const seenFlashcardsToday = todayFlashcards.filter(
+    (flashcard) => flashcard.lastSeen !== 0
   )
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}>
-      <h1>Fiszki</h1>
+    <div>
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (
           <p key={weekDayName} className="calendar__header-cell">
@@ -57,16 +56,20 @@ export default function Index() {
               </div>
             )
           })}
-        {Array(28 - normalizedCurrentWeekDay)
+        <Link to={`/${isoDate}`} className="day day--present">
+          {seenFlashcardsToday.length}/{todayFlashcards.length}
+          <div className="day__date">{Number(isoDate.slice(-2))}</div>
+        </Link>
+        {Array(27 - normalizedCurrentWeekDay)
           .fill(undefined)
           .map((_, index) => {
-            const isoDate = daysFromNow(index)
+            const isoDate = daysFromNow(index + 1)
             const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
             return (
               <Link
                 to={`/${isoDate}`}
                 key={index}
-                className={index === 0 ? 'day day--present' : 'day day--future'}
+                className={'day day--future'}
               >
                 {todayFlashcards.length}
                 <div className="day__date">{Number(isoDate.slice(-2))}</div>
@@ -74,7 +77,9 @@ export default function Index() {
             )
           })}
       </div>
-      {seenAllFlashcardsToday && <div>Wszystkie fiszki z dzisiaj widziane</div>}
+      {seenFlashcardsToday.length === todayFlashcards.length && (
+        <div>Wszystkie fiszki z dzisiaj widziane</div>
+      )}
     </div>
   )
 }

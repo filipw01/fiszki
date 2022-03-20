@@ -12,12 +12,14 @@
   padding: 32px;
   text-align: center;
   font-size: 3rem;
-  box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 4px 0 rgba(168, 168, 168, 0.25);
+  word-break: break-word;
+  background: white;
 }
 
 .tag-list {
   display: flex;
-  margin-left: 32px;
+  margin: 12px 0 22px;
 }
 
 .folder {

@@ -15,7 +15,24 @@ export interface Flashcard {
   lastSeen: number
 }
 
-const range = 'Fiszki!A2:I1000'
+const getRange = (from: string, to?: string) => {
+  if (process.env.NODE_ENV === 'development') {
+    const originalColumnFrom = from.charCodeAt(0)
+    const offsetColumnFrom = String.fromCharCode(originalColumnFrom + 13)
+    const baseRange = `Fiszki!${offsetColumnFrom}${from.slice(1)}`
+    if (!to) {
+      return baseRange
+    }
+    const originalColumnTo = to.charCodeAt(0)
+    const offsetColumnTo = String.fromCharCode(originalColumnTo + 13)
+    return `${baseRange}:${offsetColumnTo}${to.slice(1)}`
+  }
+  const toRange = to ? `:${to}` : ''
+  return `Fiszki!${from}${toRange}`
+}
+
+const range = getRange('A2', 'I1000')
+console.log(range)
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -49,11 +66,11 @@ export const indexLoader = async () => {
       lastSeen,
     ]) => {
       const now = daysFromNow(0)
-      const updatedNextStudy =
+      const [updatedNextStudy, updatedLastSeen] =
         nextStudy === undefined ||
         new Date(nextStudy).getTime() < new Date(now).getTime()
-          ? now
-          : nextStudy
+          ? [now, 0]
+          : [nextStudy, lastSeen]
       return [
         front,
         frontExample,
@@ -63,7 +80,7 @@ export const indexLoader = async () => {
         isDoubleSided,
         hotStreak ?? 0,
         updatedNextStudy,
-        lastSeen ?? 0,
+        updatedLastSeen,
       ]
     }
   )
@@ -118,7 +135,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
   })
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!G${flashcardIndex}`,
+    range: getRange(`G${flashcardIndex}`),
   })
 
   if (!values.data.values) {
@@ -130,7 +147,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!G${flashcardIndex}:I${flashcardIndex}`,
+    range: getRange(`G${flashcardIndex}`, `I${flashcardIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [
@@ -151,7 +168,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!H${flashcardIndex}`,
+    range: getRange(`H${flashcardIndex}`),
   })
 
   if (!values.data.values) {
@@ -160,7 +177,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: `Fiszki!G${flashcardIndex}:I${flashcardIndex}`,
+    range: getRange(`G${flashcardIndex}`, `I${flashcardIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[0, values.data.values[0][0], Date.now()]],

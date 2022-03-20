@@ -81,27 +81,15 @@ export default function RepeatFlashcards() {
   }
 
   if (currentFlashcard === undefined) {
-    return (
-      <div>
-        <Link to="/">
-          <h1>Fiszki</h1>
-        </Link>
-        Brak fiszek na ten dzień
-      </div>
-    )
+    return <div>Brak fiszek na ten dzień</div>
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Link to="/">
-          <h1>Fiszki</h1>
-        </Link>
-        <div className="tag-list">
-          <div className="folder">
-            <FolderIcon />
-            <span className="folder__text">{currentFlashcard.folder}</span>
-          </div>
+      <div className="tag-list">
+        <div className="folder">
+          <FolderIcon />
+          <span className="folder__text">{currentFlashcard.folder}</span>
         </div>
       </div>
       <div className="flashcards-holder">
@@ -159,7 +147,11 @@ export default function RepeatFlashcards() {
         {(!wasTurned || typedCorrectly !== undefined) && (
           <>
             <div className="answer-holder">
-              <textarea ref={input} disabled={typedCorrectly !== undefined} />
+              <textarea
+                ref={input}
+                disabled={typedCorrectly !== undefined}
+                spellCheck={false}
+              />
               {typedCorrectly !== true ? (
                 <button
                   className="check-button"
