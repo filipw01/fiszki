@@ -9,6 +9,7 @@ export interface Flashcard {
   back: string
   backExample: string
   folder: string
+  tags: string[]
   isDoubleSided: 'FALSE' | 'TRUE'
   hotStreak: string
   nextStudy: string
@@ -32,7 +33,6 @@ const getRange = (from: string, to?: string) => {
 }
 
 const range = getRange('A2', 'I1000')
-console.log(range)
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -102,18 +102,22 @@ export const indexLoader = async () => {
       frontExample,
       back,
       backExample,
-      folder,
+      tagsList,
       isDoubleSided,
       hotStreak,
       nextStudy,
       lastSeen,
     ]) => {
+      const [folder, ...tags] = tagsList
+        .split(';')
+        .map((tag: string) => tag.trim())
       return {
         front,
         frontExample,
         back,
         backExample,
         folder,
+        tags,
         isDoubleSided,
         hotStreak,
         nextStudy,

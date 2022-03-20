@@ -15,6 +15,7 @@ import {
 } from '~/utils.server'
 import { useMemo, useRef, useState } from 'react'
 import { shuffle } from 'lodash'
+import catImage from '../assets/cat.png'
 
 export const loader: LoaderFunction = async () => {
   return indexLoader()
@@ -57,7 +58,6 @@ export default function RepeatFlashcards() {
   )
 
   const input = useRef<HTMLTextAreaElement>(null)
-  const [wasTurned, setWasTurned] = useState(false)
   const [typedCorrectly, setTypedCorrectly] = useState<boolean | undefined>()
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState<number>(0)
 
@@ -67,7 +67,6 @@ export default function RepeatFlashcards() {
       (flashcard) => flashcard === currentFlashcard
     ) + 1
   const nextFlashcard = () => {
-    setWasTurned(false)
     setTypedCorrectly(undefined)
     if (input.current) {
       input.current.value = ''
@@ -85,17 +84,38 @@ export default function RepeatFlashcards() {
   }
 
   return (
-    <div>
+    <div
+      className={
+        typedCorrectly === true
+          ? 'answer--correct'
+          : typedCorrectly === false
+          ? 'answer--wrong'
+          : ''
+      }
+    >
       <div className="tag-list">
         <div className="folder">
           <FolderIcon />
           <span className="folder__text">{currentFlashcard.folder}</span>
         </div>
+        {currentFlashcard.tags.map((tag) => (
+          <div className="tag">
+            <span className="tag__text">{tag}</span>
+          </div>
+        ))}
       </div>
       <div className="flashcards-holder">
         <div className="flashcard">
           <div>
-            {currentFlashcard.front}
+            <div
+              style={{
+                fontWeight: getTextLengthBasedFontWeight(
+                  currentFlashcard.front
+                ),
+              }}
+            >
+              {currentFlashcard.front}
+            </div>
             {currentFlashcard.frontExample && (
               <>
                 <hr />
@@ -104,10 +124,18 @@ export default function RepeatFlashcards() {
             )}
           </div>
         </div>
-        <div className="flashcard">
-          {wasTurned ? (
+        <div className="flashcard flashcard--back">
+          {typedCorrectly !== undefined ? (
             <div>
-              {currentFlashcard.back}
+              <div
+                style={{
+                  fontWeight: getTextLengthBasedFontWeight(
+                    currentFlashcard.back
+                  ),
+                }}
+              >
+                {currentFlashcard.back}
+              </div>
               {currentFlashcard.backExample && (
                 <>
                   <hr />
@@ -116,78 +144,76 @@ export default function RepeatFlashcards() {
               )}
             </div>
           ) : (
-            <div>?</div>
+            <div>
+              <img src={catImage} alt="" />
+            </div>
           )}
         </div>
       </div>
 
       <div>
-        {(wasTurned || typedCorrectly === false) && typedCorrectly !== true && (
-          <>
-            <Form method="post" onSubmit={nextFlashcard}>
-              <input
-                type="hidden"
-                name="flashcardIndex"
-                value={flashcardIndex}
-              />
-              <input type="hidden" name="action" value="success" />
-              <button className="good-button">dobrze</button>
-            </Form>
-            <Form method="post" onSubmit={nextFlashcard}>
-              <input
-                type="hidden"
-                name="flashcardIndex"
-                value={flashcardIndex}
-              />
-              <input type="hidden" name="action" value="failure" />
-              <button className="bad-button">źle</button>
-            </Form>
-          </>
-        )}
-        {(!wasTurned || typedCorrectly !== undefined) && (
-          <>
-            <div className="answer-holder">
-              <textarea
-                ref={input}
-                disabled={typedCorrectly !== undefined}
-                spellCheck={false}
-              />
-              {typedCorrectly !== true ? (
-                <button
-                  className="check-button"
-                  disabled={typedCorrectly === false}
-                  onClick={() => {
-                    if (
-                      input.current?.value.toLowerCase().trim() ===
-                      currentFlashcard.back.toLowerCase().trim()
-                    ) {
-                      setTypedCorrectly(true)
-                    } else {
-                      setTypedCorrectly(false)
-                    }
-                    setWasTurned(true)
-                  }}
-                >
-                  {typedCorrectly === false ? 'źle' : 'sprawdź'}
-                </button>
-              ) : (
+        <div className="answer-holder">
+          <textarea
+            placeholder="Hm.."
+            ref={input}
+            disabled={typedCorrectly !== undefined}
+            spellCheck={false}
+          />
+          {typedCorrectly === undefined ? (
+            <button
+              className="check-button"
+              onClick={() => {
+                if (
+                  input.current?.value.toLowerCase().trim() ===
+                  currentFlashcard.back.toLowerCase().trim()
+                ) {
+                  setTypedCorrectly(true)
+                } else {
+                  setTypedCorrectly(false)
+                }
+              }}
+            >
+              sprawdź
+            </button>
+          ) : (
+            <div className="results-buttons">
+              {!typedCorrectly && (
                 <Form
                   method="post"
                   onSubmit={nextFlashcard}
-                  style={{ width: '100%' }}
+                  className="result-form"
                 >
                   <input
                     type="hidden"
                     name="flashcardIndex"
                     value={flashcardIndex}
                   />
-                  <input type="hidden" name="action" value="success" />
-                  <button className="good-button">Świetnie, idź dalej</button>
+                  <input type="hidden" name="action" value="failure" />
+                  <button className="bad-button">źle</button>
                 </Form>
               )}
+              <Form
+                method="post"
+                onSubmit={nextFlashcard}
+                className="result-form"
+              >
+                <input
+                  type="hidden"
+                  name="flashcardIndex"
+                  value={flashcardIndex}
+                />
+                <input type="hidden" name="action" value="success" />
+                {typedCorrectly ? (
+                  <button className="good-button only-button">
+                    Dobrze, świetna robota 🤩
+                  </button>
+                ) : (
+                  <button className="good-button">dobrze</button>
+                )}
+              </Form>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
@@ -208,3 +234,6 @@ const FolderIcon = () => (
     />
   </svg>
 )
+
+const getTextLengthBasedFontWeight = (text: string) =>
+  text.split(' ').length > 5 ? undefined : 700

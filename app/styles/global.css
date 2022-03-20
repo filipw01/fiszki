@@ -22,6 +22,18 @@ h1 {
 
 .scaffold {
   display: flex;
+  align-items: flex-start;
+}
+
+@media (max-width: 960px) {
+  body {
+    padding: 16px;
+  }
+
+  .scaffold {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .content {
@@ -30,5 +42,6 @@ h1 {
 
 .link-home,
 .spacer {
-  flex: 100px 1 0;
+  width: 100px;
+  flex-grow: 1;
 }
