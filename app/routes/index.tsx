@@ -78,7 +78,7 @@ export default function Index() {
           })}
       </div>
       {seenFlashcardsToday.length === todayFlashcards.length && (
-        <div>Wszystkie fiszki z dzisiaj widziane</div>
+        <div style={{fontSize: '2rem', marginTop: '2rem'}}>Wszystkie fiszki z dzisiaj widziane</div>
       )}
     </div>
   )

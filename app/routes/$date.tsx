@@ -13,7 +13,7 @@ import {
   Flashcard,
   indexLoader,
 } from '~/utils.server'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { shuffle } from 'lodash'
 import catImage from '../assets/cat.png'
 
@@ -57,9 +57,17 @@ export default function RepeatFlashcards() {
     []
   )
 
+  const goodButtonTypedCorrectly = useRef<HTMLButtonElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
   const [typedCorrectly, setTypedCorrectly] = useState<boolean | undefined>()
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState<number>(0)
+  useEffect(() => {
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Enter') {
+        goodButtonTypedCorrectly.current?.click()
+      }
+    })
+  }, [])
 
   const currentFlashcard = selectedFlashcards[currentFlashcardIndex]
   const flashcardIndex =
@@ -69,6 +77,9 @@ export default function RepeatFlashcards() {
   const nextFlashcard = () => {
     setTypedCorrectly(undefined)
     if (input.current) {
+      setTimeout(() => {
+        input.current?.focus()
+      })
       input.current.value = ''
     }
     setCurrentFlashcardIndex((prevIndex) => {
@@ -77,6 +88,17 @@ export default function RepeatFlashcards() {
       }
       return prevIndex + 1
     })
+  }
+
+  const handleCheck = () => {
+    if (
+      input.current?.value.toLowerCase().trim() ===
+      currentFlashcard.back.toLowerCase().trim()
+    ) {
+      setTypedCorrectly(true)
+    } else {
+      setTypedCorrectly(false)
+    }
   }
 
   if (currentFlashcard === undefined) {
@@ -99,7 +121,7 @@ export default function RepeatFlashcards() {
           <span className="folder__text">{currentFlashcard.folder}</span>
         </div>
         {currentFlashcard.tags.map((tag) => (
-          <div className="tag">
+          <div key={tag} className="tag">
             <span className="tag__text">{tag}</span>
           </div>
         ))}
@@ -156,22 +178,21 @@ export default function RepeatFlashcards() {
           <textarea
             placeholder="Hm.."
             ref={input}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.code === 'Enter') {
+                handleCheck()
+                e.stopPropagation()
+              }
+            }}
             disabled={typedCorrectly !== undefined}
             spellCheck={false}
           />
           {typedCorrectly === undefined ? (
             <button
+              type="button"
               className="check-button"
-              onClick={() => {
-                if (
-                  input.current?.value.toLowerCase().trim() ===
-                  currentFlashcard.back.toLowerCase().trim()
-                ) {
-                  setTypedCorrectly(true)
-                } else {
-                  setTypedCorrectly(false)
-                }
-              }}
+              onClick={handleCheck}
             >
               sprawdź
             </button>
@@ -204,7 +225,10 @@ export default function RepeatFlashcards() {
                 />
                 <input type="hidden" name="action" value="success" />
                 {typedCorrectly ? (
-                  <button className="good-button only-button">
+                  <button
+                    className="good-button only-button"
+                    ref={goodButtonTypedCorrectly}
+                  >
                     Dobrze, świetna robota 🤩
                   </button>
                 ) : (

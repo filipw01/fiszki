@@ -1,6 +1,6 @@
 .flashcards-holder {
   display: flex;
-  gap: 32px;
+  gap: 28px;
 }
 
 .flashcard {
@@ -44,7 +44,7 @@
 
 .tag-list {
   display: flex;
-  margin: 12px 0 22px;
+  margin-bottom: 20px;
   gap: 16px;
 }
 
@@ -54,7 +54,7 @@
   align-items: center;
   padding: 5px 16px 5px;
   color: white;
-  font-size: 22px;
+  font-size: 18px;
   color: rgba(25, 130, 196, 1);
   background: rgba(25, 130, 196, 0.25);
   border-radius: 20px;
@@ -124,7 +124,7 @@ button:hover {
 
 .answer-holder {
   background: #fff;
-  margin-top: 48px;
+  margin-top: 28px;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 4px 0 rgba(183, 183, 183, 0.25);
