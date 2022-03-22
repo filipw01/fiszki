@@ -6,8 +6,8 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from 'remix'
-import type { MetaFunction } from 'remix'
+} from '@remix-run/react'
+import { MetaFunction } from '@remix-run/server-runtime'
 import globalStyles from '~/styles/global.css'
 
 export const meta: MetaFunction = () => {
@@ -21,15 +21,12 @@ export default function App() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href={globalStyles} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="*"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&display=swap"
-          rel="stylesheet"
+          rel="preload"
+          href="/Comfortaa-Variable.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="same-origin"
         />
         <Meta />
         <Links />

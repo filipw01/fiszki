@@ -1,6 +1,6 @@
+import { json } from '@remix-run/server-runtime'
 import { google } from 'googleapis'
 import { isEqual } from 'lodash'
-import { json } from 'remix'
 import { daysFromNow } from './utils'
 
 export interface Flashcard {

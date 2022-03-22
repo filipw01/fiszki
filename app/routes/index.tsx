@@ -1,4 +1,5 @@
-import { Link, LoaderFunction, useLoaderData } from 'remix'
+import { LoaderFunction } from '@remix-run/server-runtime'
+import { Link, useLoaderData } from '@remix-run/react'
 import { groupBy } from 'lodash'
 import { Flashcard, indexLoader } from '~/utils.server'
 import { daysFromNow } from '~/utils'
@@ -78,7 +79,9 @@ export default function Index() {
           })}
       </div>
       {seenFlashcardsToday.length === todayFlashcards.length && (
-        <div style={{fontSize: '2rem', marginTop: '2rem'}}>Wszystkie fiszki z dzisiaj widziane</div>
+        <div style={{ fontSize: '2rem', marginTop: '2rem' }}>
+          Wszystkie fiszki z dzisiaj widziane
+        </div>
       )}
     </div>
   )

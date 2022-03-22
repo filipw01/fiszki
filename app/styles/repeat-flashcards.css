@@ -1,5 +1,6 @@
 .flashcards-holder {
   display: flex;
+  align-items: center;
   gap: 28px;
 }
 
@@ -16,6 +17,10 @@
   word-break: break-word;
   background: white;
   aspect-ratio: 1;
+}
+
+.flashcard__example {
+  color: rgb(96, 96, 96);
 }
 
 .flashcard img {

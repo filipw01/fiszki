@@ -1,11 +1,8 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
-import {
-  ActionFunction,
-  Form,
-  Link,
-  LoaderFunction,
-  useLoaderData,
-} from 'remix'
+import { ActionFunction, LoaderFunction } from '@remix-run/server-runtime'
+import { Form, useLoaderData } from '@remix-run/react'
+import { shuffle } from 'lodash'
 import repeatFlashcardsStyles from '~/styles/repeat-flashcards.css'
 import {
   actionFailure,
@@ -13,8 +10,6 @@ import {
   Flashcard,
   indexLoader,
 } from '~/utils.server'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { shuffle } from 'lodash'
 import catImage from '../assets/cat.png'
 
 export const loader: LoaderFunction = async () => {
@@ -134,35 +129,68 @@ export default function RepeatFlashcards() {
                 fontWeight: getTextLengthBasedFontWeight(
                   currentFlashcard.front
                 ),
+                fontSize: getLengthBasedFontSize(
+                  currentFlashcard.front.length +
+                    currentFlashcard.frontExample.length
+                ),
               }}
             >
               {currentFlashcard.front}
             </div>
             {currentFlashcard.frontExample && (
-              <>
+              <div
+                className="flashcard__example"
+                style={{
+                  fontSize: getLengthBasedFontSize(
+                    currentFlashcard.front.length +
+                      currentFlashcard.frontExample.length,
+                    true
+                  ),
+                }}
+              >
                 <hr />
                 {currentFlashcard.frontExample}
-              </>
+              </div>
             )}
           </div>
         </div>
         <div className="flashcard flashcard--back">
           {typedCorrectly !== undefined ? (
-            <div>
+            <div
+              style={{
+                fontSize: getLengthBasedFontSize(
+                  currentFlashcard.back.length +
+                    currentFlashcard.backExample.length
+                ),
+              }}
+            >
               <div
                 style={{
                   fontWeight: getTextLengthBasedFontWeight(
                     currentFlashcard.back
+                  ),
+                  fontSize: getLengthBasedFontSize(
+                    currentFlashcard.back.length +
+                      currentFlashcard.backExample.length
                   ),
                 }}
               >
                 {currentFlashcard.back}
               </div>
               {currentFlashcard.backExample && (
-                <>
+                <div
+                  className="flashcard__example"
+                  style={{
+                    fontSize: getLengthBasedFontSize(
+                      currentFlashcard.back.length +
+                        currentFlashcard.backExample.length,
+                      true
+                    ),
+                  }}
+                >
                   <hr />
                   {currentFlashcard.backExample}
-                </>
+                </div>
               )}
             </div>
           ) : (
@@ -261,3 +289,10 @@ const FolderIcon = () => (
 
 const getTextLengthBasedFontWeight = (text: string) =>
   text.split(' ').length > 5 ? undefined : 700
+
+const getLengthBasedFontSize = (length: number, isSubtitle = false) => {
+  const base = 7 + Math.max(6 * ((120 - length) / 120), 0)
+  const px = isSubtitle ? base - 1 : base
+  const vw = isSubtitle ? 1.5 : 1.75
+  return `calc(${vw}vw + ${px}px)`
+}

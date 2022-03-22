@@ -1,33 +1,54 @@
 .calendar {
+  margin-top: 32px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 44px repeat(4, 100px);
-  gap: 8px;
+  grid-template-rows: 36px repeat(4, 100px);
+  border-bottom: 1px solid rgba(218, 218, 218, 1);
 }
 
 .calendar__header-cell {
+  font-size: 12px;
   text-align: center;
 }
 
 .day {
-  box-shadow: 0 0 2px black;
-  border-radius: 8px;
+  font-size: 32px;
+  border-top: 1px solid rgba(218, 218, 218, 1);
+  border-left: 1px solid rgba(218, 218, 218, 1);
   display: grid;
   place-content: center;
   position: relative;
 }
 
+@media (max-width: 960px) {
+  .day {
+    font-size: 20px;
+  }
+
+  .calendar {
+    margin: 32px -12px 0;
+    grid-template-rows: 24px repeat(4, 100px);
+  }
+
+  .calendar__header-cell {
+    font-size: 8px;
+  }
+}
+
+.day:nth-of-type(7n + 6) {
+  border-right: 1px solid rgba(218, 218, 218, 1);
+}
+
 .day--past {
-  background-color: rgba(64, 64, 64, 0.16);
+  background: rgba(243, 243, 243, 1);
+}
+
+.day--present {
+  background: rgba(242, 204, 143, 1);
 }
 
 .day--present .day__date {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  padding: 4px;
-  background-color: red;
-  color: white;
-  line-height: 1;
+  color: rgba(218, 80, 5, 1);
 }
 
 .day--future {
@@ -35,6 +56,7 @@
 }
 
 .day__date {
+  font-size: 16px;
   position: absolute;
   bottom: 8px;
   right: 8px;

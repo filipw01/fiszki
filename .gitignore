@@ -5,7 +5,7 @@ secrets.json
 # build
 .cache
 build
-public
+public/build
 node_modules
 
 # miscellaneous
