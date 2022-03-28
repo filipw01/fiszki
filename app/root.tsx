@@ -9,6 +9,7 @@ import {
 } from '@remix-run/react'
 import { MetaFunction } from '@remix-run/server-runtime'
 import globalStyles from '~/styles/global.css'
+import { getCssText } from '~/styles/client.context'
 
 export const meta: MetaFunction = () => {
   return { title: 'New Remix App' }
@@ -30,6 +31,11 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <style
+          id="stitches"
+          dangerouslySetInnerHTML={{ __html: getCssText() }}
+          suppressHydrationWarning
+        />
       </head>
       <body>
         <div className="scaffold">

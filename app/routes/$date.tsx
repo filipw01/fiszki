@@ -2,15 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { ActionFunction, LoaderFunction } from '@remix-run/server-runtime'
 import { Form, useLoaderData } from '@remix-run/react'
+import { styled } from '@stitches/react'
 import { shuffle } from 'lodash'
 import repeatFlashcardsStyles from '~/styles/repeat-flashcards.css'
 import {
   actionFailure,
   actionSuccess,
-  Flashcard,
+  Flashcard as FlashcardType,
   indexLoader,
 } from '~/utils.server'
-import catImage from '../assets/cat.png'
+import { TagList } from '~/components/TagList'
+import { Flashcard } from '~/components/Flashcard'
 
 export const loader: LoaderFunction = async () => {
   return indexLoader()
@@ -38,7 +40,7 @@ export const links = () => {
 
 export default function RepeatFlashcards() {
   const { date } = useParams()
-  const flashCards = useLoaderData<Flashcard[]>()
+  const flashCards = useLoaderData<FlashcardType[]>()
   const initialFlashcards = useRef(flashCards)
   const selectedFlashcards = useMemo(
     () =>
@@ -101,146 +103,42 @@ export default function RepeatFlashcards() {
   }
 
   return (
-    <div
-      className={
-        typedCorrectly === true
-          ? 'answer--correct'
-          : typedCorrectly === false
-          ? 'answer--wrong'
-          : ''
-      }
-    >
-      <div className="tag-list">
-        <div className="folder">
-          <FolderIcon />
-          <span className="folder__text">{currentFlashcard.folder}</span>
-        </div>
-        {currentFlashcard.tags.map((tag) => (
-          <div key={tag} className="tag">
-            <span className="tag__text">{tag}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flashcards-holder">
-        <div className="flashcard">
-          <div>
-            <div
-              style={{
-                fontWeight: getTextLengthBasedFontWeight(
-                  currentFlashcard.front
-                ),
-                fontSize: getLengthBasedFontSize(
-                  currentFlashcard.front.length +
-                    currentFlashcard.frontExample.length
-                ),
-              }}
-            >
-              {currentFlashcard.front}
-            </div>
-            {currentFlashcard.frontExample && (
-              <div
-                className="flashcard__example"
-                style={{
-                  fontSize: getLengthBasedFontSize(
-                    currentFlashcard.front.length +
-                      currentFlashcard.frontExample.length,
-                    true
-                  ),
-                }}
-              >
-                <hr />
-                {currentFlashcard.frontExample}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flashcard flashcard--back">
-          {typedCorrectly !== undefined ? (
-            <div
-              style={{
-                fontSize: getLengthBasedFontSize(
-                  currentFlashcard.back.length +
-                    currentFlashcard.backExample.length
-                ),
-              }}
-            >
-              <div
-                style={{
-                  fontWeight: getTextLengthBasedFontWeight(
-                    currentFlashcard.back
-                  ),
-                  fontSize: getLengthBasedFontSize(
-                    currentFlashcard.back.length +
-                      currentFlashcard.backExample.length
-                  ),
-                }}
-              >
-                {currentFlashcard.back}
-              </div>
-              {currentFlashcard.backExample && (
-                <div
-                  className="flashcard__example"
-                  style={{
-                    fontSize: getLengthBasedFontSize(
-                      currentFlashcard.back.length +
-                        currentFlashcard.backExample.length,
-                      true
-                    ),
-                  }}
-                >
-                  <hr />
-                  {currentFlashcard.backExample}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <img src={catImage} alt="" />
-            </div>
-          )}
-        </div>
-      </div>
+    <div>
+      <TagList tags={currentFlashcard.tags} folder={currentFlashcard.folder} />
+      <FlashcardsHolder>
+        <Flashcard
+          text={currentFlashcard.front}
+          example={currentFlashcard.frontExample}
+        />
+        <Flashcard
+          text={currentFlashcard.back}
+          example={currentFlashcard.backExample}
+          hidden={typedCorrectly === undefined}
+          correct={typedCorrectly}
+        />
+      </FlashcardsHolder>
 
-      <div>
-        <div className="answer-holder">
-          <textarea
-            placeholder="Hm.."
-            ref={input}
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.code === 'Enter') {
-                handleCheck()
-                e.stopPropagation()
-              }
-            }}
-            disabled={typedCorrectly !== undefined}
-            spellCheck={false}
-          />
-          {typedCorrectly === undefined ? (
-            <button
-              type="button"
-              className="check-button"
-              onClick={handleCheck}
-            >
-              sprawdź
-            </button>
-          ) : (
-            <div className="results-buttons">
-              {!typedCorrectly && (
-                <Form
-                  method="post"
-                  onSubmit={nextFlashcard}
-                  className="result-form"
-                >
-                  <input
-                    type="hidden"
-                    name="flashcardIndex"
-                    value={flashcardIndex}
-                  />
-                  <input type="hidden" name="action" value="failure" />
-                  <button className="bad-button">źle</button>
-                </Form>
-              )}
+      <div className="answer-holder">
+        <textarea
+          placeholder="Hm.."
+          ref={input}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.code === 'Enter') {
+              handleCheck()
+              e.stopPropagation()
+            }
+          }}
+          disabled={typedCorrectly !== undefined}
+          spellCheck={false}
+        />
+        {typedCorrectly === undefined ? (
+          <button type="button" className="check-button" onClick={handleCheck}>
+            sprawdź
+          </button>
+        ) : (
+          <div className="results-buttons">
+            {!typedCorrectly && (
               <Form
                 method="post"
                 onSubmit={nextFlashcard}
@@ -251,48 +149,45 @@ export default function RepeatFlashcards() {
                   name="flashcardIndex"
                   value={flashcardIndex}
                 />
-                <input type="hidden" name="action" value="success" />
-                {typedCorrectly ? (
-                  <button
-                    className="good-button only-button"
-                    ref={goodButtonTypedCorrectly}
-                  >
-                    Dobrze, świetna robota 🤩
-                  </button>
-                ) : (
-                  <button className="good-button">dobrze</button>
-                )}
+                <input type="hidden" name="action" value="failure" />
+                <button className="bad-button">źle</button>
               </Form>
-            </div>
-          )}
-        </div>
+            )}
+            <Form
+              method="post"
+              onSubmit={nextFlashcard}
+              className="result-form"
+            >
+              <input
+                type="hidden"
+                name="flashcardIndex"
+                value={flashcardIndex}
+              />
+              <input type="hidden" name="action" value="success" />
+              {typedCorrectly ? (
+                <button
+                  className="good-button only-button"
+                  ref={goodButtonTypedCorrectly}
+                >
+                  Dobrze, świetna robota 🤩
+                </button>
+              ) : (
+                <button className="good-button">dobrze</button>
+              )}
+            </Form>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-const FolderIcon = () => (
-  <svg
-    width="24"
-    height="20"
-    viewBox="0 0 24 20"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="folder-icon"
-  >
-    <path
-      d="M9.6 0H2.4C1.08 0 0.012 1.125 0.012 2.5L0 17.5C0 18.875 1.08 20 2.4 20H21.6C22.92 20 24 18.875 24 17.5V5C24 3.625 22.92 2.5 21.6 2.5H12L9.6 0Z"
-      fill="currentColor"
-    />
-  </svg>
-)
-
-const getTextLengthBasedFontWeight = (text: string) =>
-  text.split(' ').length > 5 ? undefined : 700
-
-const getLengthBasedFontSize = (length: number, isSubtitle = false) => {
-  const base = 7 + Math.max(6 * ((120 - length) / 120), 0)
-  const px = isSubtitle ? base - 1 : base
-  const vw = isSubtitle ? 1.5 : 1.75
-  return `calc(${vw}vw + ${px}px)`
-}
+const FlashcardsHolder = styled('div', {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 28,
+  '@media (max-width: 960px)': {
+    display: 'flex',
+    gap: 16,
+  },
+})

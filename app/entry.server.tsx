@@ -1,6 +1,7 @@
 import { RemixServer } from '@remix-run/react'
 import { EntryContext } from '@remix-run/react/entry'
 import { renderToString } from 'react-dom/server'
+import { getCssText } from '~/styles/client.context'
 
 export default function handleRequest(
   request: Request,
@@ -8,10 +9,14 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  const markup = renderToString(
+  let markup = renderToString(
     <RemixServer context={remixContext} url={request.url} />
   )
 
+  markup = markup.replace(
+    /<style id="stitches">.*<\/style>/g,
+    `<style id='stitches'>${getCssText()}</style>`
+  )
   responseHeaders.set('Content-Type', 'text/html')
 
   return new Response('<!DOCTYPE html>' + markup, {
