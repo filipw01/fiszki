@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react'
 import { FolderIcon } from '~/components/FolderIcon'
 import { styled } from '@stitches/react'
 
@@ -7,19 +8,25 @@ export const TagList = ({
 }: {
   folder: string
   tags: string[]
-}) => (
-  <StyledTagList>
-    <StyledTag>
-      <FolderIcon />
-      <span>{folder}</span>
-    </StyledTag>
-    {tags.map((tag) => (
-      <StyledTag key={tag}>
-        <span>{tag}</span>
+}) => {
+  const folderColor = { '--color': '25, 130, 196' } as CSSProperties
+  return (
+    <StyledTagList>
+      <StyledTag style={folderColor}>
+        <FolderIcon />
+        <span>{folder}</span>
       </StyledTag>
-    ))}
-  </StyledTagList>
-)
+      {tags.map((tag) => {
+        const tagColor = { '--color': '125, 30, 190' } as CSSProperties
+        return (
+          <StyledTag key={tag} style={tagColor}>
+            <span>{tag}</span>
+          </StyledTag>
+        )
+      })}
+    </StyledTagList>
+  )
+}
 
 const StyledTagList = styled('div', {
   display: 'flex',
@@ -32,8 +39,8 @@ const StyledTag = styled('div', {
   alignItems: 'center',
   padding: '5px 16px 5px',
   fontSize: 18,
-  color: 'rgba(25, 130, 196, 1)',
-  background: 'rgba(25, 130, 196, 0.25)',
+  background: 'rgba(var(--color), 0.25)',
+  color: 'rgb(var(--color))',
   borderRadius: 20,
   textTransform: 'uppercase',
   '& span': {

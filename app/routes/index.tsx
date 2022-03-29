@@ -57,7 +57,7 @@ export default function Index() {
               </div>
             )
           })}
-        <Link to={`/${isoDate}`} className="day day--present">
+        <Link to={`/study/${isoDate}`} className="day day--present">
           {seenFlashcardsToday.length}/{todayFlashcards.length}
           <div className="day__date">{Number(isoDate.slice(-2))}</div>
         </Link>
@@ -68,7 +68,7 @@ export default function Index() {
             const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
             return (
               <Link
-                to={`/${isoDate}`}
+                to={`/study/${isoDate}`}
                 key={index}
                 className={'day day--future'}
               >

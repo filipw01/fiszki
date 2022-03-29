@@ -4,7 +4,6 @@ import { ActionFunction, LoaderFunction } from '@remix-run/server-runtime'
 import { Form, useLoaderData } from '@remix-run/react'
 import { styled } from '@stitches/react'
 import { shuffle } from 'lodash'
-import repeatFlashcardsStyles from '~/styles/repeat-flashcards.css'
 import {
   actionFailure,
   actionSuccess,
@@ -13,6 +12,7 @@ import {
 } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { Flashcard } from '~/components/Flashcard'
+import { Button } from '~/components/Button'
 
 export const loader: LoaderFunction = async () => {
   return indexLoader()
@@ -32,10 +32,6 @@ export const action: ActionFunction = async ({ request }) => {
     }
   }
   return null
-}
-
-export const links = () => {
-  return [{ rel: 'stylesheet', href: repeatFlashcardsStyles }]
 }
 
 export default function RepeatFlashcards() {
@@ -118,8 +114,9 @@ export default function RepeatFlashcards() {
         />
       </FlashcardsHolder>
 
-      <div className="answer-holder">
-        <textarea
+      <AnswerHolder>
+        <AnswerField
+          correct={typedCorrectly}
           placeholder="Hm.."
           ref={input}
           autoFocus
@@ -133,31 +130,30 @@ export default function RepeatFlashcards() {
           spellCheck={false}
         />
         {typedCorrectly === undefined ? (
-          <button type="button" className="check-button" onClick={handleCheck}>
+          <Button
+            type="button"
+            color="check"
+            position="standalone"
+            onClick={handleCheck}
+          >
             sprawdź
-          </button>
+          </Button>
         ) : (
-          <div className="results-buttons">
+          <ResultButtons>
             {!typedCorrectly && (
-              <Form
-                method="post"
-                onSubmit={nextFlashcard}
-                className="result-form"
-              >
+              <ResultForm method="post" onSubmit={nextFlashcard}>
                 <input
                   type="hidden"
                   name="flashcardIndex"
                   value={flashcardIndex}
                 />
                 <input type="hidden" name="action" value="failure" />
-                <button className="bad-button">źle</button>
-              </Form>
+                <Button color="bad" position="left">
+                  źle
+                </Button>
+              </ResultForm>
             )}
-            <Form
-              method="post"
-              onSubmit={nextFlashcard}
-              className="result-form"
-            >
+            <ResultForm method="post" onSubmit={nextFlashcard}>
               <input
                 type="hidden"
                 name="flashcardIndex"
@@ -165,19 +161,22 @@ export default function RepeatFlashcards() {
               />
               <input type="hidden" name="action" value="success" />
               {typedCorrectly ? (
-                <button
-                  className="good-button only-button"
+                <Button
+                  color="good"
+                  position="standalone"
                   ref={goodButtonTypedCorrectly}
                 >
                   Dobrze, świetna robota 🤩
-                </button>
+                </Button>
               ) : (
-                <button className="good-button">dobrze</button>
+                <Button color="good" position="right">
+                  dobrze
+                </Button>
               )}
-            </Form>
-          </div>
+            </ResultForm>
+          </ResultButtons>
         )}
-      </div>
+      </AnswerHolder>
     </div>
   )
 }
@@ -189,5 +188,48 @@ const FlashcardsHolder = styled('div', {
   '@media (max-width: 960px)': {
     display: 'flex',
     gap: 16,
+  },
+})
+
+const ResultButtons = styled('div', {
+  display: 'flex',
+})
+
+const ResultForm = styled(Form, {
+  flex: '0px 1 1',
+})
+
+const AnswerHolder = styled('div', {
+  background: '#fff',
+  marginTop: 28,
+  borderRadius: 20,
+  overflow: 'hidden',
+  boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
+})
+
+const AnswerField = styled('textarea', {
+  display: 'block',
+  fontSize: 20,
+  padding: '24px 28px',
+  marginRight: -8,
+  border: 'none',
+  width: '100%',
+  height: 180,
+  resize: 'none',
+  borderRadius: '20px 20px 0 0',
+  background: '#fff',
+  '&::placeholder': {
+    color: 'rgb(172, 172, 172)',
+  },
+
+  variants: {
+    correct: {
+      true: {
+        color: 'rgb(138, 201, 38)',
+      },
+      false: {
+        color: 'rgb(218, 80, 5)',
+      },
+    },
   },
 })
