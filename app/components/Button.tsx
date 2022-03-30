@@ -10,7 +10,10 @@ export const Button = styled('button', {
   cursor: 'pointer',
   transition: 'all 0.2s',
   border: '2px solid var(--primary)',
+  boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
+
   '&:focus-visible, &:hover': {
+    outline: 'none',
     backgroundColor: '#fff',
     color: 'var(--primary)',
   },

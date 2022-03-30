@@ -13,6 +13,7 @@ import {
 import { TagList } from '~/components/TagList'
 import { Flashcard } from '~/components/Flashcard'
 import { Button } from '~/components/Button'
+import { LetterButton } from '~/components/LetterButton'
 
 export const loader: LoaderFunction = async () => {
   return indexLoader()
@@ -115,20 +116,36 @@ export default function RepeatFlashcards() {
       </FlashcardsHolder>
 
       <AnswerHolder>
-        <AnswerField
-          correct={typedCorrectly}
-          placeholder="Hm.."
-          ref={input}
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.code === 'Enter') {
-              handleCheck()
-              e.stopPropagation()
-            }
-          }}
-          disabled={typedCorrectly !== undefined}
-          spellCheck={false}
-        />
+        <FlexVCenter>
+          <LetterButtonsHolder>
+            {['ñ', 'í', 'é', 'á', 'ú', 'ü'].map((letter) => (
+              <LetterButton
+                key={letter}
+                letter={letter}
+                onClick={(letter) => {
+                  if (input.current) {
+                    input.current.value += letter
+                    input.current.focus()
+                  }
+                }}
+              />
+            ))}
+          </LetterButtonsHolder>
+          <AnswerField
+            correct={typedCorrectly}
+            placeholder="Hm.."
+            ref={input}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.code === 'Enter' && typedCorrectly === undefined) {
+                handleCheck()
+                e.stopPropagation()
+              }
+            }}
+            disabled={typedCorrectly !== undefined}
+            spellCheck={false}
+          />
+        </FlexVCenter>
         {typedCorrectly === undefined ? (
           <Button
             type="button"
@@ -139,7 +156,7 @@ export default function RepeatFlashcards() {
             sprawdź
           </Button>
         ) : (
-          <ResultButtons>
+          <FlexVCenter>
             {!typedCorrectly && (
               <ResultForm method="post" onSubmit={nextFlashcard}>
                 <input
@@ -174,7 +191,7 @@ export default function RepeatFlashcards() {
                 </Button>
               )}
             </ResultForm>
-          </ResultButtons>
+          </FlexVCenter>
         )}
       </AnswerHolder>
     </div>
@@ -191,8 +208,9 @@ const FlashcardsHolder = styled('div', {
   },
 })
 
-const ResultButtons = styled('div', {
+const FlexVCenter = styled('div', {
   display: 'flex',
+  alignItems: 'center',
 })
 
 const ResultForm = styled(Form, {
@@ -200,11 +218,8 @@ const ResultForm = styled(Form, {
 })
 
 const AnswerHolder = styled('div', {
-  background: '#fff',
+  position: 'relative',
   marginTop: 28,
-  borderRadius: 20,
-  overflow: 'hidden',
-  boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
 })
 
 const AnswerField = styled('textarea', {
@@ -218,8 +233,15 @@ const AnswerField = styled('textarea', {
   resize: 'none',
   borderRadius: '20px 20px 0 0',
   background: '#fff',
+  boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
+
   '&::placeholder': {
     color: 'rgb(172, 172, 172)',
+  },
+
+  '&:focus-visible': {
+    outline: 'none',
+    boxShadow: 'inset 0 0 0 1px rgb(200, 200, 200)',
   },
 
   variants: {
@@ -231,5 +253,17 @@ const AnswerField = styled('textarea', {
         color: 'rgb(218, 80, 5)',
       },
     },
+  },
+})
+
+const LetterButtonsHolder = styled('div', {
+  position: 'absolute',
+  transform: 'translateX(calc(-100% - 8px))',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+
+  '@media (max-width: 960px)': {
+    display: 'none',
   },
 })
