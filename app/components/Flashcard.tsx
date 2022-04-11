@@ -1,32 +1,34 @@
 import { styled } from '@stitches/react'
 import catImage from '~/assets/cat.png'
 
-export const Flashcard = ({
-  text,
-  example,
-  hidden,
-  correct,
-}: {
+type Props = {
   text: string
+  image: string
   example: string
   hidden?: boolean
   correct?: boolean
-}) => (
+}
+
+export const Flashcard = ({ text, example, image, hidden, correct }: Props) => (
   <StyledFlashcard correct={correct}>
     {hidden ? (
       <div>
-        <img src={catImage} alt="" />
+        <img style={{ width: '30%' }} src={catImage} alt="" />
       </div>
     ) : (
       <>
-        <div
-          style={{
-            fontWeight: getTextLengthBasedFontWeight(text),
-            fontSize: getLengthBasedFontSize(text.length + example.length),
-          }}
-        >
-          {text}
-        </div>
+        {image && <StyledImage src={image} alt="" />}
+        {text && (
+          <div
+            style={{
+              marginTop: image ? '1rem' : 0,
+              fontWeight: getTextLengthBasedFontWeight(text),
+              fontSize: getLengthBasedFontSize(text.length + example.length),
+            }}
+          >
+            {text}
+          </div>
+        )}
         {example && (
           <FlashcardExample
             style={{
@@ -45,10 +47,17 @@ export const Flashcard = ({
   </StyledFlashcard>
 )
 
+const StyledImage = styled('img', {
+  display: 'block',
+  maxWidth: '100%',
+  borderRadius: '0.5rem',
+})
+
 const StyledFlashcard = styled('div', {
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
+  alignItems: 'center',
   width: '50%',
   borderRadius: 16,
   padding: 32,
@@ -61,9 +70,6 @@ const StyledFlashcard = styled('div', {
   '@media (max-width: 960px)': {
     padding: 16,
     fontSize: 24,
-  },
-  '& img': {
-    width: '30%',
   },
 
   variants: {

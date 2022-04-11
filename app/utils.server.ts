@@ -5,13 +5,15 @@ import { daysFromNow } from './utils'
 
 export interface Flashcard {
   front: string
+  frontImage: string
   frontExample: string
   back: string
+  backImage: string
   backExample: string
   folder: string
   tags: string[]
   isDoubleSided: 'FALSE' | 'TRUE'
-  hotStreak: string
+  hotStreak: number
   nextStudy: string
   lastSeen: number
 }
@@ -19,20 +21,20 @@ export interface Flashcard {
 const getRange = (from: string, to?: string) => {
   if (process.env.NODE_ENV === 'development') {
     const originalColumnFrom = from.charCodeAt(0)
-    const offsetColumnFrom = String.fromCharCode(originalColumnFrom + 13)
+    const offsetColumnFrom = String.fromCharCode(originalColumnFrom + 15)
     const baseRange = `Fiszki!${offsetColumnFrom}${from.slice(1)}`
     if (!to) {
       return baseRange
     }
     const originalColumnTo = to.charCodeAt(0)
-    const offsetColumnTo = String.fromCharCode(originalColumnTo + 13)
+    const offsetColumnTo = String.fromCharCode(originalColumnTo + 15)
     return `${baseRange}:${offsetColumnTo}${to.slice(1)}`
   }
   const toRange = to ? `:${to}` : ''
   return `Fiszki!${from}${toRange}`
 }
 
-const range = getRange('A2', 'I1000')
+const range = getRange('A2', 'K1000')
 
 export const indexLoader = async () => {
   const auth = await google.auth.getClient({
@@ -56,8 +58,10 @@ export const indexLoader = async () => {
   const newValues = values.data.values.map(
     ([
       front,
+      frontImage,
       frontExample,
       back,
+      backImage,
       backExample,
       folder,
       isDoubleSided,
@@ -73,8 +77,10 @@ export const indexLoader = async () => {
           : [nextStudy, lastSeen]
       return [
         front,
+        frontImage,
         frontExample,
         back,
+        backImage,
         backExample,
         folder,
         isDoubleSided,
@@ -96,30 +102,34 @@ export const indexLoader = async () => {
     })
   }
 
-  const flashcards: Flashcard[] | undefined = newValues.map(
+  const flashcards = newValues.map(
     ([
       front,
+      frontImage,
       frontExample,
       back,
+      backImage,
       backExample,
       tagsList,
       isDoubleSided,
       hotStreak,
       nextStudy,
       lastSeen,
-    ]) => {
+    ]): Flashcard => {
       const [folder, ...tags] = tagsList
         .split(';')
         .map((tag: string) => tag.trim())
       return {
         front,
+        frontImage,
         frontExample,
         back,
+        backImage,
         backExample,
         folder,
         tags,
         isDoubleSided,
-        hotStreak,
+        hotStreak: Number(hotStreak),
         nextStudy,
         lastSeen: Number(lastSeen),
       }
@@ -139,7 +149,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
   })
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`G${flashcardIndex}`),
+    range: getRange(`I${flashcardIndex}`),
   })
 
   if (!values.data.values) {
@@ -151,7 +161,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`G${flashcardIndex}`, `I${flashcardIndex}`),
+    range: getRange(`I${flashcardIndex}`, `K${flashcardIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [
@@ -172,7 +182,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`H${flashcardIndex}`),
+    range: getRange(`J${flashcardIndex}`),
   })
 
   if (!values.data.values) {
@@ -181,7 +191,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`G${flashcardIndex}`, `I${flashcardIndex}`),
+    range: getRange(`I${flashcardIndex}`, `K${flashcardIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[0, values.data.values[0][0], Date.now()]],

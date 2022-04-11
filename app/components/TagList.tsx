@@ -31,7 +31,6 @@ export const TagList = ({
 const StyledTagList = styled('div', {
   display: 'flex',
   gap: 16,
-  marginBottom: 20,
 })
 
 const StyledTag = styled('div', {

@@ -1,23 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
-import { ActionFunction, LoaderFunction } from '@remix-run/server-runtime'
-import { Form, useLoaderData } from '@remix-run/react'
+import { ActionFunction } from '@remix-run/server-runtime'
+import { Form, useMatches } from '@remix-run/react'
 import { styled } from '@stitches/react'
 import { shuffle } from 'lodash'
 import {
   actionFailure,
   actionSuccess,
   Flashcard as FlashcardType,
-  indexLoader,
 } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { Flashcard } from '~/components/Flashcard'
 import { Button } from '~/components/Button'
 import { LetterButton } from '~/components/LetterButton'
-
-export const loader: LoaderFunction = async () => {
-  return indexLoader()
-}
 
 export const action: ActionFunction = async ({ request }) => {
   const body = await request.formData()
@@ -26,10 +21,10 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (flashcardIndex) {
     if (action === 'success') {
-      actionSuccess(Number(flashcardIndex) + 1)
+      await actionSuccess(Number(flashcardIndex) + 1)
     }
     if (action === 'failure') {
-      actionFailure(Number(flashcardIndex) + 1)
+      await actionFailure(Number(flashcardIndex) + 1)
     }
   }
   return null
@@ -37,7 +32,8 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function RepeatFlashcards() {
   const { date } = useParams()
-  const flashCards = useLoaderData<FlashcardType[]>()
+  const [, { data }] = useMatches()
+  const flashCards = data as FlashcardType[]
   const initialFlashcards = useRef(flashCards)
   const selectedFlashcards = useMemo(
     () =>
@@ -79,15 +75,27 @@ export default function RepeatFlashcards() {
     setCurrentFlashcardIndex((prevIndex) => {
       if (prevIndex >= selectedFlashcards.length - 1) {
         window.location.reload()
+        return prevIndex
       }
       return prevIndex + 1
     })
   }
 
+  const {
+    front,
+    back,
+    tags,
+    folder,
+    backExample,
+    frontExample,
+    hotStreak,
+    frontImage,
+    backImage,
+  } = currentFlashcard
+
   const handleCheck = () => {
     if (
-      input.current?.value.toLowerCase().trim() ===
-      currentFlashcard.back.toLowerCase().trim()
+      input.current?.value.toLowerCase().trim() === back.toLowerCase().trim()
     ) {
       setTypedCorrectly(true)
     } else {
@@ -101,15 +109,16 @@ export default function RepeatFlashcards() {
 
   return (
     <div>
-      <TagList tags={currentFlashcard.tags} folder={currentFlashcard.folder} />
+      <FlashcardMetadata>
+        <TagList tags={tags} folder={folder} />
+        <div>Seria: {hotStreak ? '🔥'.repeat(hotStreak) : '➖'}</div>
+      </FlashcardMetadata>
       <FlashcardsHolder>
+        <Flashcard text={front} example={frontExample} image={frontImage} />
         <Flashcard
-          text={currentFlashcard.front}
-          example={currentFlashcard.frontExample}
-        />
-        <Flashcard
-          text={currentFlashcard.back}
-          example={currentFlashcard.backExample}
+          text={back}
+          example={backExample}
+          image={backImage}
           hidden={typedCorrectly === undefined}
           correct={typedCorrectly}
         />
@@ -124,8 +133,15 @@ export default function RepeatFlashcards() {
                 letter={letter}
                 onClick={(letter) => {
                   if (input.current) {
-                    input.current.value += letter
+                    // insert character at cursor
+                    const start = input.current.selectionStart
+                    const end = input.current.selectionEnd
+                    const value = input.current.value
+                    input.current.value =
+                      value.substring(0, start) + letter + value.substring(end)
                     input.current.focus()
+                    input.current.selectionStart = start + 1
+                    input.current.selectionEnd = input.current.selectionStart
                   }
                 }}
               />
@@ -266,4 +282,12 @@ const LetterButtonsHolder = styled('div', {
   '@media (max-width: 960px)': {
     display: 'none',
   },
+})
+
+const FlashcardMetadata = styled('div', {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+  marginBottom: 20,
 })
