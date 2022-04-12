@@ -3,7 +3,6 @@ import { useParams } from 'react-router'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { Form, useMatches } from '@remix-run/react'
 import { styled } from '@stitches/react'
-import { shuffle } from 'lodash'
 import {
   actionFailure,
   actionSuccess,
@@ -41,10 +40,11 @@ export default function RepeatFlashcards() {
   const initialFlashcards = useRef(flashcards)
   const selectedFlashcards = useMemo(
     () =>
-      shuffle(
+      seededShuffle(
         initialFlashcards.current.filter(
           (flashcard) => flashcard.nextStudy === date
-        )
+        ),
+        1024 // some beautiful number
       ).sort(
         (flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen
       ),
@@ -295,3 +295,25 @@ const FlashcardMetadata = styled('div', {
   gap: 8,
   marginBottom: 20,
 })
+
+const seededShuffle = <T,>(array: T[], seed: number) => {
+  const arrayCopy = [...array]
+  let currentIndex = arrayCopy.length,
+    temporaryValue,
+    randomIndex
+  const random = () => {
+    const x = Math.sin(seed++) * 10000
+    return x - Math.floor(x)
+  }
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(random() * currentIndex)
+    currentIndex -= 1
+    // And swap it with the current element.
+    temporaryValue = arrayCopy[currentIndex]
+    arrayCopy[currentIndex] = arrayCopy[randomIndex]
+    arrayCopy[randomIndex] = temporaryValue
+  }
+  return arrayCopy
+}
