@@ -1,7 +1,10 @@
 import { json } from '@remix-run/server-runtime'
-import { google } from 'googleapis'
+import { google, sheets_v4 } from 'googleapis'
 import { isEqual } from 'lodash'
 import { daysFromNow } from './utils'
+import Schema$Sheet = sheets_v4.Schema$Sheet
+import Schema$ValueRange = sheets_v4.Schema$ValueRange
+import Sheets = sheets_v4.Sheets
 
 export interface Flashcard {
   front: string
@@ -43,23 +46,8 @@ const getRange = (from: string, to?: string, sheet = 'Fiszki') => {
   return `${sheet}!${from}${toRange}`
 }
 
-const range = getRange('A2', 'K1000')
-
-export const indexLoader = async () => {
-  const auth = await google.auth.getClient({
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  })
-
-  const sheets = google.sheets({
-    version: 'v4',
-    auth,
-  })
-
-  const [values, tagsResponse, tagColorsResponse] = await Promise.all([
-    sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SHEET_ID,
-      range,
-    }),
+const getTags = async (sheets: Sheets): Promise<Tag[]> => {
+  const [tagsResponse, tagColorsResponse] = await Promise.all([
     sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SHEET_ID,
       range: getRange('A2', 'A1000', 'Tagi'),
@@ -69,17 +57,16 @@ export const indexLoader = async () => {
       includeGridData: true,
     }),
   ])
+  const tagNamesRange = tagsResponse.data
+  const tagsSheet = tagColorsResponse.data.sheets?.[1]
 
-  if (
-    !values.data.values ||
-    !tagsResponse.data.values ||
-    !tagColorsResponse.data.sheets
-  ) {
-    throw new Error('No data received from spreadsheet')
+  if (!tagNamesRange.values || !tagsSheet) {
+    throw new Error('Wrong data received from spreadsheet')
   }
+
   const tagColorIndexInSheet = process.env.NODE_ENV === 'development' ? 16 : 1
   const tagColors =
-    (tagColorsResponse.data.sheets[1].data?.[0].rowData
+    (tagsSheet.data?.[0].rowData
       ?.slice(1)
       .map(
         (row) =>
@@ -89,8 +76,8 @@ export const indexLoader = async () => {
       green: number
       blue: number
     }>) ?? []
-  const tagNames: string[] = tagsResponse.data.values.flat()
-  const tags: Tag[] = tagNames.map((name, index) => {
+  const tagNames: string[] = tagNamesRange.values.flat()
+  return tagNames.map((name, index) => {
     const { red = 0, green = 0, blue = 0 } = tagColors[index]
     return {
       name,
@@ -101,8 +88,18 @@ export const indexLoader = async () => {
       },
     }
   })
+}
 
-  const newValues = values.data.values.map(
+const getFlashcards = async (sheets: Sheets): Promise<Flashcard[]> => {
+  const flashcardsData = await sheets.spreadsheets.values.get({
+    spreadsheetId: process.env.SHEET_ID,
+    range,
+  })
+  if (!flashcardsData.data.values) {
+    throw new Error('No data received from spreadsheet')
+  }
+
+  const flashcardsDataWithDefaults = flashcardsData.data.values.map(
     ([
       front,
       frontExample,
@@ -138,18 +135,18 @@ export const indexLoader = async () => {
     }
   )
 
-  if (!isEqual(values.data.values, newValues)) {
+  if (!isEqual(flashcardsData.data.values, flashcardsDataWithDefaults)) {
     await sheets.spreadsheets.values.update({
       spreadsheetId: process.env.SHEET_ID,
       range,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: newValues,
+        values: flashcardsDataWithDefaults,
       },
     })
   }
 
-  const flashcards = newValues.map(
+  return flashcardsDataWithDefaults.map(
     ([
       front,
       frontExample,
@@ -182,6 +179,23 @@ export const indexLoader = async () => {
       }
     }
   )
+}
+
+const range = getRange('A2', 'K1000')
+
+export const indexLoader = async () => {
+  const auth = await google.auth.getClient({
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
+  const sheets = google.sheets({
+    version: 'v4',
+    auth,
+  })
+
+  const [flashcards, tags] = await Promise.all([
+    getFlashcards(sheets),
+    getTags(sheets),
+  ])
 
   return json({ flashcards, tags })
 }
