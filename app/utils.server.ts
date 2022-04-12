@@ -2,8 +2,6 @@ import { json } from '@remix-run/server-runtime'
 import { google, sheets_v4 } from 'googleapis'
 import { isEqual } from 'lodash'
 import { daysFromNow } from './utils'
-import Schema$Sheet = sheets_v4.Schema$Sheet
-import Schema$ValueRange = sheets_v4.Schema$ValueRange
 import Sheets = sheets_v4.Sheets
 
 export interface Flashcard {
@@ -54,24 +52,21 @@ const getTags = async (sheets: Sheets): Promise<Tag[]> => {
     }),
     sheets.spreadsheets.get({
       spreadsheetId: process.env.SHEET_ID,
+      ranges: [getRange('B2', 'B100', 'Tagi')],
       includeGridData: true,
     }),
   ])
   const tagNamesRange = tagsResponse.data
-  const tagsSheet = tagColorsResponse.data.sheets?.[1]
+  const tagsSheet = tagColorsResponse.data.sheets?.[0]
 
   if (!tagNamesRange.values || !tagsSheet) {
     throw new Error('Wrong data received from spreadsheet')
   }
 
-  const tagColorIndexInSheet = process.env.NODE_ENV === 'development' ? 16 : 1
   const tagColors =
-    (tagsSheet.data?.[0].rowData
-      ?.slice(1)
-      .map(
-        (row) =>
-          row.values?.[tagColorIndexInSheet].effectiveFormat?.backgroundColor
-      ) as Array<{
+    (tagsSheet.data?.[0].rowData?.map(
+      (row) => row.values?.[0].effectiveFormat?.backgroundColor
+    ) as Array<{
       red: number
       green: number
       blue: number
