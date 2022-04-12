@@ -58,11 +58,11 @@ export const indexLoader = async () => {
   const newValues = values.data.values.map(
     ([
       front,
-      frontImage,
       frontExample,
+      frontImage,
       back,
-      backImage,
       backExample,
+      backImage,
       folder,
       isDoubleSided,
       hotStreak,
@@ -77,11 +77,11 @@ export const indexLoader = async () => {
           : [nextStudy, lastSeen]
       return [
         front,
-        frontImage,
         frontExample,
+        frontImage,
         back,
-        backImage,
         backExample,
+        backImage,
         folder,
         isDoubleSided,
         hotStreak ?? 0,
@@ -105,11 +105,11 @@ export const indexLoader = async () => {
   const flashcards = newValues.map(
     ([
       front,
-      frontImage,
       frontExample,
+      frontImage,
       back,
-      backImage,
       backExample,
+      backImage,
       tagsList,
       isDoubleSided,
       hotStreak,
