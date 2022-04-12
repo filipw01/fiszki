@@ -1,13 +1,8 @@
-import { LoaderFunction } from '@remix-run/server-runtime'
 import { Link, useMatches } from '@remix-run/react'
 import { groupBy } from 'lodash'
-import { Flashcard, indexLoader } from '~/utils.server'
+import { Flashcard, Tag } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'
-
-export const loader: LoaderFunction = async () => {
-  return indexLoader()
-}
 
 export const links = () => {
   return [{ rel: 'stylesheet', href: indexStyles }]
@@ -16,8 +11,11 @@ export const links = () => {
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export default function Study() {
-  const [_, { data }] = useMatches()
-  const flashcards = data as Flashcard[]
+  const [, { data }] = useMatches()
+  const { flashcards, tags } = data as {
+    flashcards: Flashcard[]
+    tags: Tag[]
+  }
   const flashcardsByNextStudy = groupBy(flashcards, 'nextStudy')
 
   const currentWeekDay = new Date(Date.now()).getDay()

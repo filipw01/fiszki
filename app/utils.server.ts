@@ -18,11 +18,20 @@ export interface Flashcard {
   lastSeen: number
 }
 
-const getRange = (from: string, to?: string) => {
+export interface Tag {
+  name: string
+  color: {
+    r: number
+    g: number
+    b: number
+  }
+}
+
+const getRange = (from: string, to?: string, sheet = 'Fiszki') => {
   if (process.env.NODE_ENV === 'development') {
     const originalColumnFrom = from.charCodeAt(0)
     const offsetColumnFrom = String.fromCharCode(originalColumnFrom + 15)
-    const baseRange = `Fiszki!${offsetColumnFrom}${from.slice(1)}`
+    const baseRange = `${sheet}!${offsetColumnFrom}${from.slice(1)}`
     if (!to) {
       return baseRange
     }
@@ -31,7 +40,7 @@ const getRange = (from: string, to?: string) => {
     return `${baseRange}:${offsetColumnTo}${to.slice(1)}`
   }
   const toRange = to ? `:${to}` : ''
-  return `Fiszki!${from}${toRange}`
+  return `${sheet}!${from}${toRange}`
 }
 
 const range = getRange('A2', 'K1000')
@@ -46,14 +55,52 @@ export const indexLoader = async () => {
     auth,
   })
 
-  const values = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.SHEET_ID,
-    range,
-  })
+  const [values, tagsResponse, tagColorsResponse] = await Promise.all([
+    sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SHEET_ID,
+      range,
+    }),
+    sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SHEET_ID,
+      range: getRange('A2', 'A1000', 'Tagi'),
+    }),
+    sheets.spreadsheets.get({
+      spreadsheetId: process.env.SHEET_ID,
+      includeGridData: true,
+    }),
+  ])
 
-  if (!values.data.values) {
+  if (
+    !values.data.values ||
+    !tagsResponse.data.values ||
+    !tagColorsResponse.data.sheets
+  ) {
     throw new Error('No data received from spreadsheet')
   }
+  const tagColorIndexInSheet = process.env.NODE_ENV === 'development' ? 16 : 1
+  const tagColors =
+    (tagColorsResponse.data.sheets[1].data?.[0].rowData
+      ?.slice(1)
+      .map(
+        (row) =>
+          row.values?.[tagColorIndexInSheet].effectiveFormat?.backgroundColor
+      ) as Array<{
+      red: number
+      green: number
+      blue: number
+    }>) ?? []
+  const tagNames: string[] = tagsResponse.data.values.flat()
+  const tags: Tag[] = tagNames.map((name, index) => {
+    const { red = 0, green = 0, blue = 0 } = tagColors[index]
+    return {
+      name,
+      color: {
+        r: red * 255,
+        g: green * 255,
+        b: blue * 255,
+      },
+    }
+  })
 
   const newValues = values.data.values.map(
     ([
@@ -136,7 +183,7 @@ export const indexLoader = async () => {
     }
   )
 
-  return json(flashcards)
+  return json({ flashcards, tags })
 }
 
 export const actionSuccess = async (flashcardIndex: number) => {

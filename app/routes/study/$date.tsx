@@ -8,6 +8,7 @@ import {
   actionFailure,
   actionSuccess,
   Flashcard as FlashcardType,
+  Tag,
 } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { Flashcard } from '~/components/Flashcard'
@@ -33,8 +34,11 @@ export const action: ActionFunction = async ({ request }) => {
 export default function RepeatFlashcards() {
   const { date } = useParams()
   const [, { data }] = useMatches()
-  const flashCards = data as FlashcardType[]
-  const initialFlashcards = useRef(flashCards)
+  const { flashcards, tags: tagsData } = data as {
+    flashcards: FlashcardType[]
+    tags: Tag[]
+  }
+  const initialFlashcards = useRef(flashcards)
   const selectedFlashcards = useMemo(
     () =>
       shuffle(
@@ -110,7 +114,7 @@ export default function RepeatFlashcards() {
   return (
     <div>
       <FlashcardMetadata>
-        <TagList tags={tags} folder={folder} />
+        <TagList tags={tags} folder={folder} tagsData={tagsData} />
         <div>Seria: {hotStreak ? '🔥'.repeat(hotStreak) : '➖'}</div>
       </FlashcardMetadata>
       <FlashcardsHolder>
