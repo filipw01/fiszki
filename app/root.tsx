@@ -39,9 +39,11 @@ export default function App() {
       </head>
       <body>
         <div className="scaffold">
-          <Link to="/study" className="link-home">
-            <h1>Fiszki</h1>
-          </Link>
+          <div className="link-home">
+            <Link to="/study">
+              <h1>Fiszki</h1>
+            </Link>
+          </div>
           <div className="content">
             <Outlet />
           </div>

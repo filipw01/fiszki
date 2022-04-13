@@ -1,10 +1,11 @@
-import { json } from '@remix-run/server-runtime'
+import { ActionFunction, json } from '@remix-run/server-runtime'
 import { google, sheets_v4 } from 'googleapis'
 import { isEqual } from 'lodash'
 import { daysFromNow } from './utils'
 import Sheets = sheets_v4.Sheets
 
 export interface Flashcard {
+  id: number
   front: string
   frontImage: string
   frontExample: string
@@ -142,23 +143,27 @@ const getFlashcards = async (sheets: Sheets): Promise<Flashcard[]> => {
   }
 
   return flashcardsDataWithDefaults.map(
-    ([
-      front,
-      frontExample,
-      frontImage,
-      back,
-      backExample,
-      backImage,
-      tagsList,
-      isDoubleSided,
-      hotStreak,
-      nextStudy,
-      lastSeen,
-    ]): Flashcard => {
+    (
+      [
+        front,
+        frontExample,
+        frontImage,
+        back,
+        backExample,
+        backImage,
+        tagsList,
+        isDoubleSided,
+        hotStreak,
+        nextStudy,
+        lastSeen,
+      ],
+      index
+    ): Flashcard => {
       const [folder, ...tags] = tagsList
         .split(';')
         .map((tag: string) => tag.trim())
       return {
+        id: index,
         front,
         frontImage,
         frontExample,
@@ -195,7 +200,8 @@ export const indexLoader = async () => {
   return json({ flashcards, tags })
 }
 
-export const actionSuccess = async (flashcardIndex: number) => {
+const actionSuccess = async (flashcardId: number) => {
+  const recordIndex = flashcardId + 2
   const auth = await google.auth.getClient({
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   })
@@ -205,7 +211,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
   })
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${flashcardIndex}`),
+    range: getRange(`I${recordIndex}`),
   })
 
   if (!values.data.values) {
@@ -217,7 +223,7 @@ export const actionSuccess = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${flashcardIndex}`, `K${flashcardIndex}`),
+    range: getRange(`I${recordIndex}`, `K${recordIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [
@@ -227,7 +233,9 @@ export const actionSuccess = async (flashcardIndex: number) => {
   })
 }
 
-export const actionFailure = async (flashcardIndex: number) => {
+const actionFailure = async (flashcardId: number) => {
+  const recordIndex = flashcardId + 2
+
   const auth = await google.auth.getClient({
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   })
@@ -238,7 +246,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   const values = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`J${flashcardIndex}`),
+    range: getRange(`J${recordIndex}`),
   })
 
   if (!values.data.values) {
@@ -247,7 +255,7 @@ export const actionFailure = async (flashcardIndex: number) => {
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${flashcardIndex}`, `K${flashcardIndex}`),
+    range: getRange(`I${recordIndex}`, `K${recordIndex}`),
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values: [[0, values.data.values[0][0], Date.now()]],
@@ -271,4 +279,20 @@ const getNumberOfDays = (hotStreak: number) => {
     default:
       return 99999
   }
+}
+
+export const studyAction: ActionFunction = async ({ request }) => {
+  const body = await request.formData()
+  const id = Number(body.get('flashcardId'))
+  const action = body.get('action')
+
+  if (id) {
+    if (action === 'success') {
+      await actionSuccess(id)
+    }
+    if (action === 'failure') {
+      await actionFailure(id)
+    }
+  }
+  return null
 }

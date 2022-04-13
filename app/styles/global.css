@@ -50,3 +50,7 @@ h1 {
   width: 100px;
   flex-grow: 1;
 }
+
+.link-home h1{
+  display: inline;
+}

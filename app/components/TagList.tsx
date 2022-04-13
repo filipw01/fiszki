@@ -37,7 +37,12 @@ export const TagList = ({
 
 const StyledTagList = styled('div', {
   display: 'flex',
-  gap: 16,
+  flexWrap: 'wrap',
+  gap: '8px 16px',
+
+  '@media (max-width: 960px)': {
+    gap: '4px 8px',
+  },
 })
 
 const StyledTag = styled('div', {
@@ -49,7 +54,12 @@ const StyledTag = styled('div', {
   color: 'rgb(var(--color))',
   borderRadius: 20,
   textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
   '& span': {
     marginTop: 2,
+  },
+
+  '@media (max-width: 960px)': {
+    fontSize: 14,
   },
 })

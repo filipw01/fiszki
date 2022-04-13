@@ -5,17 +5,17 @@ export const Button = styled('button', {
   width: '100%',
   padding: '16px 32px',
   margin: 0,
-  backgroundColor: 'var(--primary)',
+  backgroundColor: 'rgb(var(--primary))',
   color: '#fff',
   cursor: 'pointer',
   transition: 'all 0.2s',
-  border: '2px solid var(--primary)',
+  border: '2px solid rgb(var(--primary))',
   boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
 
   '&:focus-visible, &:hover': {
     outline: 'none',
-    backgroundColor: '#fff',
-    color: 'var(--primary)',
+    backgroundColor: 'rgba(var(--primary), 0.2)',
+    color: 'rgb(var(--primary))',
   },
 
   variants: {
@@ -32,13 +32,24 @@ export const Button = styled('button', {
     },
     color: {
       bad: {
-        '--primary': 'rgb(218, 80, 5)',
+        '--primary': '218, 80, 5',
       },
       good: {
-        '--primary': 'rgb(138, 201, 38)',
+        '--primary': '138, 201, 38',
       },
       check: {
-        '--primary': 'rgb(127, 158, 52)',
+        '--primary': '127, 158, 52',
+      },
+      skip: {
+        '--primary': '86, 86, 86',
+      },
+    },
+    size: {
+      small: {
+        width: '20%',
+        fontSize: 18,
+        lineHeight: 1,
+        padding: '18px 4px',
       },
     },
   },
