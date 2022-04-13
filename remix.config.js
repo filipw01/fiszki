@@ -3,6 +3,7 @@
  */
 module.exports = {
   ignoredRouteFiles: [".*"],
+  serverDependenciesToBundle: ["lodash-es"],
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "build/index.js",

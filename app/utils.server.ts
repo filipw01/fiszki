@@ -1,6 +1,6 @@
 import { ActionFunction, json } from '@remix-run/server-runtime'
 import { google, sheets_v4 } from 'googleapis'
-import { isEqual } from 'lodash'
+import { isEqual } from 'lodash-es'
 import { daysFromNow } from './utils'
 import Sheets = sheets_v4.Sheets
 

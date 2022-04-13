@@ -15,6 +15,7 @@ interface Props {
 
 export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
   const initialFlashcards = useRef(flashcards).current
+  const flashcardsCount = initialFlashcards.length
   const goodButtonTypedCorrectly = useRef<HTMLButtonElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
   const [typedCorrectly, setTypedCorrectly] = useState<boolean | undefined>()
@@ -79,7 +80,12 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
     <div>
       <FlashcardMetadata>
         <TagList tags={tags} folder={folder} tagsData={tagsData} />
-        <div>Seria: {hotStreak ? '🔥'.repeat(hotStreak) : '➖'}</div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ marginRight: '1rem' }}>
+            {currentFlashcardIndex + 1}/{flashcardsCount}
+          </div>
+          <div>Seria: {hotStreak ? '🔥'.repeat(hotStreak) : '➖'}</div>
+        </div>
       </FlashcardMetadata>
       <FlashcardsHolder>
         <Flashcard text={front} example={frontExample} image={frontImage} />

@@ -1,5 +1,5 @@
 import { Link, NavLink, useMatches } from '@remix-run/react'
-import { groupBy } from 'lodash'
+import { groupBy } from 'lodash-es'
 import { Flashcard, Tag } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'

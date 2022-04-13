@@ -1,5 +1,6 @@
 import { useParams } from 'react-router'
 import { useMatches } from '@remix-run/react'
+import { partition } from 'lodash-es'
 import { Flashcard as FlashcardType, studyAction, Tag } from '~/utils.server'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { Study } from '~/components/Study'
@@ -22,9 +23,19 @@ export default function Set() {
     )
   )
     .sort((flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen)
-    .slice((Number(number) - 1) * FLASHCARDS_PER_SET)
 
-  return <Study flashcards={flashcards} tags={tags} isSet />
+  const [seenFlashcards, notSeenFlashcards] = partition(
+    flashcards,
+    (flashcard) => flashcard.lastSeen > 0
+  )
+  const flashcardsToStudy =
+    notSeenFlashcards.length > 0 ? notSeenFlashcards : seenFlashcards
+  const flashcardsSetToStudy = flashcardsToStudy.slice(
+    (Number(number) - 1) * FLASHCARDS_PER_SET,
+    Number(number) * FLASHCARDS_PER_SET
+  )
+
+  return <Study flashcards={flashcardsSetToStudy} tags={tags} isSet />
 }
 
 const FLASHCARDS_PER_SET = 10
