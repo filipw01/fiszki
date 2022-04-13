@@ -1,5 +1,5 @@
 import { Link, NavLink, useMatches } from '@remix-run/react'
-import { groupBy } from 'lodash-es'
+import { groupBy, partition } from 'lodash-es'
 import { Flashcard, Tag } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'
@@ -33,6 +33,10 @@ export default function Study() {
 
   const isoDate = daysFromNow(0)
   const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
+  const [todaySeenFlashcards, todayNotSeenFlashcards] = partition(
+    todayFlashcards,
+    (flashcard) => flashcard.lastSeen > 0
+  )
   const seenFlashcardsToday = todayFlashcards.filter(
     (flashcard) => flashcard.lastSeen !== 0
   )
@@ -85,7 +89,11 @@ export default function Study() {
       )}
 
       <SetList>
-        {new Array(Math.ceil(todayFlashcards.length / 10))
+        {new Array(
+          Math.ceil(
+            (todayNotSeenFlashcards.length || todaySeenFlashcards.length) / 10
+          )
+        )
           .fill(undefined)
           .map((_, index) => {
             return (
