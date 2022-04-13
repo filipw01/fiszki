@@ -159,9 +159,14 @@ const getFlashcards = async (sheets: Sheets): Promise<Flashcard[]> => {
       ],
       index
     ): Flashcard => {
-      const [folder, ...tags] = tagsList
-        .split(';')
-        .map((tag: string) => tag.trim())
+      const [folder = 'Bez folderu', ...tags] = tagsList
+        ?.split(';')
+        .map((tag: string) => {
+          if (tag === '') {
+            return 'Bez folderu'
+          }
+          return tag.trim()
+        })
       return {
         id: index,
         front,
