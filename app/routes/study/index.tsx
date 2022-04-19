@@ -73,7 +73,7 @@ export default function Study() {
             const isoDate = daysFromNow(index + 1)
             const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
             return (
-              <div className="day day--future">
+              <div key={isoDate} className="day day--future">
                 <Link to={`/study/${isoDate}`} key={index}>
                   {todayFlashcards.length}
                   <div className="day__date">{Number(isoDate.slice(-2))}</div>
@@ -108,7 +108,8 @@ export default function Study() {
 }
 
 const SetList = styled('div', {
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(164px, 1fr))',
   flexWrap: 'wrap',
   gap: 32,
   marginTop: '2rem',
@@ -117,9 +118,9 @@ const SetList = styled('div', {
 const Set = styled('div', {
   display: 'grid',
   placeItems: 'center',
+  height: '100%',
   backgroundColor: '#fff',
-  width: 164,
-  height: 214,
+  aspectRatio: 164 / 214,
   padding: '1rem',
   fontSize: '2rem',
   lineHeight: '1.5',
