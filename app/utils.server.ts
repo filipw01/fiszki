@@ -289,7 +289,7 @@ const getNumberOfDays = (hotStreak: number) => {
 export const studyAction: ActionFunction = async ({ request }) => {
   const body = await request.formData()
   const id = Number(body.get('flashcardId'))
-  const action = body.get('action')
+  const action = body.get('_action')
 
   if (id) {
     if (action === 'success') {

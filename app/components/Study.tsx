@@ -160,15 +160,19 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
             {!typedCorrectly && (
               <ResultForm method="post" onSubmit={nextFlashcard}>
                 <input type="hidden" name="flashcardId" value={id} />
-                <input type="hidden" name="action" value="failure" />
-                <Button color="bad" position="left">
+                <Button
+                  color="bad"
+                  position="left"
+                  name="_action"
+                  value="failure"
+                >
                   źle
                 </Button>
               </ResultForm>
             )}
             <ResultForm method="post" onSubmit={nextFlashcard}>
               <input type="hidden" name="flashcardId" value={id} />
-              <input type="hidden" name="action" value="success" />
+              <input type="hidden" name="_action" value="success" />
               {typedCorrectly ? (
                 <Button
                   color="good"
