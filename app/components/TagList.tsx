@@ -2,6 +2,7 @@ import { CSSProperties } from 'react'
 import { FolderIcon } from '~/components/FolderIcon'
 import { styled } from '@stitches/react'
 import { Tag } from '~/utils.server'
+import { Link } from '@remix-run/react'
 
 export const TagList = ({
   folder,
@@ -15,10 +16,12 @@ export const TagList = ({
   const folderColor = { '--color': '25, 130, 196' } as CSSProperties
   return (
     <StyledTagList>
-      <StyledTag style={folderColor}>
-        <FolderIcon />
-        <span>{folder}</span>
-      </StyledTag>
+      <Link to={`/study/tag/${folder}`}>
+        <StyledTag style={folderColor}>
+          <FolderIcon />
+          <span>{folder}</span>
+        </StyledTag>
+      </Link>
       {tags.map((tag) => {
         const folderColorData = tagsData.find((tagData) => tagData.name === tag)
           ?.color ?? { r: 0, g: 0, b: 0 }
@@ -26,9 +29,11 @@ export const TagList = ({
           '--color': `${folderColorData.r}, ${folderColorData.g}, ${folderColorData.b}`,
         } as CSSProperties
         return (
-          <StyledTag key={tag} style={tagColor}>
-            <span>{tag}</span>
-          </StyledTag>
+          <Link to={`/study/tag/${tag}`}>
+            <StyledTag key={tag} style={tagColor}>
+              <span>{tag}</span>
+            </StyledTag>
+          </Link>
         )
       })}
     </StyledTagList>

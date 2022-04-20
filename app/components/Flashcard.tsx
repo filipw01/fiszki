@@ -50,6 +50,7 @@ export const Flashcard = ({ text, example, image, hidden, correct }: Props) => (
 const StyledImage = styled('img', {
   display: 'block',
   maxWidth: '100%',
+  minHeight: 0,
   borderRadius: '0.5rem',
 })
 
@@ -58,7 +59,7 @@ const StyledFlashcard = styled('div', {
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
-  width: '50%',
+  flexBasis: '50%',
   borderRadius: 16,
   padding: 32,
   textAlign: 'center',

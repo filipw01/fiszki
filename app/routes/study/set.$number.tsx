@@ -2,11 +2,15 @@ import { useParams } from 'react-router'
 import { useMatches } from '@remix-run/react'
 import { partition } from 'lodash-es'
 import { Flashcard as FlashcardType, studyAction, Tag } from '~/utils.server'
-import { ActionFunction } from '@remix-run/server-runtime'
+import { ActionFunction, MetaFunction } from '@remix-run/server-runtime'
 import { Study } from '~/components/Study'
 import { seededShuffle } from '~/utils'
 
 export const action: ActionFunction = studyAction
+
+export const meta: MetaFunction = ({ params }) => {
+  return { title: `Fiszki - zestaw ${params.number}` }
+}
 
 export default function Set() {
   const { number } = useParams()
@@ -21,8 +25,7 @@ export default function Set() {
       (flashcard) =>
         flashcard.nextStudy === new Date().toISOString().slice(0, 10)
     )
-  )
-    .sort((flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen)
+  ).sort((flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen)
 
   const [seenFlashcards, notSeenFlashcards] = partition(
     flashcards,

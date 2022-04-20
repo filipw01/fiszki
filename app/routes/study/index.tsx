@@ -43,6 +43,7 @@ export default function Study() {
 
   return (
     <div>
+      <Link to="/study/tag">Tagi</Link>
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (
           <p key={weekDayName} className="calendar__header-cell">

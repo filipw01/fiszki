@@ -12,7 +12,7 @@ import globalStyles from '~/styles/global.css'
 import { getCssText } from '~/styles/client.context'
 
 export const meta: MetaFunction = () => {
-  return { title: 'New Remix App' }
+  return { title: 'Fiszki' }
 }
 
 export default function App() {
