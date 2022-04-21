@@ -88,12 +88,18 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
         </div>
       </FlashcardMetadata>
       <FlashcardsHolder>
-        <Flashcard text={front} example={frontExample} image={frontImage} />
+        <Flashcard
+          text={front}
+          example={frontExample}
+          image={frontImage}
+          language={tags.includes('spanish') ? 'es' : 'en'}
+        />
         <Flashcard
           text={back}
           example={backExample}
           image={backImage}
           hidden={typedCorrectly === undefined}
+          language={tags.includes('spanish') ? 'es' : 'en'}
           correct={typedCorrectly}
         />
       </FlashcardsHolder>
