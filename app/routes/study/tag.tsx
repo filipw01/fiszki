@@ -2,6 +2,8 @@ import React from 'react'
 import { MetaFunction } from '@remix-run/server-runtime'
 import { Flashcard, Tag } from '~/utils.server'
 import { Link, useMatches } from '@remix-run/react'
+import { FoldersContainer } from '~/routes/study/tag.$'
+import { Folder } from '~/components/Folder'
 
 export const meta: MetaFunction = () => {
   return { title: `Fiszki - tagi` }
@@ -18,20 +20,22 @@ export default function Tag() {
     <div>
       <Link to="/study">Kalendarz</Link>
       <h1>Tagi</h1>
-      <ul>
-        {usedTags.map((tag) => {
+      <FoldersContainer>
+        {usedTags.map(({ color: { r, g, b }, name }) => {
           const deepFlashcardsFromTag = flashcards.filter((flashcard) =>
-            flashcard.folder.startsWith(tag.name)
+            flashcard.folder.startsWith(name)
           )
           return (
-            <li key={tag.name}>
-              <Link to={`/study/tag/${tag.name}`}>
-                {tag.name} ({deepFlashcardsFromTag.length})
-              </Link>
-            </li>
+            <Link key={name} to={`/study/tag/${name}`}>
+              <Folder
+                name={name}
+                count={deepFlashcardsFromTag.length}
+                color={`rgb(${r},${g},${b})`}
+              />
+            </Link>
           )
         })}
-      </ul>
+      </FoldersContainer>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { groupBy, partition } from 'lodash-es'
 import { Flashcard, Tag } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'
-import { styled } from '@stitches/react'
+import { styled } from '~/styles/stitches.config'
 
 export const links = () => {
   return [{ rel: 'stylesheet', href: indexStyles }]

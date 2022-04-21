@@ -1,7 +1,7 @@
 import { RemixServer } from '@remix-run/react'
 import { EntryContext } from '@remix-run/react/entry'
 import { renderToString } from 'react-dom/server'
-import { getCssText } from '~/styles/client.context'
+import { getCssText } from '~/styles/stitches.config'
 
 export default function handleRequest(
   request: Request,

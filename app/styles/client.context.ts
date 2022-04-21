@@ -1,3 +1,13 @@
-import { createStitches } from '@stitches/react'
+import { createContext } from 'react'
 
-export const { getCssText } = createStitches()
+export interface ClientStyleContextData {
+  reset: () => void
+  sheet: string
+}
+
+const ClientStyleContext = createContext<ClientStyleContextData>({
+  reset: () => {},
+  sheet: '',
+})
+
+export default ClientStyleContext

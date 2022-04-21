@@ -1,4 +1,4 @@
-import { styled } from '@stitches/react'
+import { styled } from '~/styles/stitches.config'
 import catImage from '~/assets/cat.png'
 
 type Props = {
@@ -7,10 +7,22 @@ type Props = {
   example: string
   hidden?: boolean
   correct?: boolean
+  onClick?: () => void
 }
 
-export const Flashcard = ({ text, example, image, hidden, correct }: Props) => (
-  <StyledFlashcard correct={correct}>
+export const Flashcard = ({
+  text,
+  example,
+  image,
+  hidden,
+  correct,
+  onClick,
+}: Props) => (
+  <StyledFlashcard
+    as={onClick ? 'button' : undefined}
+    correct={correct}
+    onClick={onClick}
+  >
     {hidden ? (
       <div>
         <img style={{ width: '30%' }} src={catImage} alt="" />

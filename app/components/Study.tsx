@@ -3,7 +3,7 @@ import { Flashcard as FlashcardType, Tag } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { LetterButton } from '~/components/LetterButton'
 import { Button } from '~/components/Button'
-import { styled } from '@stitches/react'
+import { styled } from '~/styles/stitches.config'
 import { Form } from '@remix-run/react'
 import { Flashcard } from './Flashcard'
 

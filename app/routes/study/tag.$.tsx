@@ -1,18 +1,24 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { MetaFunction } from '@remix-run/server-runtime'
+import { styled } from '~/styles/stitches.config'
 import { Link, useLocation, useMatches } from '@remix-run/react'
 import { useParams } from 'react-router'
-import { Flashcard, Tag } from '~/utils.server'
+import { Flashcard as FlashcardType, Tag } from '~/utils.server'
+import { Flashcard } from '~/components/Flashcard'
+import { Folder } from '~/components/Folder'
 
 export const meta: MetaFunction = ({ params }) => {
-  return { title: `Fiszki - tag ${params.tagName}` }
+  return { title: `Fiszki - tag ${params['*']}` }
 }
 
 export default function Tag() {
   const params = useParams()
   const location = useLocation()
   const [, { data }] = useMatches()
-  const { flashcards, tags } = data as { flashcards: Flashcard[]; tags: Tag[] }
+  const { flashcards, tags } = data as {
+    flashcards: FlashcardType[]
+    tags: Tag[]
+  }
   const path = params['*'] as string
   const regex = new RegExp(`^${path}/(?!.*/.*)`)
   const subfolders = tags.filter((tag) => regex.test(tag.name))
@@ -22,25 +28,64 @@ export default function Tag() {
   const upUrl = location.pathname.split('/').slice(0, -1).join('/')
   return (
     <div>
-      <h1>Tag</h1>
+      <h1>Tag {path}</h1>
       <Link to={upUrl}>Up</Link>
-      <div style={{ margin: '10px 0' }}>
-        {subfolders.map(({ name }) => {
+      <FoldersContainer>
+        {subfolders.map(({ name, color: { r, g, b } }) => {
           const deepFlashcardsFromSubfolder = flashcards.filter((flashcard) =>
             flashcard.folder.startsWith(name)
           )
           return (
             <div key={name}>
               <Link to={name}>
-                {name} ({deepFlashcardsFromSubfolder.length})
+                <Folder
+                  name={name}
+                  count={deepFlashcardsFromSubfolder.length}
+                  color={`rgb(${r},${g},${b})`}
+                />
               </Link>
             </div>
           )
         })}
-      </div>
-      {flashcardsInFolder.map((flashcard) => {
-        return <div key={flashcard.id}>{flashcard.front}</div>
-      })}
+      </FoldersContainer>
+      <FlashcardsContainer>
+        {flashcardsInFolder.map((flashcard) => {
+          return <TurnableFlashcard key={flashcard.id} flashcard={flashcard} />
+        })}
+      </FlashcardsContainer>
     </div>
   )
 }
+
+const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
+  const [isFront, setIsFront] = useState(true)
+  const turn = () => setIsFront((prev) => !prev)
+  return isFront ? (
+    <Flashcard
+      onClick={turn}
+      text={flashcard.front}
+      example={flashcard.frontExample}
+      image={flashcard.frontImage}
+    />
+  ) : (
+    <Flashcard
+      onClick={turn}
+      text={flashcard.back}
+      image={flashcard.backImage}
+      example={flashcard.backExample}
+    />
+  )
+}
+
+export const FoldersContainer = styled('div', {
+  display: 'grid',
+  gap: '1rem',
+  margin: '1rem 0',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(122px, 1fr))',
+})
+
+const FlashcardsContainer = styled('div', {
+  display: 'grid',
+  gap: '1rem',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+})

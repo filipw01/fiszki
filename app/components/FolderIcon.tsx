@@ -1,9 +1,15 @@
-import { styled } from '@stitches/react'
+import { styled } from '~/styles/stitches.config'
 
-export const FolderIcon = () => (
+export const FolderIcon = ({
+  width = 24,
+  height = 20,
+}: {
+  width?: number
+  height?: number
+}) => (
   <StyledFolderIcon
-    width="24"
-    height="20"
+    width={width}
+    height={height}
     viewBox="0 0 24 20"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

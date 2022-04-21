@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react'
 import { FolderIcon } from '~/components/FolderIcon'
-import { styled } from '@stitches/react'
+import { styled } from '~/styles/stitches.config'
 import { Tag } from '~/utils.server'
 import { Link } from '@remix-run/react'
 

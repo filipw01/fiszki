@@ -9,13 +9,22 @@ import {
 } from '@remix-run/react'
 import { MetaFunction } from '@remix-run/server-runtime'
 import globalStyles from '~/styles/global.css'
-import { getCssText } from '~/styles/client.context'
+import { getCssText } from '~/styles/stitches.config'
+import { useContext, useEffect } from 'react'
+import ClientStyleContext from '~/styles/client.context'
 
 export const meta: MetaFunction = () => {
   return { title: 'Fiszki' }
 }
 
 export default function App() {
+  const clientStyleData = useContext(ClientStyleContext)
+
+  // Only executed on client
+  useEffect(() => {
+    // reset cache to re-apply global styles
+    clientStyleData.reset()
+  }, [clientStyleData])
   return (
     <html lang="en">
       <head>
@@ -33,7 +42,7 @@ export default function App() {
         <Links />
         <style
           id="stitches"
-          dangerouslySetInnerHTML={{ __html: getCssText() }}
+          dangerouslySetInnerHTML={{ __html: clientStyleData.sheet }}
           suppressHydrationWarning
         />
       </head>
