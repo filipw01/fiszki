@@ -12,10 +12,17 @@ export const meta: MetaFunction = () => {
 export default function Tag() {
   const [, { data }] = useMatches()
   const { tags, flashcards } = data as { tags: Tag[]; flashcards: Flashcard[] }
-  const folders = new Set(flashcards.map((flashcard) => flashcard.folder))
-  const usedTags = tags.filter(
-    (tag) => folders.has(tag.name) && !tag.name.includes('/')
+  const topLevelFolders = Array.from(
+    new Set(flashcards.map((flashcard) => flashcard.folder.split('/')[0]))
   )
+  const usedTags: Tag[] = topLevelFolders.map((folder) => ({
+    name: folder,
+    color: tags.find((tag) => tag.name === folder)?.color ?? {
+      r: 128,
+      g: 128,
+      b: 128,
+    },
+  }))
   return (
     <div>
       <Link to="/study">Kalendarz</Link>

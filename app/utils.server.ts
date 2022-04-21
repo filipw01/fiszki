@@ -159,11 +159,11 @@ const getFlashcards = async (sheets: Sheets): Promise<Flashcard[]> => {
       ],
       index
     ): Flashcard => {
-      const [folder = 'Bez folderu', ...tags] = tagsList
+      const [folder = 'Brak', ...tags] = tagsList
         ?.split(';')
         .map((tag: string) => {
           if (tag === '') {
-            return 'Bez folderu'
+            return 'Brak'
           }
           return tag.trim()
         })

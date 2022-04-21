@@ -20,10 +20,29 @@ export default function Tag() {
     tags: Tag[]
   }
   const path = params['*'] as string
-  const regex = new RegExp(`^${path}/(?!.*/.*)`)
-  const subfolders = tags.filter((tag) => regex.test(tag.name))
+  const depth = (path.match(/\//g)?.length ?? 0) + 1
+  const folders = Array.from(
+    new Set(
+      flashcards
+        .filter((flashcard) => flashcard.folder.startsWith(`${path}/`))
+        .map((flashcard) =>
+          flashcard.folder
+            .split('/')
+            .slice(depth, depth + 1)
+            .join('/')
+        )
+    )
+  )
+  const subfolders: Tag[] = folders.map((folder) => ({
+    name: folder,
+    color: tags.find((tag) => tag.name === folder)?.color ?? {
+      r: 128,
+      g: 128,
+      b: 128,
+    },
+  }))
   const flashcardsInFolder = flashcards.filter(
-    (flashcard) => flashcard.folder == path
+    (flashcard) => flashcard.folder == path || flashcard.tags.includes(path)
   )
   const upUrl = location.pathname.split('/').slice(0, -1).join('/')
   return (
@@ -33,11 +52,11 @@ export default function Tag() {
       <FoldersContainer>
         {subfolders.map(({ name, color: { r, g, b } }) => {
           const deepFlashcardsFromSubfolder = flashcards.filter((flashcard) =>
-            flashcard.folder.startsWith(name)
+            flashcard.folder.startsWith(`${path}/${name}`)
           )
           return (
             <div key={name}>
-              <Link to={name}>
+              <Link to={`${path}/${name}`}>
                 <Folder
                   name={name}
                   count={deepFlashcardsFromSubfolder.length}

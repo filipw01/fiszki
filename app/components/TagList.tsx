@@ -29,8 +29,8 @@ export const TagList = ({
           '--color': `${folderColorData.r}, ${folderColorData.g}, ${folderColorData.b}`,
         } as CSSProperties
         return (
-          <Link to={`/study/tag/${tag}`}>
-            <StyledTag key={tag} style={tagColor}>
+          <Link key={tag} to={`/study/tag/${tag}`}>
+            <StyledTag style={tagColor}>
               <span>{tag}</span>
             </StyledTag>
           </Link>
