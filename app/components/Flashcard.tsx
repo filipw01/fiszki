@@ -65,7 +65,7 @@ export const Flashcard = ({
               {example}
             </FlashcardExample>
           )}
-          {text && (
+          {text && text.split(' ').length <= 5 && (
             <button
               style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}
               onClick={handleSpeak}
