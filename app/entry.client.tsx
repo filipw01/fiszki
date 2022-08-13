@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useState } from 'react'
-import { hydrate } from 'react-dom'
+import { hydrateRoot } from 'react-dom/client'
 import { RemixBrowser } from '@remix-run/react'
 import ClientStyleContext from './styles/client.context'
 import { getCssText } from '~/styles/stitches.config'
@@ -22,9 +22,9 @@ function ClientCacheProvider({ children }: ClientCacheProviderProps) {
   )
 }
 
-hydrate(
+const root = hydrateRoot(
+  document,
   <ClientCacheProvider>
     <RemixBrowser />
-  </ClientCacheProvider>,
-  document
+  </ClientCacheProvider>
 )

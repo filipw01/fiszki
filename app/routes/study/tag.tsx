@@ -15,9 +15,19 @@ export default function Tag() {
   const topLevelFolders = Array.from(
     new Set(flashcards.map((flashcard) => flashcard.folder.split('/')[0]))
   )
-  const usedTags: Tag[] = topLevelFolders.map((folder) => ({
+  const usedFolders: Tag[] = topLevelFolders.map((folder) => ({
     name: folder,
     color: tags.find((tag) => tag.name === folder)?.color ?? {
+      r: 128,
+      g: 128,
+      b: 128,
+    },
+  }))
+  const usedTags: Tag[] = Array.from(
+    new Set(flashcards.flatMap((flashcard) => flashcard.tags))
+  ).map((tag) => ({
+    name: tag,
+    color: tags.find((tagData) => tagData.name === tag)?.color ?? {
       r: 128,
       g: 128,
       b: 128,
@@ -28,7 +38,7 @@ export default function Tag() {
       <Link to="/study">Kalendarz</Link>
       <h1>Tagi</h1>
       <FoldersContainer>
-        {usedTags.map(({ color: { r, g, b }, name }) => {
+        {usedFolders.map(({ color: { r, g, b }, name }) => {
           const deepFlashcardsFromTag = flashcards.filter((flashcard) =>
             flashcard.folder.startsWith(name)
           )
@@ -37,6 +47,20 @@ export default function Tag() {
               <Folder
                 name={name}
                 count={deepFlashcardsFromTag.length}
+                color={`rgb(${r},${g},${b})`}
+              />
+            </Link>
+          )
+        })}
+        {usedTags.map(({ color: { r, g, b }, name }) => {
+          const flashcardsInTag = flashcards.filter((flashcard) =>
+            flashcard.tags.includes(name)
+          )
+          return (
+            <Link key={name} to={`/study/tag/${name}`}>
+              <Folder
+                name={`Tag: ${name}`}
+                count={flashcardsInTag.length}
                 color={`rgb(${r},${g},${b})`}
               />
             </Link>

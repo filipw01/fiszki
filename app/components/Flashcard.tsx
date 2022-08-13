@@ -25,8 +25,16 @@ export const Flashcard = ({
   const handleSpeak: MouseEventHandler<unknown> = (e) => {
     e.stopPropagation()
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = language === 'es' ? 'es-ES' : 'en-GB'
-    window.speechSynthesis.speak(utterance)
+    const lang = language === 'es' ? 'es-ES' : 'en-GB'
+    const voice = speechSynthesis
+      .getVoices()
+      .find((voice) => voice.lang === lang)
+    if (voice) {
+      utterance.voice = voice
+      window.speechSynthesis.speak(utterance)
+    } else {
+      console.log(`No voice for ${lang}`)
+    }
   }
   return (
     <StyledFlashcard

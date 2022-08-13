@@ -278,9 +278,9 @@ const getNumberOfDays = (hotStreak: number) => {
     case 1:
       return randomNumber(6, 8)
     case 2:
-      return randomNumber(18, 22)
+      return randomNumber(18, 23)
     case 3:
-      return randomNumber(40, 60)
+      return randomNumber(85, 100)
     default:
       return 99999
   }
