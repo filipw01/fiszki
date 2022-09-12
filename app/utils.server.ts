@@ -206,6 +206,7 @@ export const indexLoader = async () => {
 }
 
 const actionSuccess = async (flashcardId: number) => {
+  console.log(flashcardId)
   const recordIndex = flashcardId + 2
   const auth = await google.auth.getClient({
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -225,6 +226,7 @@ const actionSuccess = async (flashcardId: number) => {
 
   const hotStreak = Number(values.data.values[0][0])
   const numberOfDays = getNumberOfDays(hotStreak)
+  console.log(hotStreak)
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: process.env.SHEET_ID,
@@ -288,10 +290,12 @@ const getNumberOfDays = (hotStreak: number) => {
 
 export const studyAction: ActionFunction = async ({ request }) => {
   const body = await request.formData()
-  const id = Number(body.get('flashcardId'))
+  const id =
+    typeof body.get('flashcardId') === 'string'
+      ? Number(body.get('flashcardId'))
+      : null
   const action = body.get('_action')
-
-  if (id) {
+  if (id !== null) {
     if (action === 'success') {
       await actionSuccess(id)
     }

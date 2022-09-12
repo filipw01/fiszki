@@ -26,9 +26,9 @@ export const Flashcard = ({
     e.stopPropagation()
     const utterance = new SpeechSynthesisUtterance(text)
     const lang = language === 'es' ? 'es-ES' : 'en-GB'
-    const voice = speechSynthesis
-      .getVoices()
-      .find((voice) => voice.lang === lang)
+    const voice =
+      speechSynthesis.getVoices().find((voice) => voice.lang === lang) ??
+      speechSynthesis.getVoices().find((voice) => voice.lang === 'en-US')
     if (voice) {
       utterance.voice = voice
       window.speechSynthesis.speak(utterance)
