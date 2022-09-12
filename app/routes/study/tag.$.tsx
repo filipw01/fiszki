@@ -42,7 +42,7 @@ export default function Tag() {
     },
   }))
   const flashcardsInFolder = flashcards.filter(
-    (flashcard) => flashcard.folder == path || flashcard.tags.includes(path)
+    (flashcard) => flashcard.folder === path || flashcard.tags.includes(path)
   )
   const upUrl = location.pathname.split('/').slice(0, -1).join('/')
   return (
@@ -56,13 +56,13 @@ export default function Tag() {
           )
           return (
             <div key={name}>
-              <Link to={`${path}/${name}`}>
-                <Folder
-                  name={name}
-                  count={deepFlashcardsFromSubfolder.length}
-                  color={`rgb(${r},${g},${b})`}
-                />
-              </Link>
+              <Folder
+                nameLink={`${path}/${name}`}
+                studyLink={`/study/study-tag/${path}/${name}`}
+                name={name}
+                count={deepFlashcardsFromSubfolder.length}
+                color={`rgb(${r},${g},${b})`}
+              />
             </div>
           )
         })}

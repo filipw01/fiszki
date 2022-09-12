@@ -43,13 +43,14 @@ export default function Tag() {
             flashcard.folder.startsWith(name)
           )
           return (
-            <Link key={name} to={`/study/tag/${name}`}>
-              <Folder
-                name={name}
-                count={deepFlashcardsFromTag.length}
-                color={`rgb(${r},${g},${b})`}
-              />
-            </Link>
+            <Folder
+              key={name}
+              nameLink={`/study/tag/${name}`}
+              studyLink={`/study/study-tag/${name}`}
+              name={name}
+              count={deepFlashcardsFromTag.length}
+              color={`rgb(${r},${g},${b})`}
+            />
           )
         })}
         {usedTags.map(({ color: { r, g, b }, name }) => {
@@ -57,13 +58,14 @@ export default function Tag() {
             flashcard.tags.includes(name)
           )
           return (
-            <Link key={name} to={`/study/tag/${name}`}>
-              <Folder
-                name={`Tag: ${name}`}
-                count={flashcardsInTag.length}
-                color={`rgb(${r},${g},${b})`}
-              />
-            </Link>
+            <Folder
+              key={name}
+              nameLink={`/study/tag/${name}`}
+              studyLink={`/study/study-tag/${name}`}
+              name={`Tag: ${name}`}
+              count={flashcardsInTag.length}
+              color={`rgb(${r},${g},${b})`}
+            />
           )
         })}
       </FoldersContainer>

@@ -1,7 +1,7 @@
 import { styled } from '~/styles/stitches.config'
 import catImage from '~/assets/cat.png'
 import { SpeakerIcon } from '~/components/SpeakerIcon'
-import { EventHandler, MouseEventHandler } from 'react'
+import { MouseEventHandler } from 'react'
 
 type Props = {
   text: string

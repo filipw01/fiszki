@@ -1,15 +1,20 @@
 import { styled } from '~/styles/stitches.config'
 import React from 'react'
 import { FolderIcon } from '~/components/FolderIcon'
+import { Link } from '@remix-run/react'
 
 export const Folder = ({
   name,
   count,
   color,
+  nameLink,
+  studyLink,
 }: {
   name: string
   count: number
   color: string
+  nameLink: string
+  studyLink: string
 }) => {
   return (
     <div>
@@ -26,9 +31,14 @@ export const Folder = ({
           }}
         >
           {count}
+          <Link to={studyLink}>
+            <StudyName>Study</StudyName>
+          </Link>
         </GridItem>
       </GridStacker>
-      <Name>{name}</Name>
+      <Link to={nameLink}>
+        <Name>{name}</Name>
+      </Link>
     </div>
   )
 }
@@ -41,6 +51,7 @@ const GridItem = styled('div', {
   gridColumn: '1',
   gridRow: '1',
   display: 'flex',
+  flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
 })
@@ -48,4 +59,8 @@ const GridItem = styled('div', {
 const Name = styled('div', {
   marginTop: '1rem',
   textAlign: 'center',
+})
+
+const StudyName = styled('div', {
+  fontSize: 14,
 })
