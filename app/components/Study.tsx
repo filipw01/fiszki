@@ -112,7 +112,7 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
                 key={letter}
                 letter={letter}
                 onClick={(letter) => {
-                  if (input.current) {
+                  if (input.current && typedCorrectly === undefined) {
                     // insert character at cursor
                     const start = input.current.selectionStart
                     const end = input.current.selectionEnd

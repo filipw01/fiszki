@@ -69,14 +69,26 @@ export default function Tag() {
       </FoldersContainer>
       <FlashcardsContainer>
         {flashcardsInFolder.map((flashcard) => {
-          return <TurnableFlashcard key={flashcard.id} flashcard={flashcard} />
+          return (
+            <TurnableFlashcard
+              key={flashcard.id}
+              flashcard={flashcard}
+              tagsData={tags}
+            />
+          )
         })}
       </FlashcardsContainer>
     </div>
   )
 }
 
-const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
+const TurnableFlashcard = ({
+  flashcard,
+  tagsData,
+}: {
+  flashcard: FlashcardType
+  tagsData: Tag[]
+}) => {
   const [isFront, setIsFront] = useState(true)
   const turn = () => setIsFront((prev) => !prev)
   return isFront ? (
@@ -85,6 +97,8 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
       text={flashcard.front}
       example={flashcard.frontExample}
       image={flashcard.frontImage}
+      tags={flashcard.tags}
+      tagsData={tagsData}
     />
   ) : (
     <Flashcard
@@ -92,6 +106,8 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
       text={flashcard.back}
       image={flashcard.backImage}
       example={flashcard.backExample}
+      tags={flashcard.tags}
+      tagsData={tagsData}
     />
   )
 }

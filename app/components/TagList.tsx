@@ -8,20 +8,24 @@ export const TagList = ({
   folder,
   tags,
   tagsData,
+  size = 'big',
 }: {
-  folder: string
+  folder?: string
   tags: string[]
   tagsData: Tag[]
+  size?: 'small' | 'big'
 }) => {
   const folderColor = { '--color': '25, 130, 196' } as CSSProperties
   return (
     <StyledTagList>
-      <Link to={`/study/tag/${folder}`}>
-        <StyledTag style={folderColor}>
-          <FolderIcon />
-          <span>{folder}</span>
-        </StyledTag>
-      </Link>
+      {folder && (
+        <Link to={`/study/tag/${folder}`}>
+          <StyledTag style={folderColor} size={size}>
+            <FolderIcon />
+            <span>{folder}</span>
+          </StyledTag>
+        </Link>
+      )}
       {tags.map((tag) => {
         const folderColorData = tagsData.find((tagData) => tagData.name === tag)
           ?.color ?? { r: 0, g: 0, b: 0 }
@@ -30,7 +34,7 @@ export const TagList = ({
         } as CSSProperties
         return (
           <Link key={tag} to={`/study/tag/${tag}`}>
-            <StyledTag style={tagColor}>
+            <StyledTag style={tagColor} size={size}>
               <span>{tag}</span>
             </StyledTag>
           </Link>
@@ -54,7 +58,6 @@ const StyledTag = styled('div', {
   display: 'flex',
   alignItems: 'center',
   padding: '5px 16px 5px',
-  fontSize: 18,
   background: 'rgba(var(--color), 0.25)',
   color: 'rgb(var(--color))',
   borderRadius: 20,
@@ -64,7 +67,20 @@ const StyledTag = styled('div', {
     marginTop: 2,
   },
 
-  '@media (max-width: 960px)': {
-    fontSize: 14,
+  variants: {
+    size: {
+      small: {
+        fontSize: 14,
+        '@media (max-width: 960px)': {
+          fontSize: 12,
+        },
+      },
+      big: {
+        fontSize: 18,
+        '@media (max-width: 960px)': {
+          fontSize: 14,
+        },
+      },
+    },
   },
 })

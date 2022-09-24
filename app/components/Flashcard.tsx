@@ -2,6 +2,8 @@ import { styled } from '~/styles/stitches.config'
 import catImage from '~/assets/cat.png'
 import { SpeakerIcon } from '~/components/SpeakerIcon'
 import { MouseEventHandler } from 'react'
+import { TagList } from '~/components/TagList'
+import { Tag } from '~/utils.server'
 
 type Props = {
   text: string
@@ -11,6 +13,8 @@ type Props = {
   correct?: boolean
   language?: 'en' | 'es'
   onClick?: () => void
+  tags?: string[]
+  tagsData?: Tag[]
 }
 
 export const Flashcard = ({
@@ -21,6 +25,8 @@ export const Flashcard = ({
   correct,
   language,
   onClick,
+  tags,
+  tagsData,
 }: Props) => {
   const handleSpeak: MouseEventHandler<unknown> = (e) => {
     e.stopPropagation()
@@ -37,55 +43,68 @@ export const Flashcard = ({
     }
   }
   return (
-    <StyledFlashcard
-      as={onClick ? 'button' : undefined}
-      correct={correct}
-      onClick={onClick}
-    >
-      {hidden ? (
-        <div>
-          <img style={{ width: '30%' }} src={catImage} alt="" />
-        </div>
-      ) : (
-        <>
-          {image && <StyledImage src={image} alt="" />}
-          {text && (
-            <div
-              style={{
-                marginTop: image ? '1rem' : 0,
-                fontWeight: getTextLengthBasedFontWeight(text),
-                fontSize: getLengthBasedFontSize(text.length + example.length),
-              }}
-            >
-              {text}
-            </div>
-          )}
-          {example && (
-            <FlashcardExample
-              style={{
-                fontSize: getLengthBasedFontSize(
-                  text.length + example.length,
-                  true
-                ),
-              }}
-            >
-              <hr />
-              {example}
-            </FlashcardExample>
-          )}
-          {text && text.split(' ').length <= 5 && (
-            <button
-              style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}
-              onClick={handleSpeak}
-            >
-              <SpeakerIcon />
-            </button>
-          )}
-        </>
+    <StyledFlashcard correct={correct} onClick={onClick}>
+      <StyledNode as={onClick ? 'button' : undefined}>
+        {hidden ? (
+          <div>
+            <img style={{ width: '30%' }} src={catImage} alt="" />
+          </div>
+        ) : (
+          <>
+            {image && <StyledImage src={image} alt="" />}
+            {text && (
+              <div
+                style={{
+                  marginTop: image ? '1rem' : 0,
+                  fontWeight: getTextLengthBasedFontWeight(text),
+                  fontSize: getLengthBasedFontSize(
+                    text.length + example.length
+                  ),
+                }}
+              >
+                {text}
+              </div>
+            )}
+            {example && (
+              <FlashcardExample
+                style={{
+                  fontSize: getLengthBasedFontSize(
+                    text.length + example.length,
+                    true
+                  ),
+                }}
+              >
+                <hr />
+                {example}
+              </FlashcardExample>
+            )}
+          </>
+        )}
+      </StyledNode>
+      {!hidden && text && text.split(' ').length <= 5 && (
+        <button
+          style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}
+          onClick={handleSpeak}
+        >
+          <SpeakerIcon />
+        </button>
+      )}
+      {tags && tagsData && (
+        <StyledTagListContainer>
+          <TagList tags={tags} tagsData={tagsData} size="small" />
+        </StyledTagListContainer>
       )}
     </StyledFlashcard>
   )
 }
+
+const StyledNode = styled('div', {})
+
+const StyledTagListContainer = styled('div', {
+  position: 'absolute',
+  bottom: '1rem',
+  left: '1rem',
+})
 
 const StyledImage = styled('img', {
   display: 'block',
