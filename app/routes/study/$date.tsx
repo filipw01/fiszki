@@ -1,9 +1,9 @@
 import { useParams } from 'react-router'
 import { ActionFunction, MetaFunction } from '@remix-run/server-runtime'
 import { useMatches } from '@remix-run/react'
-import { Flashcard as FlashcardType, studyAction, Tag } from '~/utils.server'
+import { Flashcard as FlashcardType, studyAction } from '~/utils.server'
 import { Study } from '~/components/Study'
-import { seededShuffle } from '~/utils'
+import { daysFromNow, seededShuffle } from '~/utils'
 
 export const action: ActionFunction = studyAction
 
@@ -14,14 +14,25 @@ export const meta: MetaFunction = ({ params }) => {
 export default function RepeatFlashcards() {
   const { date } = useParams()
   const [, { data }] = useMatches()
-  const { flashcards: allFlashcards, tags } = data as {
+  const { flashcards: allFlashcards } = data as {
     flashcards: FlashcardType[]
-    tags: Tag[]
   }
 
-  const flashcards = seededShuffle(
-    allFlashcards.filter((flashcard) => flashcard.nextStudy === date)
-  ).sort((flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen)
+  const isoDateToday = daysFromNow(0)
+  const flashcards =
+    date === isoDateToday
+      ? allFlashcards.filter(
+          (flashcard) =>
+            new Date(flashcard.nextStudy).getTime() <=
+            new Date(isoDateToday).getTime()
+        )
+      : allFlashcards.filter((flashcard) => {
+          return flashcard.nextStudy === date
+        })
 
-  return <Study flashcards={flashcards} tags={tags} />
+  const shuffledFlashcards = seededShuffle(flashcards).sort(
+    (flashcardA, flashcardB) => flashcardA.lastSeen - flashcardB.lastSeen
+  )
+
+  return <Study flashcards={shuffledFlashcards} />
 }

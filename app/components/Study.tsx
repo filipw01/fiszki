@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Flashcard as FlashcardType, Tag } from '~/utils.server'
+import { Flashcard as FlashcardType } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { LetterButton } from '~/components/LetterButton'
 import { Button } from '~/components/Button'
@@ -9,11 +9,10 @@ import { Flashcard } from './Flashcard'
 
 interface Props {
   flashcards: FlashcardType[]
-  tags: Tag[]
   isSet?: boolean
 }
 
-export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
+export const Study = ({ flashcards, isSet }: Props) => {
   const initialFlashcards = useRef(flashcards).current
   const flashcardsCount = initialFlashcards.length
   const goodButtonTypedCorrectly = useRef<HTMLButtonElement>(null)
@@ -59,9 +58,9 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
     back,
     tags,
     folder,
-    backExample,
-    frontExample,
-    hotStreak,
+    backDescription,
+    frontDescription,
+    streak,
     frontImage,
     backImage,
   } = currentFlashcard
@@ -79,27 +78,27 @@ export const Study = ({ flashcards, tags: tagsData, isSet }: Props) => {
   return (
     <div>
       <FlashcardMetadata>
-        <TagList tags={tags} folder={folder} tagsData={tagsData} />
+        <TagList tags={tags} folder={folder} />
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div style={{ marginRight: '1rem' }}>
             {currentFlashcardIndex + 1}/{flashcardsCount}
           </div>
-          <div>Seria: {hotStreak ? '🔥'.repeat(hotStreak) : '➖'}</div>
+          <div>Seria: {streak ? '🔥'.repeat(streak) : '➖'}</div>
         </div>
       </FlashcardMetadata>
       <FlashcardsHolder>
         <Flashcard
           text={front}
-          example={frontExample}
+          example={frontDescription}
           image={frontImage}
-          language={tags.includes('spanish') ? 'es' : 'en'}
+          language={'en'/*not implemented*/}
         />
         <Flashcard
           text={back}
-          example={backExample}
+          example={backDescription}
           image={backImage}
           hidden={typedCorrectly === undefined}
-          language={tags.includes('spanish') ? 'es' : 'en'}
+          language={'en'/*not implemented*/}
           correct={typedCorrectly}
         />
       </FlashcardsHolder>

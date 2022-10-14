@@ -1,12 +1,19 @@
 import { Link, NavLink, useMatches } from '@remix-run/react'
 import { groupBy, partition } from 'lodash-es'
-import { Flashcard, Tag } from '~/utils.server'
+import { Flashcard } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'
 import { styled } from '~/styles/stitches.config'
+import { requireUserEmail } from '~/session.server'
+import { LoaderFunction } from '@remix-run/server-runtime'
 
 export const links = () => {
   return [{ rel: 'stylesheet', href: indexStyles }]
+}
+
+export const loader: LoaderFunction = async ({ request }) => {
+  await requireUserEmail(request)
+  return null
 }
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000
@@ -15,7 +22,6 @@ export default function Study() {
   const [, { data }] = useMatches()
   const { flashcards } = data as {
     flashcards: Flashcard[]
-    tags: Tag[]
   }
   const flashcardsByNextStudy = groupBy(flashcards, 'nextStudy')
 
@@ -32,7 +38,10 @@ export default function Study() {
   ]
 
   const isoDate = daysFromNow(0)
-  const todayFlashcards = flashcardsByNextStudy[isoDate] ?? []
+  const todayFlashcards = flashcards.filter(
+    (flashcard) =>
+      new Date(flashcard.nextStudy).getTime() <= new Date(isoDate).getTime()
+  )
   const [todaySeenFlashcards, todayNotSeenFlashcards] = partition(
     todayFlashcards,
     (flashcard) => flashcard.lastSeen > 0
@@ -43,7 +52,12 @@ export default function Study() {
 
   return (
     <div>
-      <Link to="/study/tag">Tagi</Link>
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <Link to="/study/tag">Study Tags</Link>
+        <Link to="/tags">Tags</Link>
+        <Link to="/folders">Folders</Link>
+        <Link to="/flashcards">Flashcards</Link>
+      </div>
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (
           <p key={weekDayName} className="calendar__header-cell">

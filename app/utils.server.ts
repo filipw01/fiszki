@@ -3,19 +3,21 @@ import { google, sheets_v4 } from 'googleapis'
 import { isEqual } from 'lodash-es'
 import { daysFromNow } from './utils'
 import Sheets = sheets_v4.Sheets
+import { db } from '~/utils/db.server'
+import { Prisma } from '@prisma/client'
 
 export interface Flashcard {
-  id: number
+  id: string
   front: string
-  frontImage: string
-  frontExample: string
+  frontImage?: string | null
+  frontDescription?: string | null
   back: string
-  backImage: string
-  backExample: string
+  backImage?: string | null
+  backDescription?: string | null
   folder: string
-  tags: string[]
-  isDoubleSided: 'FALSE' | 'TRUE'
-  hotStreak: number
+  tags: Tag[]
+  randomSideAllowed: boolean
+  streak: number
   nextStudy: string
   lastSeen: number
 }
@@ -45,227 +47,89 @@ const getRange = (from: string, to?: string, sheet = 'Fiszki') => {
   return `${sheet}!${from}${toRange}`
 }
 
-const getTags = async (sheets: Sheets): Promise<Tag[]> => {
-  const [tagsResponse, tagColorsResponse] = await Promise.all([
-    sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SHEET_ID,
-      range: getRange('A2', 'A1000', 'Tagi'),
-    }),
-    sheets.spreadsheets.get({
-      spreadsheetId: process.env.SHEET_ID,
-      ranges: [getRange('B2', 'B100', 'Tagi')],
-      includeGridData: true,
-    }),
-  ])
-  const tagNamesRange = tagsResponse.data
-  const tagsSheet = tagColorsResponse.data.sheets?.[0]
-
-  if (!tagNamesRange.values || !tagsSheet) {
-    throw new Error('Wrong data received from spreadsheet')
-  }
-
-  const tagColors =
-    (tagsSheet.data?.[0].rowData?.map(
-      (row) => row.values?.[0].effectiveFormat?.backgroundColor
-    ) as Array<{
-      red: number
-      green: number
-      blue: number
-    }>) ?? []
-  const tagNames: string[] = tagNamesRange.values.flat()
-  return tagNames.map((name, index) => {
-    const { red = 0, green = 0, blue = 0 } = tagColors[index]
-    return {
-      name,
-      color: {
-        r: red * 255,
-        g: green * 255,
-        b: blue * 255,
-      },
-    }
-  })
+const getTags = async (): Promise<Tag[]> => {
+  return (await db.tag.findMany()).map(mapTag)
 }
 
-const getFlashcards = async (sheets: Sheets): Promise<Flashcard[]> => {
-  const flashcardsData = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.SHEET_ID,
-    range,
+const getFlashcards = async (): Promise<Flashcard[]> => {
+  const flashcards = await db.flashcard.findMany({
+    include: {
+      folder: true,
+      tags: true,
+    },
   })
-  if (!flashcardsData.data.values) {
-    throw new Error('No data received from spreadsheet')
-  }
-
-  const flashcardsDataWithDefaults = flashcardsData.data.values.map(
-    ([
-      front,
-      frontExample,
-      frontImage,
-      back,
-      backExample,
-      backImage,
-      folder,
-      isDoubleSided,
-      hotStreak,
-      nextStudy,
-      lastSeen,
-    ]) => {
-      const now = daysFromNow(0)
-      const [updatedNextStudy, updatedLastSeen] =
-        nextStudy === undefined ||
-        new Date(nextStudy).getTime() < new Date(now).getTime()
-          ? [now, 0]
-          : [nextStudy, lastSeen]
-      return [
-        front,
-        frontExample,
-        frontImage,
-        back,
-        backExample,
-        backImage,
-        folder,
-        isDoubleSided,
-        hotStreak ?? 0,
-        updatedNextStudy,
-        updatedLastSeen,
-      ]
-    }
-  )
-
-  if (!isEqual(flashcardsData.data.values, flashcardsDataWithDefaults)) {
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: process.env.SHEET_ID,
-      range,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: flashcardsDataWithDefaults,
-      },
-    })
-  }
-
-  return flashcardsDataWithDefaults.map(
-    (
-      [
-        front,
-        frontExample,
-        frontImage,
-        back,
-        backExample,
-        backImage,
-        tagsList,
-        isDoubleSided,
-        hotStreak,
-        nextStudy,
-        lastSeen,
-      ],
-      index
-    ): Flashcard => {
-      const [folder = 'Brak', ...tags] = tagsList
-        ?.split(';')
-        .map((tag: string) => {
-          if (tag === '') {
-            return 'Brak'
-          }
-          return tag.trim()
-        })
-      return {
-        id: index,
-        front,
-        frontImage,
-        frontExample,
-        back,
-        backImage,
-        backExample,
-        folder,
-        tags,
-        isDoubleSided,
-        hotStreak: Number(hotStreak),
-        nextStudy,
-        lastSeen: Number(lastSeen),
-      }
-    }
-  )
+  return flashcards.map(mapFlashcard)
 }
 
-const range = getRange('A2', 'K1000')
+export function mapFlashcard({
+  folderId,
+  authorEmail: _,
+  nextStudy,
+  lastSeen,
+  folder,
+  tags,
+  ...other
+}: Prisma.FlashcardGetPayload<{
+  include: { folder: true; tags: true }
+}>): Flashcard {
+  return {
+    ...other,
+    nextStudy: nextStudy.toISOString().slice(0, 10),
+    lastSeen: lastSeen.getTime(),
+    folder: folder.name,
+    tags: tags.map(mapTag),
+  }
+}
+
+export function mapTag(tag: Prisma.TagGetPayload<{}>): Tag {
+  return {
+    name: tag.name,
+    color: {
+      r: parseInt(tag.color.slice(1, 3), 16),
+      g: parseInt(tag.color.slice(3, 5), 16),
+      b: parseInt(tag.color.slice(5, 7), 16),
+    },
+  }
+}
 
 export const indexLoader = async () => {
-  const auth = await google.auth.getClient({
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  })
-  const sheets = google.sheets({
-    version: 'v4',
-    auth,
-  })
-
-  const [flashcards, tags] = await Promise.all([
-    getFlashcards(sheets),
-    getTags(sheets),
-  ])
+  const [flashcards, tags] = await Promise.all([getFlashcards(), getTags()])
 
   return json({ flashcards, tags })
 }
 
-const actionSuccess = async (flashcardId: number) => {
-  console.log(flashcardId)
-  const recordIndex = flashcardId + 2
-  const auth = await google.auth.getClient({
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+const actionSuccess = async (flashcardId: string) => {
+  const flashcard = await db.flashcard.findUnique({
+    where: {
+      id: flashcardId,
+    },
   })
-  const sheets = google.sheets({
-    version: 'v4',
-    auth,
-  })
-  const values = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${recordIndex}`),
-  })
-
-  if (!values.data.values) {
-    throw new Error('No data received from spreadsheet')
+  if (!flashcard) {
+    throw new Error('Flashcard not found')
   }
-
-  const hotStreak = Number(values.data.values[0][0])
-  const numberOfDays = getNumberOfDays(hotStreak)
-  console.log(hotStreak)
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${recordIndex}`, `K${recordIndex}`),
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [
-        [Number(values.data.values[0][0]) + 1, daysFromNow(numberOfDays), 0],
-      ],
+  const number = getNumberOfDays(flashcard.streak)
+  await db.flashcard.update({
+    where: {
+      id: flashcardId,
+    },
+    data: {
+      streak: {
+        increment: 1,
+      },
+      nextStudy: new Date(daysFromNow(number)),
+      lastSeen: new Date(),
     },
   })
 }
 
-const actionFailure = async (flashcardId: number) => {
-  const recordIndex = flashcardId + 2
-
-  const auth = await google.auth.getClient({
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  })
-  const sheets = google.sheets({
-    version: 'v4',
-    auth,
-  })
-
-  const values = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`J${recordIndex}`),
-  })
-
-  if (!values.data.values) {
-    throw new Error('No data received from spreadsheet')
-  }
-
-  await sheets.spreadsheets.values.update({
-    spreadsheetId: process.env.SHEET_ID,
-    range: getRange(`I${recordIndex}`, `K${recordIndex}`),
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[0, values.data.values[0][0], Date.now()]],
+const actionFailure = async (flashcardId: string) => {
+  await db.flashcard.update({
+    where: {
+      id: flashcardId,
+    },
+    data: {
+      streak: 0,
+      lastSeen: new Date(),
     },
   })
 }
@@ -290,10 +154,8 @@ const getNumberOfDays = (hotStreak: number) => {
 
 export const studyAction: ActionFunction = async ({ request }) => {
   const body = await request.formData()
-  const id =
-    typeof body.get('flashcardId') === 'string'
-      ? Number(body.get('flashcardId'))
-      : null
+  const rawFlashcardId = body.get('flashcardId')
+  const id = typeof rawFlashcardId === 'string' ? rawFlashcardId : null
   const action = body.get('_action')
   if (id !== null) {
     if (action === 'success') {

@@ -1,113 +1,119 @@
 import React, { useState } from 'react'
-import { MetaFunction } from '@remix-run/server-runtime'
+import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
 import { styled } from '~/styles/stitches.config'
-import { Link, useLocation, useMatches } from '@remix-run/react'
-import { useParams } from 'react-router'
-import { Flashcard as FlashcardType, Tag } from '~/utils.server'
+import { Link, useLoaderData, useLocation } from '@remix-run/react'
+import { Flashcard as FlashcardType, mapFlashcard, Tag } from '~/utils.server'
 import { Flashcard } from '~/components/Flashcard'
 import { Folder } from '~/components/Folder'
+import { db } from '~/utils/db.server'
+import { useParams } from 'react-router'
 
 export const meta: MetaFunction = ({ params }) => {
   return { title: `Fiszki - tag ${params['*']}` }
 }
 
-export default function Tag() {
-  const params = useParams()
-  const location = useLocation()
-  const [, { data }] = useMatches()
-  const { flashcards, tags } = data as {
-    flashcards: FlashcardType[]
-    tags: Tag[]
-  }
-  const path = params['*'] as string
-  const depth = (path.match(/\//g)?.length ?? 0) + 1
-  const folders = Array.from(
-    new Set(
-      flashcards
-        .filter((flashcard) => flashcard.folder.startsWith(`${path}/`))
-        .map((flashcard) =>
-          flashcard.folder
-            .split('/')
-            .slice(depth, depth + 1)
-            .join('/')
-        )
-    )
-  )
-  const subfolders: Tag[] = folders.map((folder) => ({
-    name: folder,
-    color: tags.find((tag) => tag.name === folder)?.color ?? {
-      r: 128,
-      g: 128,
-      b: 128,
+type LoaderData = {
+  flashcards: FlashcardType[]
+  folders: string[]
+}
+
+export const loader: LoaderFunction = async ({ params }) => {
+  const tagName = params['*']?.split('/').slice(-1)[0]
+  // TODO: separate tag and folder routes
+  const tag = await db.tag.findFirst({
+    where: {
+      name: tagName,
     },
-  }))
-  const flashcardsInFolder = flashcards.filter(
-    (flashcard) => flashcard.folder === path || flashcard.tags.includes(path)
-  )
+    include: {
+      flashcards: {
+        include: {
+          folder: true,
+          tags: true,
+        },
+      },
+    },
+  })
+  if (tag) {
+    return json<LoaderData>({
+      flashcards: tag.flashcards.map(mapFlashcard),
+      folders: [],
+    })
+  }
+  const folder = await db.folder.findFirst({
+    where: {
+      name: tagName,
+    },
+    include: {
+      flashcards: {
+        include: {
+          folder: true,
+          tags: true,
+        }
+      },
+      folders: true,
+    },
+  })
+  if (!folder) {
+    throw new Response('Not found', { status: 404 })
+  }
+  return json<LoaderData>({
+    flashcards: folder.flashcards.map(mapFlashcard),
+    folders: folder.folders.map((folder) => folder.name),
+  })
+}
+
+export default function Tag() {
+  const { flashcards, folders } = useLoaderData<LoaderData>()
+  const params = useParams()
+  const path = params['*'] as string
+  const location = useLocation()
   const upUrl = location.pathname.split('/').slice(0, -1).join('/')
   return (
     <div>
       <h1>Tag {path}</h1>
       <Link to={upUrl}>Up</Link>
       <FoldersContainer>
-        {subfolders.map(({ name, color: { r, g, b } }) => {
-          const deepFlashcardsFromSubfolder = flashcards.filter((flashcard) =>
-            flashcard.folder.startsWith(`${path}/${name}`)
-          )
+        {folders.map((name) => {
           return (
             <div key={name}>
               <Folder
                 nameLink={`${path}/${name}`}
                 studyLink={`/study/study-tag/${path}/${name}`}
                 name={name}
-                count={deepFlashcardsFromSubfolder.length}
-                color={`rgb(${r},${g},${b})`}
+                count={0 /*implement*/}
+                color={`rgb(50, 50, 50)`}
               />
             </div>
           )
         })}
       </FoldersContainer>
       <FlashcardsContainer>
-        {flashcardsInFolder.map((flashcard) => {
-          return (
-            <TurnableFlashcard
-              key={flashcard.id}
-              flashcard={flashcard}
-              tagsData={tags}
-            />
-          )
+        {flashcards.map((flashcard) => {
+          return <TurnableFlashcard key={flashcard.id} flashcard={flashcard} />
         })}
       </FlashcardsContainer>
     </div>
   )
 }
 
-const TurnableFlashcard = ({
-  flashcard,
-  tagsData,
-}: {
-  flashcard: FlashcardType
-  tagsData: Tag[]
-}) => {
+const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = useState(true)
   const turn = () => setIsFront((prev) => !prev)
   return isFront ? (
     <Flashcard
       onClick={turn}
       text={flashcard.front}
-      example={flashcard.frontExample}
+      example={flashcard.frontDescription}
       image={flashcard.frontImage}
       tags={flashcard.tags}
-      tagsData={tagsData}
     />
   ) : (
     <Flashcard
       onClick={turn}
       text={flashcard.back}
       image={flashcard.backImage}
-      example={flashcard.backExample}
+      example={flashcard.backDescription}
       tags={flashcard.tags}
-      tagsData={tagsData}
     />
   )
 }

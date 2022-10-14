@@ -7,12 +7,10 @@ import { Link } from '@remix-run/react'
 export const TagList = ({
   folder,
   tags,
-  tagsData,
   size = 'big',
 }: {
   folder?: string
-  tags: string[]
-  tagsData: Tag[]
+  tags: Tag[]
   size?: 'small' | 'big'
 }) => {
   const folderColor = { '--color': '25, 130, 196' } as CSSProperties
@@ -26,16 +24,12 @@ export const TagList = ({
           </StyledTag>
         </Link>
       )}
-      {tags.map((tag) => {
-        const folderColorData = tagsData.find((tagData) => tagData.name === tag)
-          ?.color ?? { r: 0, g: 0, b: 0 }
-        const tagColor = {
-          '--color': `${folderColorData.r}, ${folderColorData.g}, ${folderColorData.b}`,
-        } as CSSProperties
+      {tags.map(({ color: { r, g, b }, name }) => {
+        const tagColor = { '--color': `${r}, ${g}, ${b}` } as CSSProperties
         return (
-          <Link key={tag} to={`/study/tag/${tag}`}>
+          <Link key={name} to={`/study/tag/${name}`}>
             <StyledTag style={tagColor} size={size}>
-              <span>{tag}</span>
+              <span>{name}</span>
             </StyledTag>
           </Link>
         )

@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  email        String         @id @unique
+  password     String
+  flashcards   Flashcard[]    @relation(name: "UserFlashcards")
+}
+
+model Flashcard {
+  id                String   @id @default(uuid())
+  authorEmail       String
+  author            User     @relation(name: "UserFlashcards", fields: [authorEmail], references: [email])
+  front             String
+  frontDescription  String?
+  frontImage        String?
+  back              String
+  backDescription   String?
+  backImage         String?
+  tags              Tag[]
+  folderId          String
+  folder            Folder   @relation(name: "FolderFlashcards", fields: [folderId], references: [id])
+  streak            Int      @default(0)
+  nextStudy         DateTime @default(now())
+  lastSeen          DateTime @default(now())
+  randomSideAllowed Boolean  @default(true)
+}
+
+model Tag {
+  name       String @id @unique
+  color      String
+  flashcards Flashcard[]
+}
+
+model Folder {
+  id             String      @id @default(uuid())
+  name           String
+  color          String
+  flashcards     Flashcard[] @relation(name: "FolderFlashcards")
+  parentFolderId String?
+  parentFolder   Folder?     @relation(name: "FolderFolders", fields: [parentFolderId], references: [id])
+  folders        Folder[]    @relation(name: "FolderFolders")
+}

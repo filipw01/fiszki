@@ -7,14 +7,13 @@ import { Tag } from '~/utils.server'
 
 type Props = {
   text: string
-  image: string
-  example: string
+  image?: string | null
+  example?: string | null
   hidden?: boolean
   correct?: boolean
   language?: 'en' | 'es'
   onClick?: () => void
-  tags?: string[]
-  tagsData?: Tag[]
+  tags?: Tag[]
 }
 
 export const Flashcard = ({
@@ -26,7 +25,6 @@ export const Flashcard = ({
   language,
   onClick,
   tags,
-  tagsData,
 }: Props) => {
   const handleSpeak: MouseEventHandler<unknown> = (e) => {
     e.stopPropagation()
@@ -58,7 +56,7 @@ export const Flashcard = ({
                   marginTop: image ? '1rem' : 0,
                   fontWeight: getTextLengthBasedFontWeight(text),
                   fontSize: getLengthBasedFontSize(
-                    text.length + example.length
+                    text.length + (example?.length ?? 0)
                   ),
                 }}
               >
@@ -89,9 +87,9 @@ export const Flashcard = ({
           <SpeakerIcon />
         </button>
       )}
-      {tags && tagsData && (
+      {tags && (
         <StyledTagListContainer>
-          <TagList tags={tags} tagsData={tagsData} size="small" />
+          <TagList tags={tags} size="small" />
         </StyledTagListContainer>
       )}
     </StyledFlashcard>

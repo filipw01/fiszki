@@ -1,7 +1,7 @@
 import { useParams } from 'react-router'
 import { useMatches } from '@remix-run/react'
 import { partition } from 'lodash-es'
-import { Flashcard as FlashcardType, studyAction, Tag } from '~/utils.server'
+import { Flashcard as FlashcardType, studyAction } from '~/utils.server'
 import { ActionFunction, MetaFunction } from '@remix-run/server-runtime'
 import { Study } from '~/components/Study'
 import { seededShuffle } from '~/utils'
@@ -15,9 +15,8 @@ export const meta: MetaFunction = ({ params }) => {
 export default function Set() {
   const { number } = useParams()
   const [, { data }] = useMatches()
-  const { flashcards: allFlashcards, tags } = data as {
+  const { flashcards: allFlashcards } = data as {
     flashcards: FlashcardType[]
-    tags: Tag[]
   }
 
   const flashcards = seededShuffle(
@@ -38,7 +37,7 @@ export default function Set() {
     Number(number) * FLASHCARDS_PER_SET
   )
 
-  return <Study flashcards={flashcardsSetToStudy} tags={tags} isSet />
+  return <Study flashcards={flashcardsSetToStudy} isSet />
 }
 
 const FLASHCARDS_PER_SET = 10
