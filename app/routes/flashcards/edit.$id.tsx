@@ -17,6 +17,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const front = body.get('front')
     const back = body.get('back')
     const folderId = body.get('folderId')
+    const tags = body.getAll('tags')
     const backDescription = body.get('backDescription')
     const backImage = body.get('backImage')
     const frontDescription = body.get('frontDescription')
@@ -35,6 +36,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         front,
         back,
         folder: { connect: { id: folderId } },
+        tags: { set: tags.map((name) => ({ name })) },
         backDescription,
         backImage,
         frontDescription,
@@ -48,27 +50,29 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 }
 
+type LoaderData = {
+  flashcard: Prisma.FlashcardGetPayload<{ include: { tags: true } }>
+  folders: Prisma.FolderGetPayload<{}>[]
+  tags: Prisma.TagGetPayload<{}>[]
+}
+
 export const loader: LoaderFunction = async ({ params }) => {
   const folders = await db.folder.findMany()
+  const tags = await db.tag.findMany()
   const flashcard = await db.flashcard.findUnique({
     where: { id: params.id },
+    include: { tags: true },
   })
 
   if (!flashcard) {
     return new Response('Not found', { status: 404 })
   }
 
-  return json<{
-    flashcard: Prisma.FlashcardGetPayload<{}>
-    folders: Prisma.FolderGetPayload<{}>[]
-  }>({ flashcard, folders })
+  return json<LoaderData>({ folders, tags, flashcard })
 }
 
 export default function EditFlashcard() {
-  const { flashcard, folders } = useLoaderData<{
-    flashcard: Prisma.FlashcardGetPayload<{}>
-    folders: Prisma.FolderGetPayload<{}>[]
-  }>()
+  const { flashcard, folders, tags } = useLoaderData<LoaderData>()
 
   return (
     <div>
@@ -142,6 +146,20 @@ export default function EditFlashcard() {
                   selected={folder.id === flashcard.folderId}
                 >
                   {folder.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tags
+            <select
+              name="tags"
+              multiple
+              defaultValue={flashcard.tags.map((tag) => tag.name)}
+            >
+              {tags.map((tag) => (
+                <option key={tag.name} value={tag.name}>
+                  {tag.name}
                 </option>
               ))}
             </select>

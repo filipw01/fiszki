@@ -18,6 +18,7 @@ export const action: ActionFunction = async ({ request }) => {
   const front = body.get('front')
   const back = body.get('back')
   const folderId = body.get('folderId')
+  const tags = body.getAll('tags')
   const backDescription = body.get('backDescription')
   const backImage = body.get('backImage')
   const frontDescription = body.get('frontDescription')
@@ -34,6 +35,7 @@ export const action: ActionFunction = async ({ request }) => {
       back,
       folder: { connect: { id: folderId } },
       author: { connect: { email } },
+      tags: { connect: tags.map((name) => ({ name })) },
       backDescription,
       backImage,
       frontDescription,
@@ -45,13 +47,19 @@ export const action: ActionFunction = async ({ request }) => {
   return redirect('/flashcards')
 }
 
+type LoaderData = {
+  folders: Prisma.FolderGetPayload<{}>[]
+  tags: Prisma.TagGetPayload<{}>[]
+}
+
 export const loader: LoaderFunction = async () => {
   const folders = await db.folder.findMany()
-  return json<Prisma.FolderGetPayload<{}>[]>(folders)
+  const tags = await db.tag.findMany()
+  return json<LoaderData>({ folders, tags })
 }
 
 export default function CreateFlashcard() {
-  const data = useLoaderData<Prisma.FolderGetPayload<{}>[]>()
+  const { folders, tags } = useLoaderData<LoaderData>()
   return (
     <Form method="post">
       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -90,9 +98,19 @@ export default function CreateFlashcard() {
         <label>
           Folder
           <select name="folderId">
-            {data.map((folder) => (
+            {folders.map((folder) => (
               <option key={folder.id} value={folder.id}>
                 {folder.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Tags
+          <select name="tags" multiple>
+            {tags.map((tag) => (
+              <option key={tag.name} value={tag.name}>
+                {tag.name}
               </option>
             ))}
           </select>
