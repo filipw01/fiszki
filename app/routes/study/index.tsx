@@ -1,4 +1,4 @@
-import { Link, NavLink, useMatches } from '@remix-run/react'
+import { Link, NavLink, useLoaderData, useMatches } from '@remix-run/react'
 import { groupBy, partition } from 'lodash-es'
 import { Flashcard } from '~/utils.server'
 import { daysFromNow } from '~/utils'
@@ -12,13 +12,13 @@ export const links = () => {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireUserEmail(request)
-  return null
+  return await requireUserEmail(request)
 }
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export default function Study() {
+  const email = useLoaderData<string>()
   const [, { data }] = useMatches()
   const { flashcards } = data as {
     flashcards: Flashcard[]
@@ -57,6 +57,7 @@ export default function Study() {
         <Link to="/tags">Tags</Link>
         <Link to="/folders">Folders</Link>
         <Link to="/flashcards">Flashcards</Link>
+        <Link to="/logout">Logout: {email}</Link>
       </div>
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (

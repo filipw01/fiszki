@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form } from '@remix-run/react'
+import { Form, Link } from '@remix-run/react'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { createUserSession, login } from '~/session.server'
 
@@ -19,12 +19,15 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Login() {
   return (
-    <Form method="post">
-      <label htmlFor="email">Email</label>
-      <input type="email" id="email" name="email" />
-      <label htmlFor="password">Password</label>
-      <input type="password" id="password" name="password" />
-      <button type="submit">Sign up</button>
-    </Form>
+    <div>
+      <Link to="/signup">Sign Up</Link>
+      <Form method="post">
+        <label htmlFor="email">Email</label>
+        <input type="email" id="email" name="email" />
+        <label htmlFor="password">Password</label>
+        <input type="password" id="password" name="password" />
+        <button type="submit">Login</button>
+      </Form>
+    </div>
   )
 }

@@ -67,7 +67,7 @@ export default function CreateFlashcard() {
             </label>
             <label>
               Front image
-              <input type="file" name="frontImage" />
+              <input type="text" name="frontImage" />
             </label>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -83,7 +83,7 @@ export default function CreateFlashcard() {
 
             <label>
               Back image
-              <input type="file" name="backImage" />
+              <input type="text" name="backImage" />
             </label>
           </div>
         </div>
