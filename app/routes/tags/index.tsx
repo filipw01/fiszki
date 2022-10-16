@@ -1,11 +1,13 @@
 import React from 'react'
 import { Link, useLoaderData } from '@remix-run/react'
 import { db } from '~/utils/db.server'
-import { json } from '@remix-run/server-runtime'
+import { json, LoaderFunction } from '@remix-run/server-runtime'
 import { Prisma } from '@prisma/client'
+import { requireUserEmail } from '~/session.server'
 
-export const loader = async () => {
-  const tags = await db.tag.findMany()
+export const loader: LoaderFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
+  const tags = await db.tag.findMany({ where: { owner: { email } } })
 
   return json<Prisma.TagGetPayload<{}>[]>(tags)
 }

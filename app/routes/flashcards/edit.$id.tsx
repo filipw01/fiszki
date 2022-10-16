@@ -8,10 +8,16 @@ import {
 } from '@remix-run/server-runtime'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
+import { requireUserEmail } from '~/session.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
+  const email = await requireUserEmail(request)
   const body = new URLSearchParams(await request.text())
   const action = body.get('action')
+
+  await db.flashcard.findFirstOrThrow({
+    where: { id: params.id, owner: { email } },
+  })
 
   if (action === 'update') {
     const front = body.get('front')
@@ -26,6 +32,29 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     if (!front || !back || !folderId) {
       return new Response('Missing data', { status: 400 })
+    }
+
+    await db.folder.findFirstOrThrow({
+      where: {
+        id: folderId,
+        owner: { email },
+      },
+    })
+
+    const ownedTags = await db.tag.findMany({
+      where: {
+        name: {
+          in: tags,
+        },
+        owner: {
+          email,
+        },
+      },
+    })
+    if (ownedTags.length !== tags.length) {
+      return new Response('You need to own all tags you try to assign', {
+        status: 400,
+      })
     }
 
     return await db.flashcard.update({
@@ -56,11 +85,16 @@ type LoaderData = {
   tags: Prisma.TagGetPayload<{}>[]
 }
 
-export const loader: LoaderFunction = async ({ params }) => {
-  const folders = await db.folder.findMany()
-  const tags = await db.tag.findMany()
-  const flashcard = await db.flashcard.findUnique({
-    where: { id: params.id },
+export const loader: LoaderFunction = async ({ params, request }) => {
+  const email = await requireUserEmail(request)
+  const folders = await db.folder.findMany({
+    where: { owner: { email } },
+  })
+  const tags = await db.tag.findMany({
+    where: { owner: { email } },
+  })
+  const flashcard = await db.flashcard.findFirstOrThrow({
+    where: { id: params.id, owner: { email } },
     include: { tags: true },
   })
 

@@ -9,10 +9,19 @@ import {
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { useParams } from 'react-router'
+import { requireUserEmail } from '~/session.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
+  const email = await requireUserEmail(request)
   const body = new URLSearchParams(await request.text())
   const action = body.get('action')
+
+  await db.folder.findFirstOrThrow({
+    where: {
+      id: params.id,
+      owner: { email },
+    },
+  })
 
   if (action === 'update') {
     const name = body.get('name')
@@ -21,6 +30,15 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     if (!name || !color) {
       return new Response('Missing data', { status: 400 })
+    }
+
+    if (parentFolderId) {
+      await db.folder.findFirstOrThrow({
+        where: {
+          id: parentFolderId,
+          owner: { email },
+        },
+      })
     }
 
     return await db.folder.update({
@@ -41,8 +59,9 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 }
 
-export const loader: LoaderFunction = async ({ params }) => {
-  const folders = await db.folder.findMany()
+export const loader: LoaderFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
 
   return json<{
     folders: Prisma.FolderGetPayload<{}>[]

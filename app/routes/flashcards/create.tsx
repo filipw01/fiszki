@@ -34,7 +34,7 @@ export const action: ActionFunction = async ({ request }) => {
       front,
       back,
       folder: { connect: { id: folderId } },
-      author: { connect: { email } },
+      owner: { connect: { email } },
       tags: { connect: tags.map((name) => ({ name })) },
       backDescription,
       backImage,
@@ -52,9 +52,14 @@ type LoaderData = {
   tags: Prisma.TagGetPayload<{}>[]
 }
 
-export const loader: LoaderFunction = async () => {
-  const folders = await db.folder.findMany()
-  const tags = await db.tag.findMany()
+export const loader: LoaderFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
+  const folders = await db.folder.findMany({
+    where: { owner: { email } },
+  })
+  const tags = await db.tag.findMany({
+    where: { owner: { email } },
+  })
   return json<LoaderData>({ folders, tags })
 }
 

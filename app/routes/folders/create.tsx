@@ -11,7 +11,7 @@ import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 
 export const action: ActionFunction = async ({ request }) => {
-  await requireUserEmail(request)
+  const email = await requireUserEmail(request)
 
   const body = new URLSearchParams(await request.text())
 
@@ -23,10 +23,20 @@ export const action: ActionFunction = async ({ request }) => {
     return new Response('Missing data', { status: 400 })
   }
 
+  if (parentFolderId) {
+    db.folder.findFirstOrThrow({
+      where: {
+        id: parentFolderId,
+        owner: { email },
+      },
+    })
+  }
+
   await db.folder.create({
     data: {
       name,
       color,
+      owner: { connect: { email } },
       parentFolder: parentFolderId
         ? { connect: { id: parentFolderId } }
         : undefined,
@@ -35,8 +45,9 @@ export const action: ActionFunction = async ({ request }) => {
   return redirect('/folders')
 }
 
-export const loader: LoaderFunction = async () => {
-  const folders = await db.folder.findMany()
+export const loader: LoaderFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
   return json<Prisma.FolderGetPayload<{}>[]>(folders)
 }
 

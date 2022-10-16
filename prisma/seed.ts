@@ -1,5 +1,6 @@
 import { PrismaClient, type Prisma } from '@prisma/client'
 import { register } from '~/session.server'
+import { use } from 'ast-types'
 
 const db = new PrismaClient()
 
@@ -8,32 +9,42 @@ async function seed() {
     email: 'test@test.com',
     password: 'test',
   })
-  const user2 = await register({
-    email: 'test2@test.com',
-    password: 'test',
-  })
   const tagNames = (
-    await Promise.all(
-      getTags().map((tag) => {
-        return db.tag.create({ data: tag })
-      })
-    )
+    await Promise.all([
+      db.tag.create({
+        data: {
+          name: 'English',
+          color: '#0000ff',
+          owner: { connect: { email: user1.email } },
+        },
+      }),
+      db.tag.create({
+        data: {
+          name: 'Spanish',
+          color: '#ff0000',
+          owner: { connect: { email: user1.email } },
+        },
+      }),
+    ])
   ).map((tag) => tag.name)
 
   const folder = await db.folder.create({
     data: {
       name: 'Movies',
       color: '#34ebff',
+      ownerEmail: user1.email,
       folders: {
         createMany: {
           data: [
             {
               name: 'The Godfather',
               color: '#b90d0d',
+              ownerEmail: user1.email,
             },
             {
               name: 'Dark',
               color: '#ffd500',
+              ownerEmail: user1.email,
             },
           ],
         },
@@ -43,7 +54,7 @@ async function seed() {
   await Promise.all(
     getFlashcards({
       folderId: folder.id,
-      authorEmail: user1.email,
+      ownerEmail: user1.email,
       tagNames,
     }).map((flashcard) => {
       return db.flashcard.create({ data: flashcard })
@@ -53,20 +64,13 @@ async function seed() {
 
 seed()
 
-function getTags(): Prisma.TagCreateInput[] {
-  return [
-    { name: 'English', color: '#0000ff' },
-    { name: 'Spanish', color: '#ff0000' },
-  ]
-}
-
 function getFlashcards({
   folderId,
-  authorEmail,
+  ownerEmail,
   tagNames,
 }: {
   folderId: string
-  authorEmail: string
+  ownerEmail: string
   tagNames: string[]
 }): Prisma.FlashcardCreateInput[] {
   return [
@@ -78,9 +82,9 @@ function getFlashcards({
           id: folderId,
         },
       },
-      author: {
+      owner: {
         connect: {
-          email: authorEmail,
+          email: ownerEmail,
         },
       },
       streak: 0,

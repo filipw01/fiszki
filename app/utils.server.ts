@@ -1,10 +1,11 @@
-import { ActionFunction, json } from '@remix-run/server-runtime'
+import { ActionFunction, json, LoaderFunction } from '@remix-run/server-runtime'
 import { google, sheets_v4 } from 'googleapis'
 import { isEqual } from 'lodash-es'
 import { daysFromNow } from './utils'
 import Sheets = sheets_v4.Sheets
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
+import { requireUserEmail } from '~/session.server'
 
 export interface Flashcard {
   id: string
@@ -47,12 +48,21 @@ const getRange = (from: string, to?: string, sheet = 'Fiszki') => {
   return `${sheet}!${from}${toRange}`
 }
 
-const getTags = async (): Promise<Tag[]> => {
-  return (await db.tag.findMany()).map(mapTag)
+const getTags = async (email: string): Promise<Tag[]> => {
+  return (
+    await db.tag.findMany({
+      where: { flashcards: { every: { owner: { email } } } },
+    })
+  ).map(mapTag)
 }
 
-const getFlashcards = async (): Promise<Flashcard[]> => {
+const getFlashcards = async (email: string): Promise<Flashcard[]> => {
   const flashcards = await db.flashcard.findMany({
+    where: {
+      owner: {
+        email,
+      },
+    },
     include: {
       folder: true,
       tags: true,
@@ -63,7 +73,7 @@ const getFlashcards = async (): Promise<Flashcard[]> => {
 
 export function mapFlashcard({
   folderId,
-  authorEmail: _,
+  ownerEmail: _,
   nextStudy,
   lastSeen,
   folder,
@@ -92,8 +102,11 @@ export function mapTag(tag: Prisma.TagGetPayload<{}>): Tag {
   }
 }
 
-export const indexLoader = async () => {
-  const [flashcards, tags] = await Promise.all([getFlashcards(), getTags()])
+export const indexLoader = async (email: string) => {
+  const [flashcards, tags] = await Promise.all([
+    getFlashcards(email),
+    getTags(email),
+  ])
 
   return json({ flashcards, tags })
 }
@@ -153,11 +166,20 @@ const getNumberOfDays = (hotStreak: number) => {
 }
 
 export const studyAction: ActionFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
   const body = await request.formData()
   const rawFlashcardId = body.get('flashcardId')
   const id = typeof rawFlashcardId === 'string' ? rawFlashcardId : null
   const action = body.get('_action')
   if (id !== null) {
+    db.flashcard.findFirstOrThrow({
+      where: {
+        id,
+        owner: {
+          email,
+        },
+      },
+    })
     if (action === 'success') {
       await actionSuccess(id)
     }

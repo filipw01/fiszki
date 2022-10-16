@@ -8,10 +8,9 @@ import {
 } from '@remix-run/server-runtime'
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
-import { Prisma } from '@prisma/client'
 
 export const action: ActionFunction = async ({ request }) => {
-  await requireUserEmail(request)
+  const email = await requireUserEmail(request)
 
   const body = new URLSearchParams(await request.text())
 
@@ -26,9 +25,15 @@ export const action: ActionFunction = async ({ request }) => {
     data: {
       name,
       color,
+      owner: { connect: { email } },
     },
   })
   return redirect('/tags')
+}
+
+export const loader: LoaderFunction = async ({ request }) => {
+  await requireUserEmail(request)
+  return null
 }
 
 export default function CreateTag() {

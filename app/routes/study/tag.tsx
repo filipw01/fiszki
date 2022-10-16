@@ -1,20 +1,42 @@
 import React from 'react'
-import { json, MetaFunction } from '@remix-run/server-runtime'
+import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
 import { mapTag } from '~/utils.server'
 import { Link, useLoaderData } from '@remix-run/react'
 import { FoldersContainer } from '~/routes/study/tag.$'
 import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
+import { requireUserEmail } from '~/session.server'
+import { Prisma } from '@prisma/client'
 
 export const meta: MetaFunction = () => {
   return { title: `Fiszki - tagi` }
 }
 
-export const loader = async () => {
+type LoaderData = {
+  topLevelFolders: (Prisma.FolderGetPayload<{}> & {
+    _count: {
+      flashcards: number
+      folders: number
+    }
+  })[]
+  tags: {
+    flashcardsCount: number
+    name: string
+    color: {
+      r: number
+      g: number
+      b: number
+    }
+  }[]
+}
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const email = await requireUserEmail(request)
   const [topLevelFolders, tags] = await Promise.all([
     db.folder.findMany({
       where: {
         parentFolderId: null,
+        owner: { email },
       },
       include: {
         _count: {
@@ -26,6 +48,9 @@ export const loader = async () => {
       },
     }),
     db.tag.findMany({
+      where: {
+        owner: { email },
+      },
       include: {
         _count: {
           select: {
@@ -41,11 +66,11 @@ export const loader = async () => {
     flashcardsCount: tag._count.flashcards,
   }))
 
-  return json({ topLevelFolders, tags: mappedTags })
+  return json<LoaderData>({ topLevelFolders, tags: mappedTags })
 }
 
 export default function Tag() {
-  const { topLevelFolders, tags } = useLoaderData<typeof loader>()
+  const { topLevelFolders, tags } = useLoaderData<LoaderData>()
   return (
     <div>
       <Link to="/study">Kalendarz</Link>

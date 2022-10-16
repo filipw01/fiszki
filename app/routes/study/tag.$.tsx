@@ -7,6 +7,7 @@ import { Flashcard } from '~/components/Flashcard'
 import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
 import { useParams } from 'react-router'
+import { requireUserEmail } from '~/session.server'
 
 export const meta: MetaFunction = ({ params }) => {
   return { title: `Fiszki - tag ${params['*']}` }
@@ -17,12 +18,14 @@ type LoaderData = {
   folders: string[]
 }
 
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ params, request }) => {
+  const email = await requireUserEmail(request)
   const tagName = params['*']?.split('/').slice(-1)[0]
   // TODO: separate tag and folder routes
   const tag = await db.tag.findFirst({
     where: {
       name: tagName,
+      owner: { email },
     },
     include: {
       flashcards: {
@@ -42,13 +45,14 @@ export const loader: LoaderFunction = async ({ params }) => {
   const folder = await db.folder.findFirst({
     where: {
       name: tagName,
+      owner: { email },
     },
     include: {
       flashcards: {
         include: {
           folder: true,
           tags: true,
-        }
+        },
       },
       folders: true,
     },

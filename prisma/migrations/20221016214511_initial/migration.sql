@@ -9,7 +9,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Flashcard" (
     "id" TEXT NOT NULL,
-    "authorEmail" TEXT NOT NULL,
+    "ownerEmail" TEXT NOT NULL,
     "front" TEXT NOT NULL,
     "frontDescription" TEXT,
     "frontImage" TEXT,
@@ -29,6 +29,7 @@ CREATE TABLE "Flashcard" (
 CREATE TABLE "Tag" (
     "name" TEXT NOT NULL,
     "color" TEXT NOT NULL,
+    "ownerEmail" TEXT NOT NULL,
 
     CONSTRAINT "Tag_pkey" PRIMARY KEY ("name")
 );
@@ -39,6 +40,7 @@ CREATE TABLE "Folder" (
     "name" TEXT NOT NULL,
     "color" TEXT NOT NULL,
     "parentFolderId" TEXT,
+    "ownerEmail" TEXT NOT NULL,
 
     CONSTRAINT "Folder_pkey" PRIMARY KEY ("id")
 );
@@ -62,13 +64,19 @@ CREATE UNIQUE INDEX "_FlashcardToTag_AB_unique" ON "_FlashcardToTag"("A", "B");
 CREATE INDEX "_FlashcardToTag_B_index" ON "_FlashcardToTag"("B");
 
 -- AddForeignKey
-ALTER TABLE "Flashcard" ADD CONSTRAINT "Flashcard_authorEmail_fkey" FOREIGN KEY ("authorEmail") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Flashcard" ADD CONSTRAINT "Flashcard_ownerEmail_fkey" FOREIGN KEY ("ownerEmail") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Flashcard" ADD CONSTRAINT "Flashcard_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "Folder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Tag" ADD CONSTRAINT "Tag_ownerEmail_fkey" FOREIGN KEY ("ownerEmail") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Folder" ADD CONSTRAINT "Folder_parentFolderId_fkey" FOREIGN KEY ("parentFolderId") REFERENCES "Folder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Folder" ADD CONSTRAINT "Folder_ownerEmail_fkey" FOREIGN KEY ("ownerEmail") REFERENCES "User"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_FlashcardToTag" ADD CONSTRAINT "_FlashcardToTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Flashcard"("id") ON DELETE CASCADE ON UPDATE CASCADE;

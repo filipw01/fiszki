@@ -20,7 +20,7 @@ export const action: ActionFunction = async ({ request }) => {
 export default function Signup() {
   return (
     <div>
-      <Link to="/login">Login</Link>
+      <Link to="/login">Go to login</Link>
       <Form method="post">
         <label htmlFor="email">Email</label>
         <input type="email" id="email" name="email" />

@@ -14,12 +14,14 @@ model User {
   email        String         @id @unique
   password     String
   flashcards   Flashcard[]    @relation(name: "UserFlashcards")
+  tags         Tag[]          @relation(name: "UserTags")
+  folders      Folder[]       @relation(name: "UserFolders")
 }
 
 model Flashcard {
   id                String   @id @default(uuid())
-  authorEmail       String
-  author            User     @relation(name: "UserFlashcards", fields: [authorEmail], references: [email])
+  ownerEmail        String
+  owner             User     @relation(name: "UserFlashcards", fields: [ownerEmail], references: [email])
   front             String
   frontDescription  String?
   frontImage        String?
@@ -39,6 +41,8 @@ model Tag {
   name       String @id @unique
   color      String
   flashcards Flashcard[]
+  ownerEmail String
+  owner      User    @relation(name: "UserTags", fields: [ownerEmail], references: [email])
 }
 
 model Folder {
@@ -49,4 +53,6 @@ model Folder {
   parentFolderId String?
   parentFolder   Folder?     @relation(name: "FolderFolders", fields: [parentFolderId], references: [id])
   folders        Folder[]    @relation(name: "FolderFolders")
+  ownerEmail     String
+  owner          User        @relation(name: "UserFolders", fields: [ownerEmail], references: [email])
 }
