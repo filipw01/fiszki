@@ -1,6 +1,5 @@
 import { PrismaClient, type Prisma } from '@prisma/client'
 import { register } from '~/session.server'
-import { use } from 'ast-types'
 
 const db = new PrismaClient()
 
