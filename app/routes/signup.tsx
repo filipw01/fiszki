@@ -2,6 +2,8 @@ import React from 'react'
 import { Form, Link } from '@remix-run/react'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { createUserSession, register } from '~/session.server'
+import { styled } from '~/styles/stitches.config'
+import { SignupWrapper } from '~/components/SignupWrapper'
 
 export const action: ActionFunction = async ({ request }) => {
   const body = new URLSearchParams(await request.text())
@@ -19,15 +21,20 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Signup() {
   return (
-    <div>
-      <Link to="/login">Go to login</Link>
-      <Form method="post">
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" name="email" />
-        <label htmlFor="password">Password</label>
-        <input type="password" id="password" name="password" />
-        <button type="submit">Sign up</button>
+    <SignupWrapper>
+      <Form method='post'>
+        <label>
+          Email
+          <input type='email' name='email' autoComplete='' />
+        </label>
+        <label>
+          Password
+          <input type='password' name='password' />
+        </label>
+        <button type='submit'>Sign up</button>
+        <Link to='/login'>I already have an account</Link>
       </Form>
-    </div>
+    </SignupWrapper>
   )
 }
+

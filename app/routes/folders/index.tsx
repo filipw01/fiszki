@@ -4,6 +4,7 @@ import { db } from '~/utils/db.server'
 import { json, LoaderFunction } from '@remix-run/server-runtime'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
+import { Folder } from '~/components/Folder'
 
 export const loader: LoaderFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
@@ -17,21 +18,15 @@ export default function Folders() {
 
   return (
     <div>
-      <Link to="create">Create</Link>
+      <Link to="create">Create new folder</Link>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {data.map((folder) => (
-          <Link
-            to={`edit/${folder.id}`}
-            key={folder.id}
-            style={{
-              display: 'block',
-              width: '100px',
-              background: 'gray',
-              border: '1px solid black',
-            }}
-          >
-            <p>{folder.name}</p>
-          </Link>
+          <Folder
+            name={folder.name}
+            color={folder.color}
+            nameLink={`edit/${folder.id}`}
+            studyLink={''}
+          />
         ))}
       </div>
     </div>

@@ -42,13 +42,13 @@ export const Study = ({ flashcards, isSet }: Props) => {
   if (currentFlashcard === undefined) {
     return isSet ? (
       <div>
-        🎉 Brawo, ukończyłeś zestaw 🎉
+        🎉 Congratulations, you've completed the set 🎉
         <Button color="check" onClick={() => window.location.reload()}>
-          Następny zestaw
+          Next set
         </Button>
       </div>
     ) : (
-      <div>Brak fiszek na ten dzień</div>
+      <div>No flashcards left</div>
     )
   }
 
@@ -83,7 +83,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
           <div style={{ marginRight: '1rem' }}>
             {currentFlashcardIndex + 1}/{flashcardsCount}
           </div>
-          <div>Seria: {streak ? '🔥'.repeat(streak) : '➖'}</div>
+          <div>Streak: {streak ? '🔥'.repeat(streak) : '➖'}</div>
         </div>
       </FlashcardMetadata>
       <FlashcardsHolder>
@@ -91,14 +91,14 @@ export const Study = ({ flashcards, isSet }: Props) => {
           text={front}
           example={frontDescription}
           image={frontImage}
-          language={'en'/*not implemented*/}
+          language={'en' /*not implemented*/}
         />
         <Flashcard
           text={back}
           example={backDescription}
           image={backImage}
           hidden={typedCorrectly === undefined}
-          language={'en'/*not implemented*/}
+          language={'en' /*not implemented*/}
           correct={typedCorrectly}
         />
       </FlashcardsHolder>
@@ -149,7 +149,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
               position="left"
               onClick={handleCheck}
             >
-              sprawdź
+              check
             </Button>
             <Button
               position="right"
@@ -157,7 +157,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
               size="small"
               onClick={nextFlashcard}
             >
-              pomiń
+              skip
             </Button>
           </FlexVCenter>
         ) : (
@@ -171,7 +171,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
                   name="_action"
                   value="failure"
                 >
-                  źle
+                  wrong
                 </Button>
               </ResultForm>
             )}
@@ -184,11 +184,11 @@ export const Study = ({ flashcards, isSet }: Props) => {
                   position="standalone"
                   ref={goodButtonTypedCorrectly}
                 >
-                  Dobrze, świetna robota 🤩
+                  Correct, great job 🤩
                 </Button>
               ) : (
                 <Button color="good" position="right">
-                  dobrze
+                  correct
                 </Button>
               )}
             </ResultForm>

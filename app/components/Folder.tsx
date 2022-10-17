@@ -11,10 +11,10 @@ export const Folder = ({
   studyLink,
 }: {
   name: string
-  count: number
+  count?: number
   color: string
   nameLink: string
-  studyLink: string
+  studyLink?: string
 }) => {
   return (
     <div>
@@ -30,15 +30,23 @@ export const Folder = ({
             fontSize: '30px',
           }}
         >
-          {count}
-          <Link to={studyLink}>
-            <StudyName>Study</StudyName>
-          </Link>
+          {count !== undefined ? count : null}
+          {studyLink ? (
+            <Link to={studyLink}>
+              <StudyName>Study</StudyName>
+            </Link>
+          ) : (
+            <Link to={nameLink}>
+              <Name>{name}</Name>
+            </Link>
+          )}
         </GridItem>
       </GridStacker>
-      <Link to={nameLink}>
-        <Name>{name}</Name>
-      </Link>
+      {studyLink && (
+        <Link to={nameLink}>
+          <Name>{name}</Name>
+        </Link>
+      )}
     </div>
   )
 }

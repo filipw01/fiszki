@@ -189,7 +189,7 @@ export default function EditFlashcard() {
             <select
               name="tags"
               multiple
-              defaultValue={flashcard.tags.map((tag) => tag.name)}
+              defaultValue={flashcard.tags.map((tag) => tag.id)}
             >
               {tags.map((tag) => (
                 <option key={tag.id} value={tag.id}>

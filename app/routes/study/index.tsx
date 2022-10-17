@@ -28,13 +28,13 @@ export default function Study() {
   const currentWeekDay = new Date(Date.now()).getDay()
   const normalizedCurrentWeekDay = (currentWeekDay + 6) % 7
   const weekDayNames = [
-    'Poniedziałek',
-    'Wtorek',
-    'Środa',
-    'Czwartek',
-    'Piątek',
-    'Sobota',
-    'Niedziela',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ]
 
   const isoDate = daysFromNow(0)
@@ -100,7 +100,7 @@ export default function Study() {
       </div>
       {seenFlashcardsToday.length === todayFlashcards.length && (
         <div style={{ fontSize: '2rem', marginTop: '2rem' }}>
-          Wszystkie fiszki z dzisiaj widziane
+          All flashcards seen today!
         </div>
       )}
 
@@ -114,7 +114,7 @@ export default function Study() {
           .map((_, index) => {
             return (
               <NavLink key={index} to={`/study/set/${index + 1}`}>
-                <Set>Zestaw {index + 1}</Set>
+                <Set>Set {index + 1}</Set>
               </NavLink>
             )
           })}

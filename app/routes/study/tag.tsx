@@ -73,10 +73,9 @@ export default function Tag() {
   const { topLevelFolders, tags } = useLoaderData<LoaderData>()
   return (
     <div>
-      <Link to="/study">Kalendarz</Link>
-      <h1>Tagi</h1>
+      <h1>Tags</h1>
       <FoldersContainer>
-        {topLevelFolders.map(({ name, _count }) => {
+        {topLevelFolders.map(({ name, _count, color }) => {
           return (
             <Folder
               key={name}
@@ -84,7 +83,7 @@ export default function Tag() {
               studyLink={`/study/study-tag/${name}`}
               name={name}
               count={_count.folders + _count.flashcards}
-              color={`rgb(50, 50, 50)`}
+              color={color}
             />
           )
         })}

@@ -15,7 +15,7 @@ export const meta: MetaFunction = ({ params }) => {
 
 type LoaderData = {
   flashcards: FlashcardType[]
-  folders: string[]
+  folders: { name: string; id: string; color: string }[]
 }
 
 export const loader: LoaderFunction = async ({ params, request }) => {
@@ -62,7 +62,11 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   }
   return json<LoaderData>({
     flashcards: folder.flashcards.map(mapFlashcard),
-    folders: folder.folders.map((folder) => folder.name),
+    folders: folder.folders.map((folder) => ({
+      name: folder.name,
+      color: folder.color,
+      id: folder.id,
+    })),
   })
 }
 
@@ -77,15 +81,15 @@ export default function Tag() {
       <h1>Tag {path}</h1>
       <Link to={upUrl}>Up</Link>
       <FoldersContainer>
-        {folders.map((name) => {
+        {folders.map(({ name, id, color }) => {
           return (
-            <div key={name}>
+            <div key={id}>
               <Folder
                 nameLink={`${path}/${name}`}
                 studyLink={`/study/study-tag/${path}/${name}`}
                 name={name}
                 count={0 /*implement*/}
-                color={`rgb(50, 50, 50)`}
+                color={color}
               />
             </div>
           )

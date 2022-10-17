@@ -19,17 +19,20 @@ export default function Flashcards() {
 
   return (
     <div>
-      <Link to="create">Create</Link>
+      <Link to="create">Create new flashcard</Link>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {data.map((flashcard) => (
           <Link
             to={`edit/${flashcard.id}`}
             key={flashcard.id}
             style={{
-              display: 'block',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               width: '100px',
-              background: 'gray',
+              padding: '4px',
               border: '1px solid black',
+              borderRadius: '8px',
             }}
           >
             <p>{flashcard.front}</p>
