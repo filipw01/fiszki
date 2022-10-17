@@ -17,9 +17,9 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   await db.tag.findFirstOrThrow({
     where: {
-      name: params.name,
+      id: params.id,
       owner: { email },
-    }
+    },
   })
 
   if (action === 'update') {
@@ -32,7 +32,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     return await db.tag.update({
       where: {
-        name: params.name,
+        id: params.id,
       },
       data: {
         name,
@@ -41,14 +41,14 @@ export const action: ActionFunction = async ({ request, params }) => {
       },
     })
   } else if (action === 'delete') {
-    await db.tag.delete({ where: { name: params.name } })
+    await db.tag.delete({ where: { id: params.id } })
     return redirect('/tags')
   }
 }
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   await requireUserEmail(request)
-  const tag = await db.tag.findUnique({ where: { name: params.name } })
+  const tag = await db.tag.findUnique({ where: { id: params.id } })
   if (!tag) {
     return new Response('Not found', { status: 404 })
   }

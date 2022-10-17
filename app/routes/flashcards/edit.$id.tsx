@@ -43,7 +43,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     const ownedTags = await db.tag.findMany({
       where: {
-        name: {
+        id: {
           in: tags,
         },
         owner: {
@@ -65,7 +65,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         front,
         back,
         folder: { connect: { id: folderId } },
-        tags: { set: tags.map((name) => ({ name })) },
+        tags: { set: tags.map((id) => ({ id })) },
         backDescription,
         backImage,
         frontDescription,
@@ -192,7 +192,7 @@ export default function EditFlashcard() {
               defaultValue={flashcard.tags.map((tag) => tag.name)}
             >
               {tags.map((tag) => (
-                <option key={tag.name} value={tag.name}>
+                <option key={tag.id} value={tag.id}>
                   {tag.name}
                 </option>
               ))}

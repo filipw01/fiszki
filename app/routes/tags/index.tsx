@@ -21,8 +21,8 @@ export default function Tags() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {data.map((tag) => (
           <Link
-            to={`edit/${tag.name}`}
-            key={tag.name}
+            to={`edit/${tag.id}`}
+            key={tag.id}
             style={{
               display: 'block',
               width: '100px',

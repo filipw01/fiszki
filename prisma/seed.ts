@@ -92,7 +92,7 @@ function getFlashcards({
       lastSeen: new Date(),
       randomSideAllowed: false,
       tags: {
-        connect: tagNames.map((name) => ({ name })),
+        connect: tagNames.map((id) => ({ id })),
       },
     },
   ]

@@ -29,13 +29,29 @@ export const action: ActionFunction = async ({ request }) => {
     return new Response('Missing data', { status: 400 })
   }
 
+  const ownedTags = await db.tag.findMany({
+    where: {
+      id: {
+        in: tags,
+      },
+      owner: {
+        email,
+      },
+    },
+  })
+  if (ownedTags.length !== tags.length) {
+    return new Response('You need to own all tags you try to assign', {
+      status: 400,
+    })
+  }
+
   await db.flashcard.create({
     data: {
       front,
       back,
       folder: { connect: { id: folderId } },
       owner: { connect: { email } },
-      tags: { connect: tags.map((name) => ({ name })) },
+      tags: { connect: tags.map((id) => ({ id })) },
       backDescription,
       backImage,
       frontDescription,
@@ -114,7 +130,7 @@ export default function CreateFlashcard() {
           Tags
           <select name="tags" multiple>
             {tags.map((tag) => (
-              <option key={tag.name} value={tag.name}>
+              <option key={tag.id} value={tag.id}>
                 {tag.name}
               </option>
             ))}

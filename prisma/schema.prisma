@@ -38,7 +38,8 @@ model Flashcard {
 }
 
 model Tag {
-  name       String @id @unique
+  id         String   @id @default(uuid())
+  name       String
   color      String
   flashcards Flashcard[]
   ownerEmail String
