@@ -41,7 +41,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       })
     }
 
-    return await db.folder.update({
+    await db.folder.update({
       where: {
         id: params.id,
       },
@@ -53,6 +53,7 @@ export const action: ActionFunction = async ({ request, params }) => {
           : { disconnect: true },
       },
     })
+    return redirect('/folders')
   } else if (action === 'delete') {
     await db.folder.delete({ where: { id: params.id } })
     return redirect('/folders')

@@ -57,7 +57,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       })
     }
 
-    return await db.flashcard.update({
+    await db.flashcard.update({
       where: {
         id: params.id,
       },
@@ -73,6 +73,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         randomSideAllowed,
       },
     })
+    return redirect('/flashcards')
   } else if (action === 'delete') {
     await db.flashcard.delete({ where: { id: params.id } })
     return redirect('/flashcards')

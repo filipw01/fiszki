@@ -30,7 +30,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       return new Response('Missing data', { status: 400 })
     }
 
-    return await db.tag.update({
+    await db.tag.update({
       where: {
         id: params.id,
       },
@@ -40,6 +40,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         owner: { connect: { email } },
       },
     })
+    return redirect('/tags')
   } else if (action === 'delete') {
     await db.tag.delete({ where: { id: params.id } })
     return redirect('/tags')
