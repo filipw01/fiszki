@@ -10,6 +10,8 @@ import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 
+const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
+
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
 
@@ -57,6 +59,7 @@ export const action: ActionFunction = async ({ request }) => {
       frontDescription,
       frontImage,
       randomSideAllowed,
+      lastSeen: new Date(Date.now()-ONE_DAY_IN_MS),
     },
   })
 

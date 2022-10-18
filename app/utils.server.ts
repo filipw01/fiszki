@@ -57,6 +57,9 @@ const getTags = async (email: string): Promise<Tag[]> => {
 }
 
 const getFlashcards = async (email: string): Promise<Flashcard[]> => {
+  const folders = await db.folder.findMany({
+    where: { owner: { email } },
+  })
   const flashcards = await db.flashcard.findMany({
     where: {
       owner: {
@@ -68,27 +71,48 @@ const getFlashcards = async (email: string): Promise<Flashcard[]> => {
       tags: true,
     },
   })
-  return flashcards.map(mapFlashcard)
+  return flashcards.map((flashcard) => mapFlashcard(flashcard, folders))
 }
 
-export function mapFlashcard({
-  folderId,
-  ownerEmail: _,
-  nextStudy,
-  lastSeen,
-  folder,
-  tags,
-  ...other
-}: Prisma.FlashcardGetPayload<{
-  include: { folder: true; tags: true }
-}>): Flashcard {
+export function mapFlashcard(
+  {
+    folderId,
+    ownerEmail: _,
+    nextStudy,
+    lastSeen,
+    folder,
+    tags,
+    ...other
+  }: Prisma.FlashcardGetPayload<{
+    include: { folder: true; tags: true }
+  }>,
+  folders: Prisma.FolderGetPayload<{}>[]
+): Flashcard {
+  const folderPath = getFolderPath(folderId, folders)
   return {
     ...other,
     nextStudy: nextStudy.toISOString().slice(0, 10),
     lastSeen: lastSeen.getTime(),
-    folder: folder.name,
+    folder: folderPath,
     tags: tags.map(mapTag),
   }
+}
+
+function getFolderPath(
+  folderId: string,
+  folders: Prisma.FolderGetPayload<{}>[]
+) {
+  let nextFolderId: string | null = folderId
+  const folderPath = []
+  while (nextFolderId) {
+    const folder = folders.find((folder) => folder.id === nextFolderId)
+    if (!folder) {
+      throw new Error('Folder not found')
+    }
+    folderPath.unshift(folder.name)
+    nextFolderId = folder.parentFolderId
+  }
+  return folderPath.join('/')
 }
 
 export function mapTag(tag: Prisma.TagGetPayload<{}>): Tag {
