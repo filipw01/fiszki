@@ -2,7 +2,11 @@ import React, { useState } from 'react'
 import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
 import { styled } from '~/styles/stitches.config'
 import { Link, useLoaderData, useLocation } from '@remix-run/react'
-import { Flashcard as FlashcardType, mapFlashcard } from '~/utils.server'
+import {
+  Flashcard as FlashcardType,
+  getFolderPath,
+  mapFlashcard,
+} from '~/utils.server'
 import { Flashcard } from '~/components/Flashcard'
 import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
@@ -17,15 +21,15 @@ export const meta: MetaFunction = ({ params }) => {
 type LoaderData = {
   flashcards: FlashcardType[]
   folderName: string
+  parentFolder: string | null
   subfolders: (Prisma.FolderGetPayload<{}> & {
-    _count: { flashcards: number; folders: number }
+    flashcardsCount: number
   })[]
 }
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const email = await requireUserEmail(request)
 
-  // TODO: separate tag and folder routes
   const folder = await db.folder.findFirst({
     where: {
       id: params.folderId,
@@ -38,16 +42,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
           tags: true,
         },
       },
-      folders: {
-        include: {
-          _count: {
-            select: {
-              flashcards: true,
-              folders: true,
-            },
-          },
-        },
-      },
+      folders: true,
     },
   })
   const folders = await db.folder.findMany({})
@@ -57,25 +52,64 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
   return json<LoaderData>({
     flashcards: folder.flashcards.map((tag) => mapFlashcard(tag, folders)),
-    folderName: folder.name,
-    subfolders: folder.folders,
+    folderName: getFolderPath(folder.id, folders),
+    parentFolder: folder.parentFolderId,
+    subfolders: await Promise.all(
+      folder.folders.map(async (folder) => ({
+        ...folder,
+        flashcardsCount: await getNestedFlashcardsCount(folder, email),
+      }))
+    ),
   })
 }
 
+export async function getNestedFlashcardsCount(
+  folder: Prisma.FolderGetPayload<{}>,
+  email: string
+): Promise<number> {
+  const folders = await db.folder.findMany({
+    where: {
+      id: folder.id,
+      owner: { email },
+    },
+    include: {
+      _count: {
+        select: {
+          flashcards: true,
+        },
+      },
+
+      folders: true,
+    },
+  })
+  let sum = 0
+  for (const folder of folders) {
+    sum += folder._count.flashcards
+    for (const subfolder of folder.folders) {
+      sum += await getNestedFlashcardsCount(subfolder, email)
+    }
+  }
+
+  return sum
+}
+
 export default function Subfolder() {
-  const { flashcards, folderName, subfolders } = useLoaderData<LoaderData>()
+  const { flashcards, folderName, subfolders, parentFolder } =
+    useLoaderData<LoaderData>()
   return (
     <div>
       <h1>Folder {folderName}</h1>
-      {/*<Link to={upUrl}>Up</Link>*/}
+      <Link to={parentFolder ? `/study/folder/${parentFolder}` : `/study/tag`}>
+        Up
+      </Link>
       <FoldersContainer>
-        {subfolders.map(({ id, color, _count, name }) => (
+        {subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder
             key={id}
             nameLink={`/study/folder/${id}`}
             studyLink={`/study/study-tag/${id}`}
             name={name}
-            count={_count.folders + _count.flashcards}
+            count={flashcardsCount}
             color={color}
           />
         ))}

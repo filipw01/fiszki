@@ -7,6 +7,7 @@ import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { styled } from '~/styles/stitches.config'
+import { getNestedFlashcardsCount } from '~/routes/study/folder.$folderId'
 
 export const meta: MetaFunction = () => {
   return { title: `Fiszki - tagi` }
@@ -14,10 +15,7 @@ export const meta: MetaFunction = () => {
 
 type LoaderData = {
   topLevelFolders: (Prisma.FolderGetPayload<{}> & {
-    _count: {
-      flashcards: number
-      folders: number
-    }
+    flashcardsCount: number
   })[]
   tags: {
     flashcardsCount: number
@@ -40,12 +38,7 @@ export const loader: LoaderFunction = async ({ request }) => {
         owner: { email },
       },
       include: {
-        _count: {
-          select: {
-            folders: true,
-            flashcards: true,
-          },
-        },
+        folders: true,
       },
     }),
     db.tag.findMany({
@@ -68,28 +61,38 @@ export const loader: LoaderFunction = async ({ request }) => {
     id: tag.id,
   }))
 
-  return json<LoaderData>({ topLevelFolders, tags: mappedTags })
+  return json<LoaderData>({
+    topLevelFolders: await Promise.all(
+      topLevelFolders.map(async (folder) => ({
+        ...folder,
+        flashcardsCount: await getNestedFlashcardsCount(folder, email),
+      }))
+    ),
+    tags: mappedTags,
+  })
 }
 
 export default function Tag() {
   const { topLevelFolders, tags } = useLoaderData<LoaderData>()
   return (
     <div>
-      <h1>Tags</h1>
+      <h2>Folders</h2>
       <FoldersContainer>
-        {topLevelFolders.map(({ name, _count, color, id }) => {
+        {topLevelFolders.map(({ name, flashcardsCount, color, id }) => {
           return (
             <Folder
               key={id}
               nameLink={`/study/folder/${id}`}
               studyLink={`/study/study-tag/${id}`}
               name={name}
-              count={_count.folders + _count.flashcards}
+              count={flashcardsCount}
               color={color}
             />
           )
         })}
       </FoldersContainer>
+      <h2>Tags</h2>
+
       <FoldersContainer>
         {tags.map(({ color: { r, g, b }, name, flashcardsCount, id }) => {
           return (
@@ -97,7 +100,7 @@ export default function Tag() {
               key={id}
               nameLink={`/study/tag/${id}`}
               studyLink={`/study/study-tag/${id}`}
-              name={`Tag: ${name}`}
+              name={name}
               count={flashcardsCount}
               color={`rgb(${r},${g},${b})`}
             />

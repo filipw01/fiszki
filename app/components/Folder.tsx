@@ -30,21 +30,25 @@ export const Folder = ({
             fontSize: '30px',
           }}
         >
-          {count !== undefined ? count : null}
-          {studyLink ? (
-            <Link to={studyLink}>
-              <StudyName>Study</StudyName>
-            </Link>
-          ) : (
-            <Link to={nameLink}>
-              <Name>{name}</Name>
-            </Link>
-          )}
+          <Link
+            to={nameLink}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: '100%',
+              height: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {count !== undefined ? count : null}
+            <StudyName>{name}</StudyName>
+          </Link>
         </GridItem>
       </GridStacker>
       {studyLink && (
-        <Link to={nameLink}>
-          <Name>{name}</Name>
+        <Link to={studyLink}>
+          <Name>Study</Name>
         </Link>
       )}
     </div>
@@ -70,5 +74,7 @@ const Name = styled('div', {
 })
 
 const StudyName = styled('div', {
-  fontSize: 14,
+  fontSize: 16,
+  textAlign: 'center',
+  padding: '0 12px',
 })

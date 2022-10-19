@@ -44,7 +44,9 @@ export default function Study() {
   )
   const [todaySeenFlashcards, todayNotSeenFlashcards] = partition(
     todayFlashcards,
-    (flashcard) => flashcard.lastSeen > 0
+    (flashcard) =>
+      flashcard.lastSeen >
+      new Date(new Date().toISOString().slice(0, 10)).getTime()
   )
 
   const seenFlashcardsToday = todayFlashcards.filter(
