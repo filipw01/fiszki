@@ -61,29 +61,35 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
   const folders = await db.folder.findMany({ where: { owner: { email } } })
 
-  const foldersWithMappedName = folders.map((folder) => {
-    return {
-      ...folder,
-      name: getFolderPath(folder.id, folders),
-    }
-  })
+  const foldersWithMappedName = folders
+    .map((folder) => {
+      return {
+        ...folder,
+        name: getFolderPath(folder.id, folders),
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   return json<{
     folders: Prisma.FolderGetPayload<{}>[]
-  }>({ folders: foldersWithMappedName })
+    editedFolder: Prisma.FolderGetPayload<{}>
+  }>({
+    folders: foldersWithMappedName,
+    editedFolder: folders.find((folder) => folder.id === params.id)!,
+  })
 }
 
 export default function EditFolder() {
   const params = useParams()
-  const { folders } = useLoaderData<{
+  const { folders, editedFolder } = useLoaderData<{
     folders: Prisma.FolderGetPayload<{}>[]
+    editedFolder: Prisma.FolderGetPayload<{}>
   }>()
 
-  const editedFolder = folders.find((folder) => folder.id === params.id)
   return (
     <div>
       <Form method="post">

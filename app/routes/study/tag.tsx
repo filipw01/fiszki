@@ -2,11 +2,11 @@ import React from 'react'
 import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
 import { mapTag } from '~/utils.server'
 import { Link, useLoaderData } from '@remix-run/react'
-import { FoldersContainer } from '~/routes/study/tag.$'
 import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
+import { styled } from '~/styles/stitches.config'
 
 export const meta: MetaFunction = () => {
   return { title: `Fiszki - tagi` }
@@ -22,6 +22,7 @@ type LoaderData = {
   tags: {
     flashcardsCount: number
     name: string
+    id: string
     color: {
       r: number
       g: number
@@ -64,6 +65,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const mappedTags = tags.map((tag) => ({
     ...mapTag(tag),
     flashcardsCount: tag._count.flashcards,
+    id: tag.id,
   }))
 
   return json<LoaderData>({ topLevelFolders, tags: mappedTags })
@@ -87,12 +89,12 @@ export default function Tag() {
             />
           )
         })}
-        {tags.map(({ color: { r, g, b }, name, flashcardsCount }) => {
+        {tags.map(({ color: { r, g, b }, name, flashcardsCount, id }) => {
           return (
             <Folder
-              key={name}
-              nameLink={`/study/tag/${name}`}
-              studyLink={`/study/study-tag/${name}`}
+              key={id}
+              nameLink={`/study/tag/${id}`}
+              studyLink={`/study/study-tag/${id}`}
               name={`Tag: ${name}`}
               count={flashcardsCount}
               color={`rgb(${r},${g},${b})`}
@@ -103,3 +105,10 @@ export default function Tag() {
     </div>
   )
 }
+
+export const FoldersContainer = styled('div', {
+  display: 'grid',
+  gap: '1rem',
+  margin: '1rem 0',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(122px, 1fr))',
+})

@@ -49,12 +49,15 @@ export const action: ActionFunction = async ({ request }) => {
 export const loader: LoaderFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
   const folders = await db.folder.findMany({ where: { owner: { email } } })
-  const foldersWithMappedName = folders.map((folder) => {
-    return {
-      ...folder,
-      name: getFolderPath(folder.id, folders),
-    }
-  })
+  const foldersWithMappedName = folders
+    .map((folder) => {
+      return {
+        ...folder,
+        name: getFolderPath(folder.id, folders),
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+
   return json<Prisma.FolderGetPayload<{}>[]>(foldersWithMappedName)
 }
 
