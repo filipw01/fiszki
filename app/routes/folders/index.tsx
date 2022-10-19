@@ -8,7 +8,9 @@ import { Folder } from '~/components/Folder'
 
 export const loader: LoaderFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
-  const folders = await db.folder.findMany({ where: { owner: { email } } })
+  const folders = await db.folder.findMany({
+    where: { owner: { email }, parentFolder: null },
+  })
 
   return json<Prisma.FolderGetPayload<{}>[]>(folders)
 }
@@ -21,12 +23,21 @@ export default function Folders() {
       <Link to="create">Create new folder</Link>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {data.map((folder) => (
-          <Folder
-            name={folder.name}
-            color={folder.color}
-            nameLink={`edit/${folder.id}`}
-            studyLink={''}
-          />
+          <div
+            key={folder.id}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Folder
+              name={folder.name}
+              color={folder.color}
+              nameLink={`/folders/${folder.id}`}
+            />
+            <Link to={`/folders/edit/${folder.id}`}>edit</Link>
+          </div>
         ))}
       </div>
     </div>

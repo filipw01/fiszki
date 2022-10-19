@@ -9,6 +9,7 @@ import {
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
+import { getFolderPath } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
@@ -103,7 +104,14 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     return new Response('Not found', { status: 404 })
   }
 
-  return json<LoaderData>({ folders, tags, flashcard })
+  const foldersWithMappedName = folders.map((folder) => {
+    return {
+      ...folder,
+      name: getFolderPath(folder.id, folders),
+    }
+  })
+
+  return json<LoaderData>({ folders: foldersWithMappedName, tags, flashcard })
 }
 
 export default function EditFlashcard() {

@@ -98,7 +98,7 @@ export function mapFlashcard(
   }
 }
 
-function getFolderPath(
+export function getFolderPath(
   folderId: string,
   folders: Prisma.FolderGetPayload<{}>[]
 ) {

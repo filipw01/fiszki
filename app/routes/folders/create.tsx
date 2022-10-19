@@ -9,6 +9,7 @@ import {
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
+import { getFolderPath } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
@@ -48,7 +49,13 @@ export const action: ActionFunction = async ({ request }) => {
 export const loader: LoaderFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
   const folders = await db.folder.findMany({ where: { owner: { email } } })
-  return json<Prisma.FolderGetPayload<{}>[]>(folders)
+  const foldersWithMappedName = folders.map((folder) => {
+    return {
+      ...folder,
+      name: getFolderPath(folder.id, folders),
+    }
+  })
+  return json<Prisma.FolderGetPayload<{}>[]>(foldersWithMappedName)
 }
 
 export default function CreateFolder() {

@@ -9,6 +9,7 @@ import {
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
+import { getFolderPath } from '~/utils.server'
 
 const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
 
@@ -59,7 +60,7 @@ export const action: ActionFunction = async ({ request }) => {
       frontDescription,
       frontImage,
       randomSideAllowed,
-      lastSeen: new Date(Date.now()-ONE_DAY_IN_MS),
+      lastSeen: new Date(Date.now() - ONE_DAY_IN_MS),
     },
   })
 
@@ -79,7 +80,13 @@ export const loader: LoaderFunction = async ({ request }) => {
   const tags = await db.tag.findMany({
     where: { owner: { email } },
   })
-  return json<LoaderData>({ folders, tags })
+  const foldersWithMappedName = folders.map((folder) => {
+    return {
+      ...folder,
+      name: getFolderPath(folder.id, folders),
+    }
+  })
+  return json<LoaderData>({ folders: foldersWithMappedName, tags })
 }
 
 export default function CreateFlashcard() {
