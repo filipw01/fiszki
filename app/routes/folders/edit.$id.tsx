@@ -56,6 +56,22 @@ export const action: ActionFunction = async ({ request, params }) => {
     })
     return redirect('/folders')
   } else if (action === 'delete') {
+    const folder = await db.folder.findFirst({
+      where: {
+        id: params.id,
+        owner: { email },
+      },
+      include: {
+        folders: true,
+        flashcards: true,
+      },
+    })
+    if (!folder) {
+      throw new Response('Folder not found', { status: 404 })
+    }
+    if (folder.folders.length > 0 || folder.flashcards.length > 0) {
+      throw new Response('Folder not empty', { status: 400 })
+    }
     await db.folder.delete({ where: { id: params.id } })
     return redirect('/folders')
   }

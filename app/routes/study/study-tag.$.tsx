@@ -30,8 +30,13 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       tags: true,
     },
   })
+  const folders = await db.folder.findMany({})
   if (flashcards.length > 0) {
-    return json<LoaderData>({ flashcards: flashcards.map(mapFlashcard) })
+    return json<LoaderData>({
+      flashcards: flashcards.map((flashcard) =>
+        mapFlashcard(flashcard, folders)
+      ),
+    })
   }
   const tagFlashcards = await db.flashcard.findMany({
     where: {
@@ -49,7 +54,11 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   if (!tagFlashcards) {
     throw new Response('Not found', { status: 404 })
   }
-  return json<LoaderData>({ flashcards: tagFlashcards.map(mapFlashcard) })
+  return json<LoaderData>({
+    flashcards: tagFlashcards.map((flashcard) =>
+      mapFlashcard(flashcard, folders)
+    ),
+  })
 }
 
 export default function StudyTag() {

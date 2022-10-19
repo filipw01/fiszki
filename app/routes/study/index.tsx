@@ -46,8 +46,11 @@ export default function Study() {
     todayFlashcards,
     (flashcard) => flashcard.lastSeen > 0
   )
+
   const seenFlashcardsToday = todayFlashcards.filter(
-    (flashcard) => flashcard.lastSeen !== 0
+    (flashcard) =>
+      flashcard.lastSeen >
+      new Date(new Date().toISOString().slice(0, 10)).getTime()
   )
 
   return (

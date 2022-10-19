@@ -49,7 +49,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 
 export default function Tag() {
   const { flashcards, tagName } = useLoaderData<LoaderData>()
-  const params = useParams()
   const location = useLocation()
   const upUrl = location.pathname.split('/').slice(0, -1).join('/')
   return (
@@ -87,7 +86,7 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
   )
 }
 
-const FlashcardsContainer = styled('div', {
+export const FlashcardsContainer = styled('div', {
   display: 'grid',
   gap: '1rem',
   gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',

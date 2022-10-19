@@ -77,18 +77,20 @@ export default function Tag() {
     <div>
       <h1>Tags</h1>
       <FoldersContainer>
-        {topLevelFolders.map(({ name, _count, color }) => {
+        {topLevelFolders.map(({ name, _count, color, id }) => {
           return (
             <Folder
-              key={name}
-              nameLink={`/study/tag/${name}`}
-              studyLink={`/study/study-tag/${name}`}
+              key={id}
+              nameLink={`/study/folder/${id}`}
+              studyLink={`/study/study-tag/${id}`}
               name={name}
               count={_count.folders + _count.flashcards}
               color={color}
             />
           )
         })}
+      </FoldersContainer>
+      <FoldersContainer>
         {tags.map(({ color: { r, g, b }, name, flashcardsCount, id }) => {
           return (
             <Folder
