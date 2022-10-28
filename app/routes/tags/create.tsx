@@ -46,7 +46,7 @@ export default function CreateTag() {
         </label>
         <label>
           Color
-          <input type="color" name="color" />
+          <input type="color" name="color" defaultValue="#1982C4" />
         </label>
         <button type="submit">Create</button>
       </div>

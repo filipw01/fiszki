@@ -54,14 +54,18 @@ export default function Study() {
       flashcard.lastSeen >
       new Date(new Date().toISOString().slice(0, 10)).getTime()
   )
-
   return (
     <div>
       <div style={{ display: 'flex', gap: '20px' }}>
-        <Link to="/study/tag">Study Tags</Link>
-        <Link to="/tags">Tags</Link>
-        <Link to="/folders">Folders</Link>
-        <Link to="/flashcards">Flashcards</Link>
+        <Link to="/flashcards-new">Flashcards</Link>
+        <Link to="/study/tag">Tags</Link>
+        <div style={{ display: 'flex', gap: 4 }}>
+          Edit:
+          <div>
+            <Link to="/tags">Tags</Link>/<Link to="/folders">Folders</Link>/
+            <Link to="/flashcards">Flashcards</Link>
+          </div>
+        </div>
         <Link to="/logout">Logout: {email}</Link>
       </div>
       <div className="calendar">

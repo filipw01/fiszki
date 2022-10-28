@@ -24,10 +24,10 @@ export const TagList = ({
           </StyledTag>
         </Link>
       )}
-      {tags.map(({ color: { r, g, b }, name}) => {
+      {tags.map(({ color: { r, g, b }, name, id }) => {
         const tagColor = { '--color': `${r}, ${g}, ${b}` } as CSSProperties
         return (
-          <Link key={name} to={`/study/tag/${name}`}>
+          <Link key={name} to={`/study/tag/${id}`}>
             <StyledTag style={tagColor} size={size}>
               <span>{name}</span>
             </StyledTag>

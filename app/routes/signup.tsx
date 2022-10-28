@@ -2,7 +2,6 @@ import React from 'react'
 import { Form, Link } from '@remix-run/react'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { createUserSession, register } from '~/session.server'
-import { styled } from '~/styles/stitches.config'
 import { SignupWrapper } from '~/components/SignupWrapper'
 
 export const action: ActionFunction = async ({ request }) => {

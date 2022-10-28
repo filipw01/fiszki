@@ -6,9 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_CONTENT }}' > "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
       - uses: superfly/flyctl-actions@master
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        with:
-          args: "deploy --env GOOGLE_APPLICATION_CREDENTIALS='${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}' --env SHEET_ID='${{ secrets.SHEET_ID }}' --env PORT='8080'"

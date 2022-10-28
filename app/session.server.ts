@@ -21,7 +21,7 @@ export async function login({ email, password }: LoginForm) {
   if (!user) return null
   const isCorrectPassword = await bcrypt.compare(password, user.password)
   if (!isCorrectPassword) return null
-  return { email }
+  return true
 }
 
 const sessionSecret = process.env.SESSION_SECRET

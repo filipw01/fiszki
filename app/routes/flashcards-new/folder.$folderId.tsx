@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
 import { styled } from '~/styles/stitches.config'
-import { Link, useLoaderData, useLocation } from '@remix-run/react'
+import { Link, useLoaderData } from '@remix-run/react'
 import {
   Flashcard as FlashcardType,
   getFolderPath,
@@ -45,7 +45,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       folders: true,
     },
   })
-  const folders = await db.folder.findMany({})
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
   if (!folder) {
     throw new Response('Not found', { status: 404 })
   }
@@ -99,14 +99,14 @@ export default function Subfolder() {
   return (
     <div>
       <h1>Folder {folderName}</h1>
-      <Link to={parentFolder ? `/study/folder/${parentFolder}` : `/study/tag`}>
-        Up
-      </Link>
+      {parentFolder && (
+        <Link to={`/flashcards-new/folder/${parentFolder}`}>Up</Link>
+      )}
       <FoldersContainer>
         {subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder
             key={id}
-            nameLink={`/study/folder/${id}`}
+            nameLink={`/flashcards-new/folder/${id}`}
             studyLink={`/study/study-tag/${id}`}
             name={name}
             count={flashcardsCount}

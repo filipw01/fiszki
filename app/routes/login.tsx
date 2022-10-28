@@ -13,7 +13,10 @@ export const action: ActionFunction = async ({ request }) => {
     return new Response('Missing email or password', { status: 400 })
   }
 
-  await login({ email, password })
+  const result = await login({ email, password })
+  if (result === null) {
+    throw new Response('Invalid email or password', { status: 401 })
+  }
 
   return createUserSession(email, '/study')
 }

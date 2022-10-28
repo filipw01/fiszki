@@ -4,9 +4,7 @@ import { styled } from '~/styles/stitches.config'
 import { Link, useLoaderData, useLocation } from '@remix-run/react'
 import { Flashcard as FlashcardType, mapFlashcard, Tag } from '~/utils.server'
 import { Flashcard } from '~/components/Flashcard'
-import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
-import { useParams } from 'react-router'
 import { requireUserEmail } from '~/session.server'
 
 export const meta: MetaFunction = ({ params }) => {
@@ -21,7 +19,6 @@ type LoaderData = {
 export const loader: LoaderFunction = async ({ params, request }) => {
   const email = await requireUserEmail(request)
 
-  // TODO: separate tag and folder routes
   const tag = await db.tag.findFirst({
     where: {
       id: params.tagId,
@@ -36,7 +33,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       },
     },
   })
-  const folders = await db.folder.findMany({})
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
   if (!tag) {
     throw new Response('Not found', { status: 404 })
   }

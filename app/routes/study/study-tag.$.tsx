@@ -30,7 +30,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       tags: true,
     },
   })
-  const folders = await db.folder.findMany({})
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
   if (flashcards.length > 0) {
     return json<LoaderData>({
       flashcards: flashcards.map((flashcard) =>

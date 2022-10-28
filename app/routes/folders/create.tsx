@@ -72,7 +72,7 @@ export default function CreateFolder() {
         </label>
         <label>
           Color
-          <input type="color" name="color" />
+          <input type="color" name="color" defaultValue="#1982C4" />
         </label>
         <label>
           Parent folder

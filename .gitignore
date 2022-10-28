@@ -1,6 +1,5 @@
 # secrets
 .env
-secrets.json
 
 # build
 .cache

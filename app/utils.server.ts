@@ -1,8 +1,5 @@
-import { ActionFunction, json, LoaderFunction } from '@remix-run/server-runtime'
-import { google, sheets_v4 } from 'googleapis'
-import { isEqual } from 'lodash-es'
+import { ActionFunction, json } from '@remix-run/server-runtime'
 import { daysFromNow } from './utils'
-import Sheets = sheets_v4.Sheets
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
@@ -24,6 +21,7 @@ export interface Flashcard {
 }
 
 export interface Tag {
+  id: string
   name: string
   color: {
     r: number
@@ -117,6 +115,7 @@ export function getFolderPath(
 
 export function mapTag(tag: Prisma.TagGetPayload<{}>): Tag {
   return {
+    id: tag.id,
     name: tag.name,
     color: {
       r: parseInt(tag.color.slice(1, 3), 16),
