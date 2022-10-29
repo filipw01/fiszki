@@ -25,7 +25,11 @@ export function links() {
 }
 
 export const loader = async ({ request }: LoaderArgs) => {
-  return requireUserEmail(request)
+  try {
+    return await requireUserEmail(request)
+  } catch {
+    return null
+  }
 }
 
 export default function App() {
@@ -59,23 +63,26 @@ export default function App() {
         />
       </head>
       <body className="h-full flex flex-col">
-        <div className="flex justify-between bg-white px-8 py-5 shadow">
-          <div className="flex gap-6">
-            <Link to="/study">
-              <h1>Calendar</h1>
-            </Link>
-            <Link to="/flashcards-new">Flashcards</Link>
-            <Link to="/study/tag">Tags</Link>
-            <div style={{ display: 'flex', gap: 4 }}>
-              Edit:
-              <div>
-                <Link to="/tags">Tags</Link>/<Link to="/folders">Folders</Link>/
-                <Link to="/flashcards">Flashcards</Link>
+        {email && (
+          <div className="flex justify-between bg-white px-8 py-5 shadow">
+            <div className="flex gap-6">
+              <Link to="/study">
+                <h1>Calendar</h1>
+              </Link>
+              <Link to="/flashcards-new">Flashcards</Link>
+              <Link to="/study/tag">Tags</Link>
+              <div style={{ display: 'flex', gap: 4 }}>
+                Edit:
+                <div>
+                  <Link to="/tags">Tags</Link>/
+                  <Link to="/folders">Folders</Link>/
+                  <Link to="/flashcards">Flashcards</Link>
+                </div>
               </div>
             </div>
+            <Link to="/logout">Logout: {email}</Link>
           </div>
-          <Link to="/logout">Logout: {email}</Link>
-        </div>
+        )}
         <div className="basis-0 flex-grow overflow-auto">
           <Outlet />
         </div>

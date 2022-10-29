@@ -5,6 +5,7 @@ export const SignupWrapper = styled('div', {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
+  height: '100%',
 
   form: {
     padding: '2rem 3rem',
@@ -19,6 +20,7 @@ export const SignupWrapper = styled('div', {
   input: {
     display: 'block',
     margin: '0.5rem 0',
+    border: '1px solid black',
     width: '100%',
   },
   button: {

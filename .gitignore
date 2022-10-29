@@ -10,3 +10,6 @@ node_modules
 # miscellaneous
 .idea
 .DS_Store
+
+# tailwind
+app/styles/app.css

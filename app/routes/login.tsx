@@ -10,7 +10,7 @@ export const action: ActionFunction = async ({ request }) => {
   const password = body.get('password')
 
   if (!email || !password) {
-    return new Response('Missing email or password', { status: 400 })
+    throw new Response('Missing email or password', { status: 400 })
   }
 
   const result = await login({ email, password })
