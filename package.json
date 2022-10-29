@@ -6,7 +6,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "NODE_ENV=production remix build",
-    "deploy": "fly deploy --remote-only",
+    "deploy": "fly deploy --remote-only --env PORT='8080'",
     "dev": "NODE_ENV=development remix dev",
     "start": "NODE_ENV=production remix-serve build"
   },
