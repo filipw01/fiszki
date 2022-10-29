@@ -19,7 +19,7 @@ export const TagList = ({
       {folder && (
         <Link to={`/study/tag/${folder}`}>
           <StyledTag style={folderColor} size={size}>
-            <FolderIcon />
+            <FolderIcon className='mr-2'/>
             <span>{folder}</span>
           </StyledTag>
         </Link>

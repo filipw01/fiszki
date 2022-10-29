@@ -17,17 +17,11 @@ a {
 
 body {
   margin: 0;
-  padding: 18px 32px;
   background: #f8f8f8;
 }
 
 h1 {
   margin: 0 0 8px;
-}
-
-.scaffold {
-  display: flex;
-  align-items: flex-start;
 }
 
 button {
@@ -36,29 +30,4 @@ button {
   cursor: pointer;
   margin: 0;
   padding: 0;
-}
-
-@media (max-width: 960px) {
-  body {
-    padding: 16px;
-  }
-
-  .scaffold {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.content {
-  flex: 920px 0 1;
-}
-
-.link-home,
-.spacer {
-  width: 100px;
-  flex-grow: 1;
-}
-
-.link-home h1 {
-  display: inline;
 }

@@ -56,18 +56,6 @@ export default function Study() {
   )
   return (
     <div>
-      <div style={{ display: 'flex', gap: '20px' }}>
-        <Link to="/flashcards-new">Flashcards</Link>
-        <Link to="/study/tag">Tags</Link>
-        <div style={{ display: 'flex', gap: 4 }}>
-          Edit:
-          <div>
-            <Link to="/tags">Tags</Link>/<Link to="/folders">Folders</Link>/
-            <Link to="/flashcards">Flashcards</Link>
-          </div>
-        </div>
-        <Link to="/logout">Logout: {email}</Link>
-      </div>
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (
           <p key={weekDayName} className="calendar__header-cell">

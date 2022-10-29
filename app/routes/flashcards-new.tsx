@@ -5,6 +5,7 @@ import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { getNestedFlashcardsCount } from '~/routes/flashcards-new/folder.$folderId'
 import { useParams } from 'react-router'
+import { FolderIcon } from '~/components/FolderIcon'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -58,38 +59,47 @@ export const loader = async ({ request }: LoaderArgs) => {
 export default function FlashcardsNew() {
   const { folders } = useLoaderData<typeof loader>()
   return (
-    <div style={{ display: 'flex', gap: 24 }}>
-      <div style={{ flexShrink: 0 }}>
+    <div className="flex h-full">
+      <div className="flex-shrink-0 border-gray border-t py-5 bg-white">
         {folders.map((folder) => {
-          return <FolderComponent {...folder} />
+          return <FolderComponent {...folder} preexistingPadding={0} />
         })}
       </div>
-      <Outlet />
+      <div className="h-full overflow-auto flex-grow py-5 px-8">
+        <Outlet />
+      </div>
     </div>
   )
 }
 
-const FolderComponent = (props: Folder) => {
+const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
   const { folderId } = useParams()
   return (
     <div>
       <Link
         to={`/flashcards-new/folder/${props.id}`}
+        className="pr-2 flex gap-2 items-center h-7"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          background: props.id === folderId ? '#d9f0f1' : undefined,
-          padding: 10,
+          paddingLeft: props.preexistingPadding + 10,
+          background:
+            props.id === folderId ? 'hsla(217, 100%, 96%, 1)' : undefined,
         }}
       >
-        <div style={{ background: props.color, height: 10, width: 10 }} />
+        <div style={{ color: props.color }}>
+          <FolderIcon height={13} width={16} />
+        </div>
         {props.name}
-        <span style={{ color: 'gray' }}>({props.flashcardsCount})</span>
+        <div className="rounded bg-dark-gray w-0.5 h-0.5" />
+        <span className="text-dark-gray">{props.flashcardsCount}</span>
       </Link>
-      <div style={{ paddingLeft: 10 }}>
+      <div>
         {props.subfolders.map((subfolder) => {
-          return <FolderComponent {...subfolder} />
+          return (
+            <FolderComponent
+              {...subfolder}
+              preexistingPadding={props.preexistingPadding + 10}
+            />
+          )
         })}
       </div>
     </div>

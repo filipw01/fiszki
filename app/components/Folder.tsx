@@ -20,7 +20,7 @@ export const Folder = ({
     <div>
       <GridStacker style={{ color }}>
         <GridItem>
-          <FolderIcon width={122} height={98} />
+          <FolderIcon width={122} height={98} className='mr-2'/>
         </GridItem>
         <GridItem
           style={{
