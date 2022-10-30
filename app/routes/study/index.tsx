@@ -1,9 +1,8 @@
-import { Link, NavLink, useLoaderData, useMatches } from '@remix-run/react'
+import { Link, NavLink, useMatches } from '@remix-run/react'
 import { groupBy, partition } from 'lodash-es'
 import { Flashcard } from '~/utils.server'
 import { daysFromNow } from '~/utils'
 import indexStyles from '~/styles/index.css'
-import { styled } from '~/styles/stitches.config'
 import { requireUserEmail } from '~/session.server'
 import { LoaderFunction } from '@remix-run/server-runtime'
 
@@ -18,7 +17,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
 export default function Study() {
-  const email = useLoaderData<string>()
   const [, { data }] = useMatches()
   const { flashcards } = data as {
     flashcards: Flashcard[]
@@ -55,7 +53,7 @@ export default function Study() {
       new Date(new Date().toISOString().slice(0, 10)).getTime()
   )
   return (
-    <div>
+    <div className="p-4">
       <div className="calendar">
         {weekDayNames.map((weekDayName) => (
           <p key={weekDayName} className="calendar__header-cell">
@@ -101,7 +99,10 @@ export default function Study() {
         </div>
       )}
 
-      <SetList>
+      <div
+        className="grid mt-8 gap-8"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(164px, 1fr))' }}
+      >
         {new Array(
           Math.ceil(
             (todayNotSeenFlashcards.length || todaySeenFlashcards.length) / 10
@@ -111,33 +112,16 @@ export default function Study() {
           .map((_, index) => {
             return (
               <NavLink key={index} to={`/study/set/${index + 1}`}>
-                <Set>Set {index + 1}</Set>
+                <div
+                  className="grid place-items-center h-full bg-white p-4 rounded-3xl text-center shadow text-3xl"
+                  style={{ aspectRatio: '164 / 214' }}
+                >
+                  Set {index + 1}
+                </div>
               </NavLink>
             )
           })}
-      </SetList>
+      </div>
     </div>
   )
 }
-
-const SetList = styled('div', {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(164px, 1fr))',
-  flexWrap: 'wrap',
-  gap: 32,
-  marginTop: '2rem',
-})
-
-const Set = styled('div', {
-  display: 'grid',
-  placeItems: 'center',
-  height: '100%',
-  backgroundColor: '#fff',
-  aspectRatio: 164 / 214,
-  padding: '1rem',
-  fontSize: '2rem',
-  lineHeight: '1.5',
-  textAlign: 'center',
-  borderRadius: 20,
-  boxShadow: '0px 0px 8px 3px rgba(168, 168, 168, 0.19)',
-})

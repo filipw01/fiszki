@@ -5,7 +5,6 @@ import { useLoaderData } from '@remix-run/react'
 import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
-import { styled } from '~/styles/stitches.config'
 import { LoaderArgs } from '@remix-run/node'
 
 export const meta: MetaFunction = () => {
@@ -73,9 +72,17 @@ export default function Tag() {
   )
 }
 
-export const FoldersContainer = styled('div', {
-  display: 'grid',
-  gap: '1rem',
-  margin: '1rem 0',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(122px, 1fr))',
-})
+export const FoldersContainer = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
+  return (
+    <div
+      className="grid gap-4 my-4"
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(122px, 1fr))' }}
+    >
+      {children}
+    </div>
+  )
+}

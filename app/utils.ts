@@ -24,3 +24,19 @@ export const seededShuffle = <T>(array: T[], seed = 1024) => {
   }
   return arrayCopy
 }
+
+export const clsx = (...args: Array<string | Record<string, boolean>>) => {
+  let classes = ' '
+  for (const arg of args) {
+    if (typeof arg === 'string') {
+      classes += `${arg} `
+    } else {
+      for (const key in arg) {
+        if (arg[key]) {
+          classes += `${key} `
+        }
+      }
+    }
+  }
+  return classes.slice(0, -1)
+}

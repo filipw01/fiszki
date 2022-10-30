@@ -11,8 +11,6 @@ import {
 import { MetaFunction } from '@remix-run/server-runtime'
 import globalStyles from '~/styles/global.css'
 import styles from './styles/app.css'
-import { useContext, useEffect } from 'react'
-import ClientStyleContext from '~/styles/client.context'
 import { LoaderArgs } from '@remix-run/node'
 import { requireUserEmail } from '~/session.server'
 
@@ -33,14 +31,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 }
 
 export default function App() {
-  const clientStyleData = useContext(ClientStyleContext)
   const email = useLoaderData<typeof loader>()
-
-  // Only executed on client
-  useEffect(() => {
-    // reset cache to re-apply global styles
-    clientStyleData.reset()
-  }, [clientStyleData])
   return (
     <html lang="en" className="h-full">
       <head>
@@ -56,11 +47,6 @@ export default function App() {
         />
         <Meta />
         <Links />
-        <style
-          id="stitches"
-          dangerouslySetInnerHTML={{ __html: clientStyleData.sheet }}
-          suppressHydrationWarning
-        />
       </head>
       <body className="h-full flex flex-col">
         {email && (

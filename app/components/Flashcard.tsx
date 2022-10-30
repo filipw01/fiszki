@@ -1,4 +1,3 @@
-import { styled } from '~/styles/stitches.config'
 import catImage from '~/assets/cat.png'
 import { SpeakerIcon } from '~/components/SpeakerIcon'
 import React, { MouseEventHandler } from 'react'
@@ -42,12 +41,21 @@ export const Flashcard = ({
   }
 
   return (
-    <StyledFlashcard correct={correct} onClick={onClick}>
+    <div
+      className="relative flex flex-col justify-center items-center basis-1/2 rounded-3xl p-4 lg:p-8 text-center shadow bg-white aspect-square break-words lg:text-5xl text-2xl leading-normal lg:leading-normal"
+      style={{
+        border:
+          correct === undefined
+            ? undefined
+            : correct
+            ? '3px solid rgba(138, 201, 38, 1)'
+            : '3px solid rgba(218, 80, 5, 1)',
+      }}
+      onClick={onClick}
+    >
       <ConditionalButton onClick={onClick}>
         {hidden ? (
-          <div>
-            <img style={{ width: '30%' }} src={catImage} alt="" />
-          </div>
+          <img className="w-1/3 mx-auto" src={catImage} alt="" />
         ) : (
           <>
             {image && (
@@ -100,41 +108,9 @@ export const Flashcard = ({
           <TagList tags={tags} size="small" />
         </div>
       )}
-    </StyledFlashcard>
+    </div>
   )
 }
-
-const StyledFlashcard = styled('div', {
-  position: 'relative',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  flexBasis: '50%',
-  borderRadius: 16,
-  padding: 32,
-  textAlign: 'center',
-  fontSize: 50,
-  boxShadow: '0 4px 4px 0 rgba(168, 168, 168, 0.25)',
-  wordBreak: 'break-word',
-  background: 'white',
-  aspectRatio: 1,
-  '@media (max-width: 960px)': {
-    padding: 16,
-    fontSize: 24,
-  },
-
-  variants: {
-    correct: {
-      true: {
-        border: '3px solid rgba(138, 201, 38, 1)',
-      },
-      false: {
-        border: '3px solid rgba(218, 80, 5, 1)',
-      },
-    },
-  },
-})
 
 const ConditionalButton = ({
   children,

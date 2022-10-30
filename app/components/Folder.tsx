@@ -1,4 +1,3 @@
-import { styled } from '~/styles/stitches.config'
 import React from 'react'
 import { FolderIcon } from '~/components/FolderIcon'
 import { Link } from '@remix-run/react'
@@ -25,14 +24,7 @@ export const Folder = ({
         <GridItem className="text-white mt-3 mr-2 text-3xl">
           <Link
             to={nameLink}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '100%',
-              height: '100%',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="flex flex-col w-full h-full justify-center items-center"
           >
             {count !== undefined ? count : null}
             <div className="text-center px-3 text-base">{name}</div>

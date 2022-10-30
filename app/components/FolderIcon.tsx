@@ -1,12 +1,10 @@
-export const FolderIcon = ({
-  width = 24,
-  height = 20,
-  className,
-}: {
+interface Props {
   className?: string
   width?: number
   height?: number
-}) => (
+}
+
+export const FolderIcon = ({ width = 24, height = 20, className }: Props) => (
   <svg
     className={className}
     width={width}

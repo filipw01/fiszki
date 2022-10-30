@@ -1,56 +1,49 @@
-import { styled } from '~/styles/stitches.config'
+import React from 'react'
+import { clsx } from '~/utils'
 
-export const Button = styled('button', {
-  fontSize: 20,
-  width: '100%',
-  padding: '16px 32px',
-  margin: 0,
-  backgroundColor: 'rgb(var(--primary))',
-  color: '#fff',
-  cursor: 'pointer',
-  transition: 'all 0.2s',
-  border: '2px solid rgb(var(--primary))',
-  boxShadow: '0 4px 4px 0 rgba(183, 183, 183, 0.25)',
+type Props = {
+  position?: 'left' | 'right' | 'standalone'
+  size?: 'small'
+  color?: 'bad' | 'good' | 'check' | 'skip'
+  onClick?: () => void
+  children: React.ReactNode
+} & React.ButtonHTMLAttributes<HTMLButtonElement>
 
-  '&:focus-visible, &:hover': {
-    outline: 'none',
-    backgroundColor: 'rgba(var(--primary), 0.2)',
-    color: 'rgb(var(--primary))',
-  },
+export const Button = React.forwardRef<HTMLButtonElement, Props>(
+  ({ color, onClick, children, size, position, ...buttonProps }, ref) => {
+    return (
+      <button
+        ref={ref}
+        className={clsx(
+          'py-4 px-8 w-full text-white cursor-pointer shadow text-xl hover:outline-none focus-visible:outline-none hover:opacity-80 focus-visible:opacity-80',
+          {
+            'w-1/5 text-lg py-5 px-1': size === 'small',
+            'rounded-b-3xl': position === 'standalone',
+            'rounded-bl-3xl': position === 'left',
+            'rounded-br-3xl': position === 'right',
+          }
+        )}
+        style={{
+          ...(color !== undefined
+            ? ({
+                '--primary': colors[color],
+                backgroundColor: 'rgb(var(--primary))',
+                border: '2px solid rgb(var(--primary))',
+                transition: 'all 0.2s',
+              } as React.CSSProperties)
+            : undefined),
+        }}
+        onClick={onClick}
+      >
+        {children}
+      </button>
+    )
+  }
+)
 
-  variants: {
-    position: {
-      left: {
-        borderRadius: '0 0 0 20px',
-      },
-      right: {
-        borderRadius: '0 0 20px 0',
-      },
-      standalone: {
-        borderRadius: '0 0 20px 20px',
-      },
-    },
-    color: {
-      bad: {
-        '--primary': '218, 80, 5',
-      },
-      good: {
-        '--primary': '138, 201, 38',
-      },
-      check: {
-        '--primary': '127, 158, 52',
-      },
-      skip: {
-        '--primary': '86, 86, 86',
-      },
-    },
-    size: {
-      small: {
-        width: '20%',
-        fontSize: 18,
-        lineHeight: 1,
-        padding: '18px 4px',
-      },
-    },
-  },
-})
+const colors: Record<NonNullable<Props['color']>, string> = {
+  bad: '218, 80, 5',
+  good: '138, 201, 38',
+  check: '127, 158, 52',
+  skip: '86, 86, 86',
+} as const

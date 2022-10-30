@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { json, LoaderFunction, MetaFunction } from '@remix-run/server-runtime'
-import { styled } from '~/styles/stitches.config'
 import { Link, useLoaderData } from '@remix-run/react'
 import {
   Flashcard as FlashcardType,
@@ -114,11 +113,14 @@ export default function Subfolder() {
           />
         ))}
       </FoldersContainer>
-      <FlashcardsContainer>
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}
+      >
         {flashcards.map((flashcard) => {
           return <TurnableFlashcard key={flashcard.id} flashcard={flashcard} />
         })}
-      </FlashcardsContainer>
+      </div>
     </div>
   )
 }
@@ -144,9 +146,3 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
     />
   )
 }
-
-const FlashcardsContainer = styled('div', {
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-})
