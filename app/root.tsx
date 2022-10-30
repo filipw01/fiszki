@@ -48,7 +48,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full flex flex-col">
+      <body className="h-full flex flex-col" style={{ background: '#f8f8f8' }}>
         {email && (
           <div className="flex justify-between bg-white px-8 py-5 shadow">
             <div className="flex gap-6">

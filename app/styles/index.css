@@ -1,16 +1,3 @@
-.calendar {
-  margin-top: 32px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 36px repeat(4, 100px);
-  border-bottom: 1px solid rgba(218, 218, 218, 1);
-}
-
-.calendar__header-cell {
-  font-size: 12px;
-  text-align: center;
-}
-
 .day {
   font-size: 32px;
   border-top: 1px solid rgba(218, 218, 218, 1);
@@ -23,15 +10,6 @@
 @media (max-width: 960px) {
   .day {
     font-size: 20px;
-  }
-
-  .calendar {
-    margin: 32px -12px 0;
-    grid-template-rows: 24px repeat(4, 100px);
-  }
-
-  .calendar__header-cell {
-    font-size: 8px;
   }
 }
 

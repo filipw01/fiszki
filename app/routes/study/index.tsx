@@ -54,9 +54,15 @@ export default function Study() {
   )
   return (
     <div className="p-4">
-      <div className="calendar">
+      <div
+        className="-mx-3 lg:m-0 mt-2 grid border-b border-dark-gray"
+        style={{
+          gridTemplateColumns: 'repeat(7, 1fr)',
+          gridTemplateRows: '36px repeat(4, 100px)',
+        }}
+      >
         {weekDayNames.map((weekDayName) => (
-          <p key={weekDayName} className="calendar__header-cell">
+          <p key={weekDayName} className="text-xs text-center">
             {weekDayName}
           </p>
         ))}
