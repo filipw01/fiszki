@@ -77,7 +77,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
 
   return (
     <div>
-      <FlashcardMetadata>
+      <div className='flex items-center justify-between overflow-auto gap-2 mb-5'>
         <TagList tags={tags} folder={folder} />
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div style={{ marginRight: '1rem' }}>
@@ -85,8 +85,8 @@ export const Study = ({ flashcards, isSet }: Props) => {
           </div>
           <div>Streak: {streak ? '🔥'.repeat(streak) : '➖'}</div>
         </div>
-      </FlashcardMetadata>
-      <FlashcardsHolder>
+      </div>
+      <div className="flex items-center gap-x-4 lg:gap-x-8">
         <Flashcard
           text={front}
           example={frontDescription}
@@ -101,11 +101,14 @@ export const Study = ({ flashcards, isSet }: Props) => {
           language={'en' /*not implemented*/}
           correct={typedCorrectly}
         />
-      </FlashcardsHolder>
+      </div>
 
-      <AnswerHolder>
+      <div className="relative mt-7">
         <FlexVCenter>
-          <LetterButtonsHolder>
+          <div
+            style={{ transform: 'translateX(calc(-100% - 8px))' }}
+            className="hidden absolute lg:flex flex-col gap-1"
+          >
             {['ñ', 'í', 'é', 'á', 'ú', 'ü'].map((letter) => (
               <LetterButton
                 key={letter}
@@ -125,7 +128,7 @@ export const Study = ({ flashcards, isSet }: Props) => {
                 }}
               />
             ))}
-          </LetterButtonsHolder>
+          </div>
           <AnswerField
             correct={typedCorrectly}
             placeholder="Hm.."
@@ -194,20 +197,10 @@ export const Study = ({ flashcards, isSet }: Props) => {
             </ResultForm>
           </FlexVCenter>
         )}
-      </AnswerHolder>
+      </div>
     </div>
   )
 }
-
-const FlashcardsHolder = styled('div', {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 28,
-  '@media (max-width: 960px)': {
-    display: 'flex',
-    gap: 16,
-  },
-})
 
 const FlexVCenter = styled('div', {
   display: 'flex',
@@ -216,11 +209,6 @@ const FlexVCenter = styled('div', {
 
 const ResultForm = styled(Form, {
   flex: '0px 1 1',
-})
-
-const AnswerHolder = styled('div', {
-  position: 'relative',
-  marginTop: 28,
 })
 
 const AnswerField = styled('textarea', {
@@ -255,25 +243,4 @@ const AnswerField = styled('textarea', {
       },
     },
   },
-})
-
-const LetterButtonsHolder = styled('div', {
-  position: 'absolute',
-  transform: 'translateX(calc(-100% - 8px))',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-
-  '@media (max-width: 960px)': {
-    display: 'none',
-  },
-})
-
-const FlashcardMetadata = styled('div', {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  overflow: 'auto',
-  gap: 8,
-  marginBottom: 20,
 })

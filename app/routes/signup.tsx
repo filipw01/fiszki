@@ -1,8 +1,8 @@
 import React from 'react'
-import { Form, Link } from '@remix-run/react'
+import { Link } from '@remix-run/react'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { createUserSession, register } from '~/session.server'
-import { SignupWrapper } from '~/components/SignupWrapper'
+import { AuthForm } from '~/components/AuthForm'
 
 export const action: ActionFunction = async ({ request }) => {
   const body = new URLSearchParams(await request.text())
@@ -20,20 +20,11 @@ export const action: ActionFunction = async ({ request }) => {
 
 export default function Signup() {
   return (
-    <SignupWrapper>
-      <Form method='post'>
-        <label>
-          Email
-          <input type='email' name='email' autoComplete='' />
-        </label>
-        <label>
-          Password
-          <input type='password' name='password' />
-        </label>
-        <button type='submit'>Sign up</button>
-        <Link to='/login'>I already have an account</Link>
-      </Form>
-    </SignupWrapper>
+    <AuthForm>
+      <AuthForm.Field type="email" name="email" label="Email" />
+      <AuthForm.Field type="password" name="password" label="Password" />
+      <AuthForm.Submit>Sign Up</AuthForm.Submit>
+      <Link to="/login">I already have an account</Link>
+    </AuthForm>
   )
 }
-

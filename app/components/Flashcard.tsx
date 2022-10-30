@@ -1,7 +1,7 @@
 import { styled } from '~/styles/stitches.config'
 import catImage from '~/assets/cat.png'
 import { SpeakerIcon } from '~/components/SpeakerIcon'
-import { MouseEventHandler } from 'react'
+import React, { MouseEventHandler } from 'react'
 import { TagList } from '~/components/TagList'
 import { Tag } from '~/utils.server'
 
@@ -40,16 +40,23 @@ export const Flashcard = ({
       console.log(`No voice for ${lang}`)
     }
   }
+
   return (
     <StyledFlashcard correct={correct} onClick={onClick}>
-      <StyledNode as={onClick ? 'button' : undefined}>
+      <ConditionalButton onClick={onClick}>
         {hidden ? (
           <div>
             <img style={{ width: '30%' }} src={catImage} alt="" />
           </div>
         ) : (
           <>
-            {image && <StyledImage src={image} alt="" />}
+            {image && (
+              <img
+                className="block max-w-full min-h-0 rounded-lg"
+                src={image}
+                alt=""
+              />
+            )}
             {text && (
               <div
                 style={{
@@ -64,7 +71,8 @@ export const Flashcard = ({
               </div>
             )}
             {example && (
-              <FlashcardExample
+              <div
+                className="text-dark-gray"
                 style={{
                   fontSize: getLengthBasedFontSize(
                     text.length + example.length,
@@ -74,11 +82,11 @@ export const Flashcard = ({
               >
                 <hr />
                 {example}
-              </FlashcardExample>
+              </div>
             )}
           </>
         )}
-      </StyledNode>
+      </ConditionalButton>
       {!hidden && text && text.split(' ').length <= 5 && (
         <button
           style={{ position: 'absolute', bottom: '1rem', right: '1rem' }}
@@ -88,28 +96,13 @@ export const Flashcard = ({
         </button>
       )}
       {tags && (
-        <StyledTagListContainer>
+        <div className="absolute bottom-4 left-4">
           <TagList tags={tags} size="small" />
-        </StyledTagListContainer>
+        </div>
       )}
     </StyledFlashcard>
   )
 }
-
-const StyledNode = styled('div', {})
-
-const StyledTagListContainer = styled('div', {
-  position: 'absolute',
-  bottom: '1rem',
-  left: '1rem',
-})
-
-const StyledImage = styled('img', {
-  display: 'block',
-  maxWidth: '100%',
-  minHeight: 0,
-  borderRadius: '0.5rem',
-})
 
 const StyledFlashcard = styled('div', {
   position: 'relative',
@@ -142,9 +135,19 @@ const StyledFlashcard = styled('div', {
     },
   },
 })
-const FlashcardExample = styled('div', {
-  color: 'rgb(96, 96, 96)',
-})
+
+const ConditionalButton = ({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+}) => {
+  if (onClick) {
+    return <button>{children}</button>
+  }
+  return <div>{children}</div>
+}
 
 const getTextLengthBasedFontWeight = (text: string) =>
   text.split(' ').length > 5 ? undefined : 700

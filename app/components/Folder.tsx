@@ -18,18 +18,11 @@ export const Folder = ({
 }) => {
   return (
     <div>
-      <GridStacker style={{ color }}>
+      <div className="grid" style={{ color }}>
         <GridItem>
-          <FolderIcon width={122} height={98} className='mr-2'/>
+          <FolderIcon width={122} height={98} className="mr-2" />
         </GridItem>
-        <GridItem
-          style={{
-            color: '#fff',
-            marginTop: '14px',
-            marginRight: '6px',
-            fontSize: '30px',
-          }}
-        >
+        <GridItem className="text-white mt-3 mr-2 text-3xl">
           <Link
             to={nameLink}
             style={{
@@ -42,39 +35,32 @@ export const Folder = ({
             }}
           >
             {count !== undefined ? count : null}
-            <StudyName>{name}</StudyName>
+            <div className="text-center px-3 text-base">{name}</div>
           </Link>
         </GridItem>
-      </GridStacker>
+      </div>
       {studyLink && (
         <Link to={studyLink}>
-          <Name>Study</Name>
+          <div className="mt-4 text-center">Study</div>
         </Link>
       )}
     </div>
   )
 }
 
-const GridStacker = styled('div', {
-  display: 'grid',
-})
-
-const GridItem = styled('div', {
-  gridColumn: '1',
-  gridRow: '1',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-})
-
-const Name = styled('div', {
-  marginTop: '1rem',
-  textAlign: 'center',
-})
-
-const StudyName = styled('div', {
-  fontSize: 16,
-  textAlign: 'center',
-  padding: '0 12px',
-})
+const GridItem = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) => {
+  return (
+    <div
+      style={{ gridColumn: 1, gridRow: 1 }}
+      className={`flex flex-col items-center justify-center ${className}`}
+    >
+      {children}
+    </div>
+  )
+}

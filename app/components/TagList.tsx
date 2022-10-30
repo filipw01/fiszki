@@ -15,7 +15,7 @@ export const TagList = ({
 }) => {
   const folderColor = { '--color': '25, 130, 196' } as CSSProperties
   return (
-    <StyledTagList>
+    <div className='flex flex-wrap gap-x-1 gap-y-2 lg:gap-x-2 lg:gap-y-4'>
       {folder && (
         <Link to={`/study/tag/${folder}`}>
           <StyledTag style={folderColor} size={size}>
@@ -34,19 +34,9 @@ export const TagList = ({
           </Link>
         )
       })}
-    </StyledTagList>
+    </div>
   )
 }
-
-const StyledTagList = styled('div', {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '8px 16px',
-
-  '@media (max-width: 960px)': {
-    gap: '4px 8px',
-  },
-})
 
 const StyledTag = styled('div', {
   display: 'flex',
