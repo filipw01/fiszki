@@ -34,6 +34,7 @@ export const Button = React.forwardRef<HTMLButtonElement, Props>(
             : undefined),
         }}
         onClick={onClick}
+        {...buttonProps}
       >
         {children}
       </button>
