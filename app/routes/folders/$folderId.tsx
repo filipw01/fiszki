@@ -42,7 +42,7 @@ export default function Subfolder() {
 
   return (
     <div>
-      <Link to="create">Create new folder</Link>
+      <Link to="/folders/create">Create new folder</Link>
       <Link to={parentFolder ? `/folders/${parentFolder}` : `/folders`}>
         Go up
       </Link>
