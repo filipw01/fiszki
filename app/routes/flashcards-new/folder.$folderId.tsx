@@ -12,6 +12,7 @@ import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { Folder } from '~/components/Folder'
 import { FoldersContainer } from '~/routes/study/tag'
+import { useParams } from 'react-router'
 
 export const meta: MetaFunction = ({ params }) => {
   return { title: `Fiszki - tag ${params['*']}` }
@@ -95,12 +96,16 @@ export async function getNestedFlashcardsCount(
 export default function Subfolder() {
   const { flashcards, folderName, subfolders, parentFolder } =
     useLoaderData<LoaderData>()
+  const params = useParams()
   return (
     <div>
       <h1>Folder {folderName}</h1>
       {parentFolder && (
         <Link to={`/flashcards-new/folder/${parentFolder}`}>Up</Link>
       )}
+      <Link to={`/flashcards/create?folderId=${params.folderId}`}>
+        Create new flashcard here
+      </Link>
       <FoldersContainer>
         {subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder

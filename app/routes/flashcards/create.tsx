@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
 import {
   ActionFunction,
   json,
@@ -94,6 +94,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function CreateFlashcard() {
   const { folders, tags } = useLoaderData<LoaderData>()
+  const [searchParams] = useSearchParams()
   return (
     <Form method="post">
       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -131,7 +132,7 @@ export default function CreateFlashcard() {
         </div>
         <label>
           Folder
-          <select name="folderId">
+          <select name="folderId" defaultValue={searchParams.get('folderId') ?? undefined}>
             {folders.map((folder) => (
               <option key={folder.id} value={folder.id}>
                 {folder.name}
