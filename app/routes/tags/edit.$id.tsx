@@ -9,10 +9,11 @@ import {
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
+import { isString } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
-  const body = new URLSearchParams(await request.text())
+  const body = await request.formData()
   const action = body.get('action')
 
   await db.tag.findFirstOrThrow({
@@ -26,7 +27,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const name = body.get('name')
     const color = body.get('color')
 
-    if (!name || !color) {
+    if (!isString(name) || !isString(color)) {
       return new Response('Missing data', { status: 400 })
     }
 

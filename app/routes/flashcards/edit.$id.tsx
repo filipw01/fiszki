@@ -9,11 +9,17 @@ import {
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
-import { getFolderPath } from '~/utils.server'
+import {
+  getFolderPath,
+  isString,
+  isStringArray,
+  isStringOrNull,
+} from '~/utils.server'
+import { deleteFromS3, s3Url } from '~/uploadHandler.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
-  const body = new URLSearchParams(await request.text())
+  const body = await request.formData()
   const action = body.get('action')
 
   await db.flashcard.findFirstOrThrow({
@@ -26,12 +32,17 @@ export const action: ActionFunction = async ({ request, params }) => {
     const folderId = body.get('folderId')
     const tags = body.getAll('tags')
     const backDescription = body.get('backDescription')
-    const backImage = body.get('backImage')
     const frontDescription = body.get('frontDescription')
-    const frontImage = body.get('frontImage')
-    const randomSideAllowed = body.get('randomSideAllowed') ? true : false
+    const randomSideAllowed = Boolean(body.get('randomSideAllowed'))
 
-    if (!front || !back || !folderId) {
+    if (
+      !isString(front) ||
+      !isString(back) ||
+      !isString(folderId) ||
+      !isStringArray(tags) ||
+      !isStringOrNull(backDescription) ||
+      !isStringOrNull(frontDescription)
+    ) {
       return new Response('Missing data', { status: 400 })
     }
 
@@ -68,15 +79,21 @@ export const action: ActionFunction = async ({ request, params }) => {
         folder: { connect: { id: folderId } },
         tags: { set: tags.map((id) => ({ id })) },
         backDescription,
-        backImage,
         frontDescription,
-        frontImage,
         randomSideAllowed,
       },
     })
     return redirect('/flashcards')
   } else if (action === 'delete') {
-    await db.flashcard.delete({ where: { id: params.id } })
+    const flashcard = await db.flashcard.delete({ where: { id: params.id } })
+    await Promise.all(
+      [flashcard.backImage, flashcard.frontImage].map((image) => {
+        if (isString(image) && image.startsWith(`${s3Url}/`)) {
+          const key = image.replace(`${s3Url}/`, '')
+          return deleteFromS3(key)
+        }
+      })
+    )
     return redirect('/flashcards')
   }
 }
@@ -141,14 +158,6 @@ export default function EditFlashcard() {
                   defaultValue={flashcard.frontDescription ?? undefined}
                 />
               </label>
-              <label>
-                Front image
-                <input
-                  type="text"
-                  name="frontImage"
-                  defaultValue={flashcard.frontImage ?? undefined}
-                />
-              </label>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label>
@@ -161,14 +170,6 @@ export default function EditFlashcard() {
                   type="text"
                   name="backDescription"
                   defaultValue={flashcard.backDescription ?? undefined}
-                />
-              </label>
-              <label>
-                Back image
-                <input
-                  type="text"
-                  name="backImage"
-                  defaultValue={flashcard.backImage ?? undefined}
                 />
               </label>
             </div>

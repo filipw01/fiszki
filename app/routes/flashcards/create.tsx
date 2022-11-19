@@ -9,26 +9,60 @@ import {
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
-import { getFolderPath } from '~/utils.server'
+import {
+  getFolderPath,
+  isString,
+  isStringArray,
+  isStringOrNull,
+} from '~/utils.server'
+import {
+  unstable_composeUploadHandlers,
+  unstable_createMemoryUploadHandler,
+  unstable_parseMultipartFormData,
+} from '@remix-run/node'
+import { uploadToS3 } from '~/uploadHandler.server'
 
 const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
 
 export const action: ActionFunction = async ({ request }) => {
+  const uploadHandler = unstable_composeUploadHandlers(
+    async ({ name, data, contentType, ...rest }) => {
+      if (
+        !['frontImage', 'backImage'].includes(name) ||
+        !contentType.startsWith('image/')
+      ) {
+        return undefined
+      }
+      return await uploadToS3(data, contentType)
+    },
+    unstable_createMemoryUploadHandler({
+      filter: ({ name }) => !['frontImage', 'backImage'].includes(name),
+    })
+  )
+
   const email = await requireUserEmail(request)
+  const formData = await unstable_parseMultipartFormData(request, uploadHandler)
 
-  const body = new URLSearchParams(await request.text())
+  const front = formData.get('front')
+  const back = formData.get('back')
+  const folderId = formData.get('folderId')
+  const tags = formData.getAll('tags')
+  const backDescription = formData.get('backDescription')
+  const backImage = formData.get('backImage')
+  const frontDescription = formData.get('frontDescription')
+  const frontImage = formData.get('frontImage')
+  const randomSideAllowed = Boolean(formData.get('randomSideAllowed'))
 
-  const front = body.get('front')
-  const back = body.get('back')
-  const folderId = body.get('folderId')
-  const tags = body.getAll('tags')
-  const backDescription = body.get('backDescription')
-  const backImage = body.get('backImage')
-  const frontDescription = body.get('frontDescription')
-  const frontImage = body.get('frontImage')
-  const randomSideAllowed = body.get('randomSideAllowed') ? true : false
-
-  if (!front || !back || !folderId) {
+  if (
+    !isString(front) ||
+    !isString(back) ||
+    !isString(folderId) ||
+    !isStringArray(tags) ||
+    !isStringOrNull(backDescription) ||
+    !isStringOrNull(backImage) ||
+    !isStringOrNull(frontDescription) ||
+    !isStringOrNull(frontImage)
+  ) {
     return new Response('Missing data', { status: 400 })
   }
 
@@ -96,7 +130,7 @@ export default function CreateFlashcard() {
   const { folders, tags } = useLoaderData<LoaderData>()
   const [searchParams] = useSearchParams()
   return (
-    <Form method="post">
+    <Form method="post" encType="multipart/form-data">
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -110,7 +144,7 @@ export default function CreateFlashcard() {
             </label>
             <label>
               Front image
-              <input type="text" name="frontImage" />
+              <input type="file" name="frontImage" />
             </label>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -126,13 +160,16 @@ export default function CreateFlashcard() {
 
             <label>
               Back image
-              <input type="text" name="backImage" />
+              <input type="file" name="backImage" />
             </label>
           </div>
         </div>
         <label>
           Folder
-          <select name="folderId" defaultValue={searchParams.get('folderId') ?? undefined}>
+          <select
+            name="folderId"
+            defaultValue={searchParams.get('folderId') ?? undefined}
+          >
             {folders.map((folder) => (
               <option key={folder.id} value={folder.id}>
                 {folder.name}

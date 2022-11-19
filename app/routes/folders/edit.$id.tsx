@@ -10,11 +10,11 @@ import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { useParams } from 'react-router'
 import { requireUserEmail } from '~/session.server'
-import { getFolderPath } from '~/utils.server'
+import { getFolderPath, isString, isStringOrNull } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
-  const body = new URLSearchParams(await request.text())
+  const body = await request.formData()
   const action = body.get('action')
 
   await db.folder.findFirstOrThrow({
@@ -29,7 +29,11 @@ export const action: ActionFunction = async ({ request, params }) => {
     const color = body.get('color')
     const parentFolderId = body.get('parentFolderId')
 
-    if (!name || !color) {
+    if (
+      !isString(name) ||
+      !isString(color) ||
+      !isStringOrNull(parentFolderId)
+    ) {
       return new Response('Missing data', { status: 400 })
     }
 

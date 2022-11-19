@@ -3,13 +3,14 @@ import { Link } from '@remix-run/react'
 import { ActionFunction } from '@remix-run/server-runtime'
 import { createUserSession, login } from '~/session.server'
 import { AuthForm } from '~/components/AuthForm'
+import { isString } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request }) => {
-  const body = new URLSearchParams(await request.text())
-  const email = body.get('email')
-  const password = body.get('password')
+  const formData = await request.formData()
+  const email = formData.get('email')
+  const password = formData.get('password')
 
-  if (!email || !password) {
+  if (!isString(email) || !isString(password)) {
     throw new Response('Missing email or password', { status: 400 })
   }
 

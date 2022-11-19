@@ -9,18 +9,18 @@ import {
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
-import { getFolderPath } from '~/utils.server'
+import { getFolderPath, isString, isStringOrNull } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
 
-  const body = new URLSearchParams(await request.text())
+  const body = await request.formData()
 
   const name = body.get('name')
   const color = body.get('color')
   const parentFolderId = body.get('parentFolderId')
 
-  if (!name || !color) {
+  if (!isString(name) || !isString(color) || !isStringOrNull(parentFolderId)) {
     return new Response('Missing data', { status: 400 })
   }
 

@@ -8,16 +8,17 @@ import {
 } from '@remix-run/server-runtime'
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
+import { isString } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
 
-  const body = new URLSearchParams(await request.text())
+  const body = await request.formData()
 
   const name = body.get('name')
   const color = body.get('color')
 
-  if (!name || !color) {
+  if (!isString(name) || !isString(color)) {
     return new Response('Missing data', { status: 400 })
   }
 
