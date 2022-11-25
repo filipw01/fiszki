@@ -93,7 +93,7 @@ export default function EditFolder() {
       <Form method="post" className="flex flex-col mt-8 gap-2">
         <label>
           <input type="checkbox" required className="mr-2" />I confirm that I
-          want to delete this folder
+          want to delete this tag
         </label>
         <button
           type="submit"

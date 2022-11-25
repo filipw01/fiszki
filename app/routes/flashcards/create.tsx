@@ -187,7 +187,7 @@ export default function CreateFlashcard() {
           type="submit"
           className="px-3 py-2 bg-blue text-white rounded-lg"
         >
-          Create
+          Create Flashcard
         </button>
       </div>
     </Form>
