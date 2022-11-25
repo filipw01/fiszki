@@ -51,7 +51,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 export default function Tag() {
   const { tags } = useLoaderData<typeof loader>()
   return (
-    <div>
+    <div className="p-8">
       <h2>Tags</h2>
 
       <FoldersContainer>

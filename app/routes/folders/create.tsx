@@ -10,6 +10,7 @@ import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { getFolderPath, isNonEmptyString, isString } from '~/utils.server'
+import { Input } from '~/components/Input'
 
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
@@ -69,18 +70,23 @@ export default function CreateFolder() {
   const data = useLoaderData<Prisma.FolderGetPayload<{}>[]>()
   return (
     <Form method="post">
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <label>
-          Name
-          <input type="text" name="name" />
-        </label>
-        <label>
+      <div className="flex flex-col p-8 gap-2">
+        <Input name="name" label="Name" />
+        <label className="flex">
           Color
-          <input type="color" name="color" defaultValue="#1982C4" />
+          <input
+            type="color"
+            name="color"
+            defaultValue="#1982C4"
+            className="w-full ml-2"
+          />
         </label>
         <label>
           Parent folder
-          <select name="parentFolderId">
+          <select
+            name="parentFolderId"
+            className="border-dark-gray border rounded-lg ml-2"
+          >
             <option value="">None</option>
             {data.map((folder) => (
               <option key={folder.id} value={folder.id}>
@@ -89,7 +95,12 @@ export default function CreateFolder() {
             ))}
           </select>
         </label>
-        <button type="submit">Create</button>
+        <button
+          type="submit"
+          className="px-3 py-2 bg-blue text-white rounded-lg mt-2"
+        >
+          Create Folder
+        </button>
       </div>
     </Form>
   )

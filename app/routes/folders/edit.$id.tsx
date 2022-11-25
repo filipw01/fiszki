@@ -11,6 +11,7 @@ import { Prisma } from '@prisma/client'
 import { useParams } from 'react-router'
 import { requireUserEmail } from '~/session.server'
 import { getFolderPath, isNonEmptyString, isString } from '~/utils.server'
+import { Input } from '~/components/Input'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
@@ -111,25 +112,24 @@ export default function EditFolder() {
   }>()
 
   return (
-    <div>
+    <div className="flex flex-col p-8">
       <Form method="post">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label>
-            Name
-            <input type="text" name="name" defaultValue={editedFolder?.name} />
-          </label>
-          <label>
+        <div className="flex flex-col gap-2">
+          <Input name="name" label="Name" defaultValue={editedFolder?.name} />
+          <label className="flex">
             Color
             <input
               type="color"
               name="color"
               defaultValue={editedFolder?.color}
+              className="w-full ml-2"
             />
           </label>
           <label>
             Parent folder
             <select
               name="parentFolderId"
+              className="border-dark-gray border rounded-lg ml-2"
               defaultValue={editedFolder?.parentFolderId ?? undefined}
             >
               <option value="">None</option>
@@ -140,13 +140,27 @@ export default function EditFolder() {
               ))}
             </select>
           </label>
-          <button type="submit" name="action" value="update">
+          <button
+            type="submit"
+            name="action"
+            value="update"
+            className="px-3 py-2 bg-blue text-white rounded-lg mt-2"
+          >
             Save
           </button>
         </div>
       </Form>
-      <Form method="post">
-        <button type="submit" name="action" value="delete">
+      <Form method="post" className="flex flex-col mt-8 gap-2">
+        <label>
+          <input type="checkbox" required className="mr-2" />I confirm that I
+          want to delete this folder
+        </label>
+        <button
+          type="submit"
+          name="action"
+          value="delete"
+          className="px-3 py-2 bg-red-500 text-white rounded-lg"
+        >
           Delete
         </button>
       </Form>

@@ -10,6 +10,7 @@ import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
 import { isNonEmptyString } from '~/utils.server'
+import { Input } from '~/components/Input'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
@@ -66,24 +67,40 @@ export default function EditFolder() {
   }>()
 
   return (
-    <div>
+    <div className="p-8">
       <Form method="post">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label>
-            Name
-            <input type="text" name="name" defaultValue={tag.name} />
-          </label>
-          <label>
+        <div className="flex flex-col gap-2">
+          <Input name="name" label="Name" defaultValue={tag.name} />
+          <label className="flex">
             Color
-            <input type="color" name="color" defaultValue={tag.color} />
+            <input
+              type="color"
+              name="color"
+              defaultValue={tag.color}
+              className="w-full ml-2"
+            />
           </label>
-          <button type="submit" name="action" value="update">
+          <button
+            type="submit"
+            name="action"
+            value="update"
+            className="px-3 py-2 bg-blue text-white rounded-lg mt-2"
+          >
             Save
           </button>
         </div>
       </Form>
-      <Form method="post">
-        <button type="submit" name="action" value="delete">
+      <Form method="post" className="flex flex-col mt-8 gap-2">
+        <label>
+          <input type="checkbox" required className="mr-2" />I confirm that I
+          want to delete this folder
+        </label>
+        <button
+          type="submit"
+          name="action"
+          value="delete"
+          className="px-3 py-2 bg-red-500 text-white rounded-lg"
+        >
           Delete
         </button>
       </Form>

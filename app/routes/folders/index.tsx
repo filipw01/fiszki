@@ -19,18 +19,11 @@ export default function Folders() {
   const data = useLoaderData<Prisma.FolderGetPayload<{}>[]>()
 
   return (
-    <div>
+    <div className="p-8">
       <Link to="create">Create new folder</Link>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+      <div className="flex flex-wrap gap-1">
         {data.map((folder) => (
-          <div
-            key={folder.id}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <div key={folder.id} className="flex flex-col items-center">
             <Folder
               name={folder.name}
               color={folder.color}

@@ -9,6 +9,7 @@ import {
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/utils/db.server'
 import { isNonEmptyString } from '~/utils.server'
+import { Input } from '~/components/Input'
 
 export const action: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
@@ -39,17 +40,24 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function CreateTag() {
   return (
-    <Form method="post">
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <label>
-          Name
-          <input type="text" name="name" />
-        </label>
-        <label>
+    <Form method="post" className="p-8">
+      <div className="flex flex-col gap-2">
+        <Input name="name" label="Name" />
+        <label className="flex">
           Color
-          <input type="color" name="color" defaultValue="#1982C4" />
+          <input
+            type="color"
+            name="color"
+            defaultValue="#1982C4"
+            className="w-full ml-2"
+          />
         </label>
-        <button type="submit">Create</button>
+        <button
+          type="submit"
+          className="px-3 py-2 bg-blue text-white rounded-lg mt-2"
+        >
+          Create Tag
+        </button>
       </div>
     </Form>
   )

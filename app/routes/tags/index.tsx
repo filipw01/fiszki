@@ -16,24 +16,17 @@ export default function Tags() {
   const data = useLoaderData<Prisma.TagGetPayload<{}>[]>()
 
   return (
-    <div>
+    <div className="p-8">
       <Link to="create">Create new tag</Link>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+      <div className="flex flex-wrap gap-2">
         {data.map((tag) => (
           <Link
             to={`edit/${tag.id}`}
             key={tag.id}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '100px',
-              padding: '4px',
-              background: tag.color,
-              border: '1px solid black',
-              borderRadius: '8px',
-            }}
+            className="grid place-items-center w-72 p-1 border border-dark-gray rounded-lg"
+            style={{ background: tag.color }}
           >
-            <p>{tag.name}</p>
+            <p className="text-white">{tag.name}</p>
           </Link>
         ))}
       </div>

@@ -41,21 +41,15 @@ export default function Subfolder() {
   const { folders, parentFolder } = useLoaderData<LoaderData>()
 
   return (
-    <div>
+    <div className="p-8">
       <Link to="/folders/create">Create new folder</Link>
+      <br />
       <Link to={parentFolder ? `/folders/${parentFolder}` : `/folders`}>
         Go up
       </Link>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+      <div className="flex flex-wrap gap-1">
         {folders.map((folder) => (
-          <div
-            key={folder.id}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <div key={folder.id} className="flex flex-col items-center">
             <Folder
               name={folder.name}
               color={folder.color}
