@@ -3,7 +3,7 @@ import { LoaderArgs } from '@remix-run/node'
 import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
-import { getNestedFlashcardsCount } from '~/routes/flashcards-new/folder.$folderId'
+import { getNestedFlashcardsCount } from './flashcards/folder.$folderId'
 import { useParams } from 'react-router'
 import { FolderIcon } from '~/components/FolderIcon'
 
@@ -56,11 +56,12 @@ export const loader = async ({ request }: LoaderArgs) => {
   return { folders }
 }
 
-export default function FlashcardsNew() {
+export default function Flashcards() {
   const { folders } = useLoaderData<typeof loader>()
   return (
     <div className="flex h-full">
       <div className="flex-shrink-0 border-gray border-t py-5 bg-white">
+        <Link to="/flashcards/all">All flashcards</Link>
         {folders.map((folder) => {
           return <FolderComponent {...folder} preexistingPadding={0} />
         })}
@@ -77,7 +78,7 @@ const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
   return (
     <div>
       <Link
-        to={`/flashcards-new/folder/${props.id}`}
+        to={`/flashcards/folder/${props.id}`}
         className="pr-2 flex gap-2 items-center h-7"
         style={{
           paddingLeft: props.preexistingPadding + 10,

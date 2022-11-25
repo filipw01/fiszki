@@ -11,10 +11,11 @@ import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
 import {
   getFolderPath,
+  isNonEmptyString,
+  isNonEmptyStringArray,
   isString,
-  isStringArray,
-  isStringOrNull,
 } from '~/utils.server'
+import { Textarea } from '~/components/Textarea'
 import { deleteFromS3, s3Url } from '~/uploadHandler.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -36,12 +37,12 @@ export const action: ActionFunction = async ({ request, params }) => {
     const randomSideAllowed = Boolean(body.get('randomSideAllowed'))
 
     if (
-      !isString(front) ||
-      !isString(back) ||
-      !isString(folderId) ||
-      !isStringArray(tags) ||
-      !isStringOrNull(backDescription) ||
-      !isStringOrNull(frontDescription)
+      !isNonEmptyString(front) ||
+      !isNonEmptyString(back) ||
+      !isNonEmptyString(folderId) ||
+      !isNonEmptyStringArray(tags) ||
+      !isString(backDescription) ||
+      !isString(frontDescription)
     ) {
       return new Response('Missing data', { status: 400 })
     }
@@ -83,18 +84,18 @@ export const action: ActionFunction = async ({ request, params }) => {
         randomSideAllowed,
       },
     })
-    return redirect('/flashcards')
+    return redirect(`/flashcards/folder/${folderId}`)
   } else if (action === 'delete') {
     const flashcard = await db.flashcard.delete({ where: { id: params.id } })
     await Promise.all(
       [flashcard.backImage, flashcard.frontImage].map((image) => {
-        if (isString(image) && image.startsWith(`${s3Url}/`)) {
+        if (isNonEmptyString(image) && image.startsWith(`${s3Url}/`)) {
           const key = image.replace(`${s3Url}/`, '')
           return deleteFromS3(key)
         }
       })
     )
-    return redirect('/flashcards')
+    return redirect(`/flashcards/folder/${flashcard.folderId}`)
   }
 }
 
@@ -139,52 +140,48 @@ export default function EditFlashcard() {
   return (
     <div>
       <Form method="post">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <label>
-                Front
-                <input
-                  type="text"
-                  name="front"
-                  defaultValue={flashcard.front}
-                />
-              </label>
-              <label>
-                Front description
-                <input
-                  type="text"
-                  name="frontDescription"
-                  defaultValue={flashcard.frontDescription ?? undefined}
-                />
-              </label>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-4">
+            <div className="flex flex-col flex-grow">
+              <Textarea
+                label="Front"
+                name="front"
+                defaultValue={flashcard.front}
+              />
+              <Textarea
+                label="Front description"
+                name="frontDescription"
+                defaultValue={flashcard.frontDescription}
+              />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <label>
-                Back
-                <input type="text" name="back" defaultValue={flashcard.back} />
-              </label>
-              <label>
-                Back description
-                <input
-                  type="text"
-                  name="backDescription"
-                  defaultValue={flashcard.backDescription ?? undefined}
-                />
-              </label>
+            <div className="flex flex-col flex-grow">
+              <Textarea
+                label="Back"
+                name="back"
+                defaultValue={flashcard.back}
+              />
+              <Textarea
+                label="Back description"
+                name="backDescription"
+                defaultValue={flashcard.backDescription}
+              />
             </div>
           </div>
           <label>
-            Random side allowed
             <input
+              className="mr-2"
               type="checkbox"
               name="randomSideAllowed"
               defaultChecked={flashcard.randomSideAllowed}
             />
+            Random side allowed
           </label>
           <label>
             Folder
-            <select name="folderId">
+            <select
+              name="folderId"
+              className="border border-dark-gray rounded-lg ml-2"
+            >
               {folders.map((folder) => (
                 <option
                   key={folder.id}
@@ -197,11 +194,12 @@ export default function EditFlashcard() {
             </select>
           </label>
           <label>
-            Tags
+            <div>Tags</div>
             <select
               name="tags"
               multiple
               defaultValue={flashcard.tags.map((tag) => tag.id)}
+              className="border border-dark-gray rounded-lg"
             >
               {tags.map((tag) => (
                 <option key={tag.id} value={tag.id}>
@@ -210,13 +208,27 @@ export default function EditFlashcard() {
               ))}
             </select>
           </label>
-          <button type="submit" name="action" value="update">
+          <button
+            type="submit"
+            name="action"
+            value="update"
+            className="px-3 py-2 bg-blue text-white rounded-lg"
+          >
             Save
           </button>
         </div>
       </Form>
-      <Form method="post">
-        <button type="submit" name="action" value="delete">
+      <Form method="post" className="flex flex-col mt-8 gap-2">
+        <label>
+          <input type="checkbox" required className="mr-2" />I confirm that I
+          want to delete this flashcard
+        </label>
+        <button
+          type="submit"
+          name="action"
+          value="delete"
+          className="px-3 py-2 bg-red-500 text-white rounded-lg"
+        >
           Delete
         </button>
       </Form>

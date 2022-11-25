@@ -9,7 +9,7 @@ import {
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { requireUserEmail } from '~/session.server'
-import { isString } from '~/utils.server'
+import { isNonEmptyString } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
@@ -27,7 +27,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     const name = body.get('name')
     const color = body.get('color')
 
-    if (!isString(name) || !isString(color)) {
+    if (!isNonEmptyString(name) || !isNonEmptyString(color)) {
       return new Response('Missing data', { status: 400 })
     }
 

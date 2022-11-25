@@ -1,45 +1,20 @@
-import React from 'react'
-import { Link, useLoaderData } from '@remix-run/react'
-import { db } from '~/utils/db.server'
-import { json, LoaderFunction } from '@remix-run/server-runtime'
-import { Prisma } from '@prisma/client'
+import { redirect } from '@remix-run/server-runtime'
 import { requireUserEmail } from '~/session.server'
+import { LoaderArgs } from '@remix-run/node'
+import { db } from '~/utils/db.server'
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader = async ({ request }: LoaderArgs) => {
   const email = await requireUserEmail(request)
-  const flashcards = await db.flashcard.findMany({
-    where: { owner: { email } },
+  const folder = await db.folder.findFirst({
+    where: {
+      owner: {
+        email,
+      },
+      parentFolderId: null,
+    },
   })
-
-  return json<Prisma.FlashcardGetPayload<{}>[]>(flashcards)
-}
-
-export default function Flashcards() {
-  const data = useLoaderData<Prisma.FlashcardGetPayload<{}>[]>()
-
-  return (
-    <div>
-      <Link to="create">Create new flashcard</Link>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-        {data.map((flashcard) => (
-          <Link
-            to={`edit/${flashcard.id}`}
-            key={flashcard.id}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              width: '100px',
-              padding: '4px',
-              border: '1px solid black',
-              borderRadius: '8px',
-            }}
-          >
-            <p>{flashcard.front}</p>
-            <p>{flashcard.back}</p>
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
+  if (!folder) {
+    return redirect('/folders/create')
+  }
+  return redirect(`/flashcards/folder/${folder.id}`)
 }

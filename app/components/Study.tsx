@@ -91,8 +91,10 @@ export const Study = ({ flashcards, isSet }: Props) => {
           example={frontDescription}
           image={frontImage}
           language={'en' /*not implemented*/}
+          id={id}
         />
         <Flashcard
+          id={id}
           text={back}
           example={backDescription}
           image={backImage}

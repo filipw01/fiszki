@@ -73,9 +73,11 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
       example={flashcard.frontDescription}
       image={flashcard.frontImage}
       tags={flashcard.tags}
+      id={flashcard.id}
     />
   ) : (
     <Flashcard
+      id={flashcard.id}
       onClick={turn}
       text={flashcard.back}
       image={flashcard.backImage}

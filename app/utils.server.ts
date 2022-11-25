@@ -192,7 +192,7 @@ export const studyAction: ActionFunction = async ({ request }) => {
   const email = await requireUserEmail(request)
   const body = await request.formData()
   const rawFlashcardId = body.get('flashcardId')
-  const id = isString(rawFlashcardId) ? rawFlashcardId : null
+  const id = isNonEmptyString(rawFlashcardId) ? rawFlashcardId : null
   const action = body.get('_action')
   if (id !== null) {
     db.flashcard.findFirstOrThrow({
@@ -213,11 +213,11 @@ export const studyAction: ActionFunction = async ({ request }) => {
   return null
 }
 
+export const isNonEmptyString = (input: unknown): input is string =>
+  typeof input === 'string' && input.length > 0
+
+export const isNonEmptyStringArray = (input: unknown): input is string[] =>
+  Array.isArray(input) && input.every(isNonEmptyString)
+
 export const isString = (input: unknown): input is string =>
   typeof input === 'string'
-
-export const isStringArray = (input: unknown): input is string[] =>
-  Array.isArray(input) && input.every(isString)
-
-export const isStringOrNull = (input: unknown): input is string | null =>
-  typeof input === 'string' || input === null

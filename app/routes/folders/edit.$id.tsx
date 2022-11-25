@@ -10,7 +10,7 @@ import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import { useParams } from 'react-router'
 import { requireUserEmail } from '~/session.server'
-import { getFolderPath, isString, isStringOrNull } from '~/utils.server'
+import { getFolderPath, isNonEmptyString, isString } from '~/utils.server'
 
 export const action: ActionFunction = async ({ request, params }) => {
   const email = await requireUserEmail(request)
@@ -30,9 +30,9 @@ export const action: ActionFunction = async ({ request, params }) => {
     const parentFolderId = body.get('parentFolderId')
 
     if (
-      !isString(name) ||
-      !isString(color) ||
-      !isStringOrNull(parentFolderId)
+      !isNonEmptyString(name) ||
+      !isNonEmptyString(color) ||
+      !isString(parentFolderId)
     ) {
       return new Response('Missing data', { status: 400 })
     }

@@ -101,7 +101,7 @@ export default function Subfolder() {
     <div>
       <h1>Folder {folderName}</h1>
       {parentFolder && (
-        <Link to={`/flashcards-new/folder/${parentFolder}`}>Up</Link>
+        <Link to={`/flashcards/folder/${parentFolder}`}>Up</Link>
       )}
       <Link to={`/flashcards/create?folderId=${params.folderId}`}>
         Create new flashcard here
@@ -110,7 +110,7 @@ export default function Subfolder() {
         {subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder
             key={id}
-            nameLink={`/flashcards-new/folder/${id}`}
+            nameLink={`/flashcards/folder/${id}`}
             studyLink={`/study/study-tag/${id}`}
             name={name}
             count={flashcardsCount}
@@ -140,6 +140,8 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
       example={flashcard.frontDescription}
       image={flashcard.frontImage}
       tags={flashcard.tags}
+      id={flashcard.id}
+      isEditable
     />
   ) : (
     <Flashcard
@@ -148,6 +150,7 @@ const TurnableFlashcard = ({ flashcard }: { flashcard: FlashcardType }) => {
       image={flashcard.backImage}
       example={flashcard.backDescription}
       tags={flashcard.tags}
+      id={flashcard.id}
     />
   )
 }

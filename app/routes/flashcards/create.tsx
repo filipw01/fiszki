@@ -11,9 +11,9 @@ import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
 import {
   getFolderPath,
+  isNonEmptyString,
+  isNonEmptyStringArray,
   isString,
-  isStringArray,
-  isStringOrNull,
 } from '~/utils.server'
 import {
   unstable_composeUploadHandlers,
@@ -21,6 +21,7 @@ import {
   unstable_parseMultipartFormData,
 } from '@remix-run/node'
 import { uploadToS3 } from '~/uploadHandler.server'
+import { Textarea } from '~/components/Textarea'
 
 const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
 
@@ -54,14 +55,14 @@ export const action: ActionFunction = async ({ request }) => {
   const randomSideAllowed = Boolean(formData.get('randomSideAllowed'))
 
   if (
-    !isString(front) ||
-    !isString(back) ||
-    !isString(folderId) ||
-    !isStringArray(tags) ||
-    !isStringOrNull(backDescription) ||
-    !isStringOrNull(backImage) ||
-    !isStringOrNull(frontDescription) ||
-    !isStringOrNull(frontImage)
+    !isNonEmptyString(front) ||
+    !isNonEmptyString(back) ||
+    !isNonEmptyString(folderId) ||
+    !isNonEmptyStringArray(tags) ||
+    !isString(backDescription) ||
+    !isString(backImage) ||
+    !isString(frontDescription) ||
+    !isString(frontImage)
   ) {
     return new Response('Missing data', { status: 400 })
   }
@@ -98,7 +99,7 @@ export const action: ActionFunction = async ({ request }) => {
     },
   })
 
-  return redirect('/flashcards')
+  return redirect(`/flashcards/folder/${folderId}`)
 }
 
 type LoaderData = {
@@ -131,33 +132,19 @@ export default function CreateFlashcard() {
   const [searchParams] = useSearchParams()
   return (
     <Form method="post" encType="multipart/form-data">
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label>
-              Front
-              <input type="text" name="front" />
-            </label>
-            <label>
-              Front description
-              <input type="text" name="frontDescription" />
-            </label>
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-4">
+          <div className="flex flex-col flex-grow">
+            <Textarea name="front" label="Front" />
+            <Textarea name="frontDescription" label="Front description" />
             <label>
               Front image
               <input type="file" name="frontImage" />
             </label>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label>
-              Back
-              <input type="text" name="back" />
-            </label>
-
-            <label>
-              Back description
-              <input type="text" name="backDescription" />
-            </label>
-
+          <div className="flex flex-col flex-grow">
+            <Textarea name="back" label="Back" />
+            <Textarea name="backDescription" label="Back description" />
             <label>
               Back image
               <input type="file" name="backImage" />
@@ -165,9 +152,14 @@ export default function CreateFlashcard() {
           </div>
         </div>
         <label>
+          Random side allowed
+          <input type="checkbox" name="randomSideAllowed" />
+        </label>
+        <label>
           Folder
           <select
             name="folderId"
+            className="border border-dark-gray rounded-lg ml-2"
             defaultValue={searchParams.get('folderId') ?? undefined}
           >
             {folders.map((folder) => (
@@ -178,8 +170,12 @@ export default function CreateFlashcard() {
           </select>
         </label>
         <label>
-          Tags
-          <select name="tags" multiple>
+          <div>Tags</div>
+          <select
+            name="tags"
+            multiple
+            className="border border-dark-gray rounded-lg"
+          >
             {tags.map((tag) => (
               <option key={tag.id} value={tag.id}>
                 {tag.name}
@@ -187,11 +183,12 @@ export default function CreateFlashcard() {
             ))}
           </select>
         </label>
-        <label>
-          Random side allowed
-          <input type="checkbox" name="randomSideAllowed" />
-        </label>
-        <input type="submit" />
+        <button
+          type="submit"
+          className="px-3 py-2 bg-blue text-white rounded-lg"
+        >
+          Create
+        </button>
       </div>
     </Form>
   )

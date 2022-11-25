@@ -55,14 +55,13 @@ export default function App() {
               <Link to="/study">
                 <h1>Calendar</h1>
               </Link>
-              <Link to="/flashcards-new">Flashcards</Link>
+              <Link to="/flashcards">Flashcards</Link>
               <Link to="/study/tag">Tags</Link>
               <div style={{ display: 'flex', gap: 4 }}>
                 Edit:
                 <div>
                   <Link to="/tags">Tags</Link>/
-                  <Link to="/folders">Folders</Link>/
-                  <Link to="/flashcards">Flashcards</Link>
+                  <Link to="/folders">Folders</Link>
                 </div>
               </div>
             </div>

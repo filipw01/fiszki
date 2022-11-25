@@ -3,25 +3,30 @@ import { SpeakerIcon } from '~/components/SpeakerIcon'
 import React, { MouseEventHandler } from 'react'
 import { TagList } from '~/components/TagList'
 import { Tag } from '~/utils.server'
+import { Link } from '@remix-run/react'
 
 type Props = {
+  id: string
   text: string
   image?: string | null
   example?: string | null
   hidden?: boolean
   correct?: boolean
   language?: 'en' | 'es'
+  isEditable?: boolean
   onClick?: () => void
   tags?: Tag[]
 }
 
 export const Flashcard = ({
+  id,
   text,
   example,
   image,
   hidden,
   correct,
   language,
+  isEditable,
   onClick,
   tags,
 }: Props) => {
@@ -53,6 +58,11 @@ export const Flashcard = ({
       }}
       onClick={onClick}
     >
+      {isEditable && (
+        <div className="absolute top-2 right-2 text-sm lg:text-lg">
+          <Link to={`/flashcards/edit/${id}`}>Edit</Link>
+        </div>
+      )}
       <ConditionalButton onClick={onClick}>
         {hidden ? (
           <img className="w-1/3 mx-auto" src={catImage} alt="" />

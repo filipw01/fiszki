@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import { createCookieSessionStorage, redirect } from '@remix-run/node'
 import { db } from '~/utils/db.server'
-import { isString } from '~/utils.server'
+import { isNonEmptyString } from '~/utils.server'
 
 type LoginForm = {
   email: string
@@ -55,7 +55,7 @@ export async function requireUserEmail(
 ) {
   const session = await getUserSession(request)
   const email = session.get('email')
-  if (!isString(email)) {
+  if (!isNonEmptyString(email)) {
     const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
     throw redirect(`/login?${searchParams}`)
   }
