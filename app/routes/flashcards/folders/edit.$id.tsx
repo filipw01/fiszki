@@ -8,7 +8,6 @@ import {
 } from '@remix-run/server-runtime'
 import { db } from '~/utils/db.server'
 import { Prisma } from '@prisma/client'
-import { useParams } from 'react-router'
 import { requireUserEmail } from '~/session.server'
 import { getFolderPath, isNonEmptyString, isString } from '~/utils.server'
 import { Input } from '~/components/Input'
@@ -59,7 +58,11 @@ export const action: ActionFunction = async ({ request, params }) => {
           : { disconnect: true },
       },
     })
-    return redirect('/folders')
+    return redirect(
+      parentFolderId
+        ? `/flashcards/folders/${parentFolderId}`
+        : `/flashcards/folders`
+    )
   } else if (action === 'delete') {
     const folder = await db.folder.findFirst({
       where: {
@@ -78,7 +81,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       throw new Response('Folder not empty', { status: 400 })
     }
     await db.folder.delete({ where: { id: params.id } })
-    return redirect('/folders')
+    return redirect('/flashcards/folders')
   }
 }
 
@@ -105,7 +108,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function EditFolder() {
-  const params = useParams()
   const { folders, editedFolder } = useLoaderData<{
     folders: Prisma.FolderGetPayload<{}>[]
     editedFolder: Prisma.FolderGetPayload<{}>
@@ -114,7 +116,7 @@ export default function EditFolder() {
   return (
     <div className="flex flex-col p-8">
       <Form method="post">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" key={editedFolder.id}>
           <Input name="name" label="Name" defaultValue={editedFolder?.name} />
           <label className="flex">
             Color

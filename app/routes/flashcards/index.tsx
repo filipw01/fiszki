@@ -14,7 +14,7 @@ export const loader = async ({ request }: LoaderArgs) => {
     },
   })
   if (!folder) {
-    return redirect('/folders/create')
+    return redirect('/flashcards/folders/create')
   }
   return redirect(`/flashcards/folder/${folder.id}`)
 }

@@ -42,10 +42,10 @@ export const action: ActionFunction = async ({ request, params }) => {
         owner: { connect: { email } },
       },
     })
-    return redirect('/tags')
+    return redirect('/study/tag')
   } else if (action === 'delete') {
     await db.tag.delete({ where: { id: params.id } })
-    return redirect('/tags')
+    return redirect('/study/tag')
   }
 }
 

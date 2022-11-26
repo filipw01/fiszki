@@ -158,6 +158,7 @@ export default function CreateFlashcard() {
         <label>
           Folder
           <select
+            key={searchParams.get('folderId')}
             name="folderId"
             className="border border-dark-gray rounded-lg ml-2"
             defaultValue={searchParams.get('folderId') ?? undefined}

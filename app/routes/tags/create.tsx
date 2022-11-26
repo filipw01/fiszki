@@ -30,7 +30,7 @@ export const action: ActionFunction = async ({ request }) => {
       owner: { connect: { email } },
     },
   })
-  return redirect('/tags')
+  return redirect('/study/tag')
 }
 
 export const loader: LoaderFunction = async ({ request }) => {

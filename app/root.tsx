@@ -57,13 +57,6 @@ export default function App() {
               </Link>
               <Link to="/flashcards">Flashcards</Link>
               <Link to="/study/tag">Tags</Link>
-              <div style={{ display: 'flex', gap: 4 }}>
-                Edit:
-                <div>
-                  <Link to="/tags">Tags</Link>/
-                  <Link to="/folders">Folders</Link>
-                </div>
-              </div>
             </div>
             <Link to="/logout">Logout: {email}</Link>
           </div>

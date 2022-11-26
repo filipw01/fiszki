@@ -1,5 +1,5 @@
 import React from 'react'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
 import {
   ActionFunction,
   json,
@@ -48,7 +48,11 @@ export const action: ActionFunction = async ({ request }) => {
         : undefined,
     },
   })
-  return redirect('/folders')
+  return redirect(
+    parentFolderId
+      ? `/flashcards/folders/${parentFolderId}`
+      : `/flashcards/folders`
+  )
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -68,6 +72,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function CreateFolder() {
   const data = useLoaderData<Prisma.FolderGetPayload<{}>[]>()
+  const [searchParams] = useSearchParams()
   return (
     <Form method="post">
       <div className="flex flex-col p-8 gap-2">
@@ -84,8 +89,10 @@ export default function CreateFolder() {
         <label>
           Parent folder
           <select
+            key={searchParams.get('folderId')}
             name="parentFolderId"
             className="border-dark-gray border rounded-lg ml-2"
+            defaultValue={searchParams.get('folderId') ?? undefined}
           >
             <option value="">None</option>
             {data.map((folder) => (

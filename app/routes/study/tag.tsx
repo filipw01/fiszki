@@ -1,7 +1,7 @@
 import React from 'react'
 import { json, MetaFunction } from '@remix-run/server-runtime'
 import { mapTag } from '~/utils.server'
-import { useLoaderData } from '@remix-run/react'
+import { Link, useLoaderData } from '@remix-run/react'
 import { Folder } from '~/components/Folder'
 import { db } from '~/utils/db.server'
 import { requireUserEmail } from '~/session.server'
@@ -54,17 +54,21 @@ export default function Tag() {
     <div className="p-8">
       <h2>Tags</h2>
 
+      <Link to="/tags/create">Create new tag</Link>
       <FoldersContainer>
         {tags.map(({ color: { r, g, b }, name, flashcardsCount, id }) => {
           return (
-            <Folder
-              key={id}
-              nameLink={`/study/tag/${id}`}
-              studyLink={`/study/study-tag/${id}`}
-              name={name}
-              count={flashcardsCount}
-              color={`rgb(${r},${g},${b})`}
-            />
+            <div>
+              <Folder
+                key={id}
+                nameLink={`/study/tag/${id}`}
+                studyLink={`/study/study-tag/${id}`}
+                name={name}
+                count={flashcardsCount}
+                color={`rgb(${r},${g},${b})`}
+              />
+              <Link to={`/tags/edit/${id}`}>Edit</Link>
+            </div>
           )
         })}
       </FoldersContainer>
