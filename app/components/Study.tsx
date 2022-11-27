@@ -66,7 +66,8 @@ export const Study = ({ flashcards, isSet }: Props) => {
 
   const handleCheck = () => {
     if (
-      input.current?.value.toLowerCase().trim() === back.toLowerCase().trim()
+      input.current?.value.toLowerCase().trim() === back.toLowerCase().trim() &&
+      back !== ''
     ) {
       setTypedCorrectly(true)
     } else {

@@ -221,3 +221,6 @@ export const isNonEmptyStringArray = (input: unknown): input is string[] =>
 
 export const isString = (input: unknown): input is string =>
   typeof input === 'string'
+
+export const isStringOrNull = (input: unknown): input is string | null =>
+  typeof input === 'string' || input === null

@@ -9,6 +9,7 @@ import { FolderIcon } from '~/components/FolderIcon'
 import React, { useEffect, useState } from 'react'
 import { AddIcon } from '~/components/AddIcon'
 import { MoreIcon } from '~/components/MoreIcon'
+import { clsx } from '~/utils'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -80,6 +81,7 @@ export default function Flashcards() {
 
 const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
   const { folderId } = useParams()
+  const [isOpen, setIsOpen] = useState(true)
   return (
     <div>
       <div
@@ -90,6 +92,14 @@ const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
             props.id === folderId ? 'hsla(217, 100%, 96%, 1)' : undefined,
         }}
       >
+        {props.subfolders.length > 0 ? (
+          <button
+            onClick={() => setIsOpen((isOpen) => !isOpen)}
+            className={clsx('transition-transform', { 'rotate-90': isOpen })}
+          >
+            ⏵
+          </button>
+        ) : undefined}
         <Link
           to={`/flashcards/folder/${props.id}`}
           className="flex gap-2 items-center h-7"
@@ -105,14 +115,16 @@ const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
         <MoreButton folderId={props.id} />
       </div>
       <div>
-        {props.subfolders.map((subfolder) => {
-          return (
-            <FolderComponent
-              {...subfolder}
-              preexistingPadding={props.preexistingPadding + 10}
-            />
-          )
-        })}
+        {isOpen
+          ? props.subfolders.map((subfolder) => {
+              return (
+                <FolderComponent
+                  {...subfolder}
+                  preexistingPadding={props.preexistingPadding + 10}
+                />
+              )
+            })
+          : undefined}
       </div>
     </div>
   )
@@ -145,7 +157,10 @@ const AddButton = ({ folderId }: { folderId: string }) => {
           <Link to={`/flashcards/create?folderId=${folderId}`} onClick={close}>
             Create new flashcard here
           </Link>
-          <Link to={`/flashcards/folders/create?folderId=${folderId}`} onClick={close}>
+          <Link
+            to={`/flashcards/folders/create?folderId=${folderId}`}
+            onClick={close}
+          >
             Create new folder here
           </Link>
         </div>

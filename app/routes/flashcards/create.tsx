@@ -14,6 +14,7 @@ import {
   isNonEmptyString,
   isNonEmptyStringArray,
   isString,
+  isStringOrNull,
 } from '~/utils.server'
 import {
   unstable_composeUploadHandlers,
@@ -55,14 +56,16 @@ export const action: ActionFunction = async ({ request }) => {
   const randomSideAllowed = Boolean(formData.get('randomSideAllowed'))
 
   if (
-    !isNonEmptyString(front) ||
-    !isNonEmptyString(back) ||
+    (!isNonEmptyString(front) && !isNonEmptyString(frontImage)) ||
+    (!isNonEmptyString(back) && !isNonEmptyString(backImage)) ||
     !isNonEmptyString(folderId) ||
     !isNonEmptyStringArray(tags) ||
+    !isString(front) ||
+    !isString(back) ||
     !isString(backDescription) ||
-    !isString(backImage) ||
+    !isStringOrNull(backImage) ||
     !isString(frontDescription) ||
-    !isString(frontImage)
+    !isStringOrNull(frontImage)
   ) {
     return new Response('Missing data', { status: 400 })
   }
