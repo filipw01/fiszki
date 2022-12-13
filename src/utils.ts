@@ -26,7 +26,7 @@ export const seededShuffle = <T>(array: T[], seed = 1024) => {
 }
 
 export const clsx = (...args: Array<string | Record<string, boolean>>) => {
-  let classes = ' '
+  let classes = ''
   for (const arg of args) {
     if (typeof arg === 'string') {
       classes += `${arg} `
