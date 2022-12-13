@@ -1,49 +1,45 @@
 {
-  "name": "remix-app-template",
-  "private": true,
-  "description": "",
-  "license": "",
-  "sideEffects": false,
+  "name": "fiszki",
+  "type": "module",
   "scripts": {
-    "build": "npm run build:css && NODE_ENV=production remix build",
-    "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
+    "build": "npm run build:css && solid-start build",
+    "build:css": "tailwindcss -m -i ./styles/app.css -o src/styles/app.css",
     "deploy": "fly deploy --remote-only --env PORT='8080'",
-    "dev": "concurrently \"npm run dev:css\" \"NODE_ENV=development remix dev\"",
-    "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css",
-    "start": "NODE_ENV=production remix-serve build"
+    "dev": "concurrently \"npm run dev:css\" \"solid-start dev\"",
+    "dev:css": "tailwindcss -w -i ./styles/app.css -o src/styles/app.css",
+    "start": "solid-start start"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.216.0",
-    "@prisma/client": "^4.6.1",
-    "@remix-run/node": "^1.7.6",
-    "@remix-run/react": "^1.7.6",
-    "@remix-run/serve": "^1.7.6",
+    "@aws-sdk/client-s3": "^3.226.0",
+    "@prisma/client": "^4.7.1",
+    "@solidjs/meta": "^0.28.0",
+    "@solidjs/router": "^0.5.0",
     "bcryptjs": "^2.4.3",
+    "dotenv": "16.0.3",
     "lodash-es": "^4.17.21",
     "nanoid": "^3.3.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "solid-js": "^1.6.4",
+    "solid-start": "^0.2.7",
+    "undici": "^5.14.0"
   },
   "devDependencies": {
-    "@remix-run/dev": "^1.7.6",
-    "@remix-run/eslint-config": "^1.7.6",
     "@types/bcryptjs": "^2.4.2",
     "@types/lodash-es": "^4.17.6",
-    "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.9",
     "autoprefixer": "^10.4.13",
     "concurrently": "^7.6.0",
-    "esbuild": "^0.15.15",
+    "esbuild": "^0.16.4",
     "esbuild-register": "^3.4.1",
-    "eslint": "^8.28.0",
+    "eslint": "^8.29.0",
     "postcss": "^8.4.19",
-    "prettier": "^2.8.0",
-    "prisma": "^4.6.1",
+    "prettier": "^2.8.1",
+    "prisma": "^4.7.1",
+    "solid-start-node": "^0.2.7",
     "tailwindcss": "^3.2.4",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.4",
+    "vite": "^3.1.8"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "prisma": {
     "seed": "node --require esbuild-register prisma/seed.ts"

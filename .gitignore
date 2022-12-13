@@ -1,15 +1,29 @@
+dist
+.solid
+.output
+.vercel
+.netlify
+netlify
+
 # secrets
 .env
 
-# build
-.cache
-build
-public/build
-node_modules
+# dependencies
+/node_modules
 
-# miscellaneous
-.idea
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+
+# Temp
+gitignore
+
+# System Files
 .DS_Store
+Thumbs.db
 
 # tailwind
-app/styles/app.css
+src/styles/app.css
