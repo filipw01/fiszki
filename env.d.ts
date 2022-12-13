@@ -13,6 +13,8 @@ declare global {
       readonly AWS_SECRET_ACCESS_KEY: string
       readonly SESSION_SECRET: string
       readonly DATABASE_URL: string
+      readonly TEST_USER: string
+      readonly TEST_PASSWORD: string
     }
   }
 }

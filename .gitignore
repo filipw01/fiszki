@@ -30,3 +30,6 @@ src/styles/app.css
 
 # tests
 coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/

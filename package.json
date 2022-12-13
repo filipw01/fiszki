@@ -8,6 +8,7 @@
     "dev": "concurrently \"npm run dev:css\" \"solid-start dev\"",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o src/styles/app.css",
     "test": "vitest",
+    "e2e": "playwright test",
     "start": "solid-start start"
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "undici": "^5.14.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.28.1",
     "@types/bcryptjs": "^2.4.2",
     "@types/lodash-es": "^4.17.6",
     "@vitest/coverage-c8": "^0.25.8",
