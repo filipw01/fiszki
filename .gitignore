@@ -27,3 +27,6 @@ Thumbs.db
 
 # tailwind
 src/styles/app.css
+
+# tests
+coverage
