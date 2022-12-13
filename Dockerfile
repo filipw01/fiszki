@@ -1,5 +1,5 @@
 # base node image
-FROM node:16-bullseye-slim as base
+FROM node:18-bullseye-slim as base
 
 # Install openssl for Prisma
 RUN apt-get update && apt-get install -y openssl
@@ -46,8 +46,7 @@ WORKDIR /app
 
 COPY --from=production-deps /app/node_modules /app/node_modules
 
-COPY --from=build /app/build /app/build
-COPY --from=build /app/public /app/public
+COPY --from=build /app/dist /app/dist
 ADD . .
 
 RUN npm install -D prisma
