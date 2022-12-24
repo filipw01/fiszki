@@ -47,15 +47,13 @@ export const Study = (props: Props) => {
   )
   const flashcardsCount = createMemo(() => props.flashcards.length)
   let input: HTMLTextAreaElement | undefined
-  const [typedCorrectly, setTypedCorrectly] = createSignal<
-    boolean | undefined
-  >()
+  const [typedCorrectly, setTypedCorrectly] = createSignal<boolean | null>(null)
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = createSignal(0)
 
   const currentFlashcard = createMemo(() => props.flashcards[0])
 
   const nextFlashcard = () => {
-    setTypedCorrectly(undefined)
+    setTypedCorrectly(null)
     if (input) {
       setTimeout(() => {
         input?.focus()
@@ -124,7 +122,7 @@ export const Study = (props: Props) => {
             text={currentFlashcard().back}
             example={currentFlashcard().backDescription}
             image={currentFlashcard().backImage}
-            hidden={typedCorrectly() === undefined}
+            hidden={typedCorrectly() === null}
             language={'en' /*not implemented*/}
             correct={typedCorrectly()}
           />
@@ -139,7 +137,7 @@ export const Study = (props: Props) => {
               <LetterButton
                 letter={letter}
                 onClick={(letter) => {
-                  if (input && typedCorrectly() === undefined) {
+                  if (input && typedCorrectly() === null) {
                     // insert character at cursor
                     const start = input.selectionStart
                     const end = input.selectionEnd
@@ -156,27 +154,26 @@ export const Study = (props: Props) => {
           </div>
           <textarea
             class="block py-6 px-7 -mr-2 h-48 w-full bg-white rounded-t-3xl shadow text-xl resize-none placeholder-dark-gray focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-dark-gray focus-visible:ring-inset"
-            style={{
-              color:
-                typedCorrectly() === undefined
-                  ? undefined
-                  : typedCorrectly()
-                  ? 'rgb(138, 201, 38)'
-                  : 'rgb(218, 80, 5)',
-            }}
+            style={
+              typedCorrectly() === null
+                ? undefined
+                : typedCorrectly()
+                ? 'color: rgb(138, 201, 38)'
+                : 'color: rgb(218, 80, 5)'
+            }
             placeholder="Hm.."
             ref={input}
             autofocus
             onKeyDown={(e) => {
-              if (e.code === 'Enter' && typedCorrectly() === undefined) {
+              if (e.code === 'Enter' && typedCorrectly() === null) {
                 handleCheck()
                 e.stopPropagation()
               }
             }}
-            disabled={typedCorrectly() !== undefined}
+            disabled={typedCorrectly() !== null}
             spellcheck={false}
           />
-          {typedCorrectly() === undefined ? (
+          {typedCorrectly() === null ? (
             <div class="flex">
               <Button
                 type="button"
