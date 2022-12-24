@@ -39,8 +39,8 @@ jobs:
 
   deploy:
     name: Deploy to fiszki.fly.dev
-#    depends-on: [test, e2e]
-    depends-on: test
+#    needs: [test, e2e]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
