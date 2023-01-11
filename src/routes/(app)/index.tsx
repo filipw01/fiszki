@@ -1,10 +1,12 @@
 import { indexLoader } from '~/utils.server'
-import { groupBy } from 'lodash-es'
+import { chunk, groupBy } from 'lodash-es'
 import { daysFromNow } from '~/utils'
 import { A, useRouteData } from 'solid-start'
-import { createServerData$ } from 'solid-start/server'
+import { createServerAction$, createServerData$ } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
 import { createMemo } from 'solid-js'
+import { Button } from '~/components/Button'
+import { db } from '~/db/db.server'
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
@@ -67,8 +69,32 @@ export default function Calendar() {
     )
   })
 
+  const [splittingEvenly, { Form }] = createServerAction$(
+    async (_: FormData, { request }) => {
+      const email = await requireUserEmail(request)
+      const flashcards = await db.flashcard.findMany({
+        where: { nextStudy: { lt: new Date(daysFromNow(0)) } },
+      })
+      await Promise.all(
+        chunk(flashcards, Math.ceil(flashcards.length / 30)).map(
+          (flashcard, index) => {
+            return db.flashcard.updateMany({
+              where: {
+                id: { in: flashcard.map((f) => f.id) },
+                ownerEmail: email,
+              },
+              data: { nextStudy: new Date(daysFromNow(index)) },
+            })
+          }
+        )
+      )
+    }
+  )
+
   return (
     <div class="p-4">
+      {splittingEvenly.pending && <div>Splitting evenly...</div>}
+      {splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}
       <div
         class="-mx-3 lg:m-0 mt-2 grid border-b border-dark-gray"
         style="grid-template-columns: repeat(7, 1fr); grid-template-rows: 36px repeat(4, 100px)"
@@ -139,6 +165,17 @@ export default function Calendar() {
             )
           })}
       </div>
+      <Form>
+        <label>
+          Are you sure?
+          <input type="checkbox" required checked={splittingEvenly.pending} />
+        </label>
+        <label>
+          Are you really sure?
+          <input type="checkbox" required checked={splittingEvenly.pending} />
+        </label>
+        <Button color="bad">Split today's flashcards evenly this month</Button>
+      </Form>
     </div>
   )
 }
