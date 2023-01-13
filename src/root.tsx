@@ -20,7 +20,7 @@ export default function Root() {
   return (
     <Html lang="en" class="h-full">
       <Head>
-        <Title>SolidStart - With Auth</Title>
+        <Title>Fiszki</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
         <Link

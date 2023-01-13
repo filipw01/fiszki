@@ -43,6 +43,9 @@ export const Study = (props: Props) => {
         }
       }
       return null
+    },
+    {
+      invalidate: [], // we want to keep today's flashcards already fetched
     }
   )
   const flashcardsCount = createMemo(() => props.flashcards.length)
@@ -50,7 +53,9 @@ export const Study = (props: Props) => {
   const [typedCorrectly, setTypedCorrectly] = createSignal<boolean | null>(null)
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = createSignal(0)
 
-  const currentFlashcard = createMemo(() => props.flashcards[0])
+  const currentFlashcard = createMemo(
+    () => props.flashcards[currentFlashcardIndex()]
+  )
 
   const nextFlashcard = () => {
     setTypedCorrectly(null)

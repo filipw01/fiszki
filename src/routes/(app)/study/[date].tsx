@@ -4,7 +4,7 @@ import { useParams, useRouteData } from 'solid-start'
 import { flashcardsServerData } from '~/routes/(app)/index'
 import { createMemo } from 'solid-js'
 
-export const routeData = () => flashcardsServerData() // TODO: how can we not invalidate this route data when submitting form
+export const routeData = () => flashcardsServerData()
 
 export default function RepeatFlashcards() {
   const data = useRouteData<typeof routeData>()
