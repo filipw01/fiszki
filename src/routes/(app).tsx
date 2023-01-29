@@ -24,7 +24,7 @@ export default function Navigation() {
               <h1>Calendar</h1>
             </A>
             <A href="/flashcards">Flashcards</A>
-            <A href="/study/tag">Tags</A>
+            <A href="/tags">Tags</A>
           </div>
           <Form>
             <button type="submit">

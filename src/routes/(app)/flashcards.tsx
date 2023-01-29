@@ -1,14 +1,14 @@
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { FolderIcon } from '~/components/FolderIcon'
-import { AddIcon } from '~/components/AddIcon'
-import { MoreIcon } from '~/components/MoreIcon'
 import { clsx } from '~/utils'
 import { db } from '~/db/db.server'
 import { createServerData$ } from 'solid-start/server'
 import { A, Outlet, useParams, useRouteData } from 'solid-start'
 import { createSignal, onCleanup, onMount } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
+import AddIcon from '~icons/ri/add-fill?width=16&height=16'
+import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number

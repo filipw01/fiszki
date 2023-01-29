@@ -1,11 +1,11 @@
 import catImage from '~/assets/cat.png'
-import { SpeakerIcon } from '~/components/SpeakerIcon'
 import { TagList } from '~/components/TagList'
 import { Tag } from '~/utils.server'
 import { A } from 'solid-start'
 import { createEffect, createMemo, JSX, Show } from 'solid-js'
 import { Motion } from '@motionone/solid'
 import JSConfetti from 'js-confetti'
+import SpeakerIcon from '~icons/ri/volume-up-fill'
 
 type Props = {
   id: string

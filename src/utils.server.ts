@@ -116,7 +116,10 @@ export const indexLoader = async (email: string) => {
   return { flashcards, tags }
 }
 
-export const actionSuccess = async (flashcardId: string) => {
+export const actionSuccess = async (
+  flashcardId: string,
+  ownerEmail: string
+) => {
   const flashcard = await db.flashcard.findUnique({
     where: {
       id: flashcardId,
@@ -126,6 +129,15 @@ export const actionSuccess = async (flashcardId: string) => {
     throw new Error('Flashcard not found')
   }
   const number = getNumberOfDays(flashcard.streak)
+  await db.learningSession.update({
+    where: {
+      ownerEmail,
+    },
+    data: {
+      completedFlashcards: { connect: { id: flashcardId } },
+      uncompletedFlashcards: { disconnect: { id: flashcardId } },
+    },
+  })
   await db.flashcard.update({
     where: {
       id: flashcardId,

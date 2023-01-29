@@ -1,12 +1,13 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
+import Icons from 'unplugin-icons/vite'
 import solid from 'solid-start/vite'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 export default defineConfig({
-  plugins: [solid()],
+  plugins: [solid(), Icons({ compiler: 'solid' })],
   ssr: { external: ['@prisma/client'] },
   test: {
     exclude: [

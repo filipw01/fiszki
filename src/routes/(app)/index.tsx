@@ -1,10 +1,14 @@
-import { indexLoader } from '~/utils.server'
+import { indexLoader, isNonEmptyString } from '~/utils.server'
 import { chunk, groupBy } from 'lodash-es'
 import { daysFromNow } from '~/utils'
 import { A, useRouteData } from 'solid-start'
-import { createServerAction$, createServerData$ } from 'solid-start/server'
+import {
+  createServerAction$,
+  createServerData$,
+  redirect,
+} from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
-import { createMemo } from 'solid-js'
+import { createMemo, Show } from 'solid-js'
 import { Button } from '~/components/Button'
 import { db } from '~/db/db.server'
 
@@ -16,8 +20,29 @@ export const flashcardsServerData = () =>
     return await indexLoader(email)
   })
 
+const activeLearningSession = () =>
+  createServerData$(async (_, event) => {
+    const email = await requireUserEmail(event.request)
+    return await db.learningSession.findUnique({
+      where: {
+        ownerEmail: email,
+      },
+      include: {
+        _count: {
+          select: {
+            completedFlashcards: true,
+            uncompletedFlashcards: true,
+          },
+        },
+      },
+    })
+  })
+
 export const routeData = () => {
-  return flashcardsServerData()
+  return {
+    data: flashcardsServerData(),
+    learningSession: activeLearningSession(),
+  }
 }
 
 const weekDayNames = [
@@ -34,8 +59,8 @@ export default function Calendar() {
   const data = useRouteData<typeof routeData>()
 
   const flashcards = createMemo(() => {
-    if (data() === undefined) return []
-    return data()?.flashcards
+    if (data === undefined) return []
+    return data.data()?.flashcards
   })
 
   const flashcardsByNextStudy = createMemo(() =>
@@ -91,10 +116,79 @@ export default function Calendar() {
     }
   )
 
+  const [creatingLearningSession, { Form: CreateLearningSessionForm }] =
+    createServerAction$(async (formData: FormData, { request }) => {
+      const email = await requireUserEmail(request)
+      const day = formData.get('day')
+      if (!isNonEmptyString(day)) {
+        throw new Error('Day for the learning session was not provided')
+      }
+      const dayNumber = Number(day)
+      if (Number.isNaN(dayNumber)) {
+        throw new Error(`Day must be a number, got "${day}"`)
+      }
+      await db.flashcard.updateMany({
+        where: {
+          ownerEmail: email,
+          nextStudy: {
+            gt: new Date(daysFromNow(dayNumber)),
+            lte: new Date(daysFromNow(dayNumber + 1)),
+          },
+        },
+        data: {
+          lastSeen: new Date(),
+        },
+      })
+
+      const flashcardsIds = await db.flashcard.findMany({
+        where: {
+          ownerEmail: email,
+          nextStudy: {
+            gt: new Date(daysFromNow(dayNumber)),
+            lte: new Date(daysFromNow(dayNumber + 1)),
+          },
+        },
+        select: { id: true },
+      })
+
+      await db.learningSession.upsert({
+        where: {
+          ownerEmail: email,
+        },
+        create: {
+          ownerEmail: email,
+          uncompletedFlashcards: {
+            connect: flashcardsIds,
+          },
+        },
+        update: {
+          uncompletedFlashcards: {
+            set: flashcardsIds,
+          },
+          completedFlashcards: { set: [] },
+        },
+      })
+      return redirect('/learning-session')
+    })
+
   return (
     <div class="p-4">
       {splittingEvenly.pending && <div>Splitting evenly...</div>}
       {splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}
+      {creatingLearningSession.pending && (
+        <div>Creating learning session...</div>
+      )}
+      {creatingLearningSession.error && (
+        <div>{creatingLearningSession.error.message}</div>
+      )}
+      <Show when={data.learningSession()}>
+        <div class="flex justify-between bg-white p-4 shadow-sm mb-6 rounded-lg">
+          {data.learningSession()?._count.completedFlashcards}/
+          {(data.learningSession()?._count.completedFlashcards ?? 0) +
+            (data.learningSession()?._count.uncompletedFlashcards ?? 0)}{' '}
+          learned in last session<A href="/learning-session">Continue</A>
+        </div>
+      </Show>
       <div
         class="-mx-3 lg:m-0 mt-2 grid border-b border-dark-gray"
         style="grid-template-columns: repeat(7, 1fr); grid-template-rows: 36px repeat(4, 100px)"
@@ -115,10 +209,13 @@ export default function Calendar() {
             )
           })}
         <div class="day day--present">
-          <A href={`/study/${isoDate}`}>
-            {todaySeenFlashcards()?.length}/{todayFlashcards()?.length}
-            <div class="day__date">{Number(isoDate.slice(-2))}</div>
-          </A>
+          <CreateLearningSessionForm>
+            <input type="hidden" name="day" value={0} />
+            <button>
+              {todaySeenFlashcards()?.length}/{todayFlashcards()?.length}
+              <div class="day__date">{Number(isoDate.slice(-2))}</div>
+            </button>
+          </CreateLearningSessionForm>
         </div>
         {Array(27 - normalizedCurrentWeekDay)
           .fill(undefined)
@@ -127,10 +224,13 @@ export default function Calendar() {
             const todayFlashcards = flashcardsByNextStudy()[isoDate] ?? []
             return (
               <div class="day day--future">
-                <A href={`/study/${isoDate}`}>
-                  {todayFlashcards.length}
-                  <div class="day__date">{Number(isoDate.slice(-2))}</div>
-                </A>
+                <CreateLearningSessionForm>
+                  <input type="hidden" name="day" value={index + 1} />
+                  <button>
+                    {todayFlashcards.length}
+                    <div class="day__date">{Number(isoDate.slice(-2))}</div>
+                  </button>
+                </CreateLearningSessionForm>
               </div>
             )
           })}
@@ -154,14 +254,12 @@ export default function Calendar() {
           .fill(undefined)
           .map((_, index) => {
             return (
-              <A href={`/study/set/${index + 1}`}>
-                <div
-                  class="grid place-items-center h-full bg-white p-4 rounded-3xl text-center shadow text-3xl"
-                  style="aspect-ratio: 164 / 214"
-                >
-                  Set {index + 1}
-                </div>
-              </A>
+              <div
+                class="grid place-items-center h-full bg-white p-4 rounded-3xl text-center shadow text-3xl"
+                style="aspect-ratio: 164 / 214"
+              >
+                Set {index + 1}
+              </div>
             )
           })}
       </div>

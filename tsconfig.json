@@ -12,7 +12,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "types": ["vite/client"],
+    "types": [
+      "vite/client",
+      "unplugin-icons/types/solid",
+    ],
     "baseUrl": "./",
     "paths": {
       "~/*": ["./src/*"]

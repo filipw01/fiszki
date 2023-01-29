@@ -16,7 +16,6 @@ import { isServer } from 'solid-js/web'
 
 interface Props {
   flashcards: FlashcardType[]
-  isSet?: boolean
 }
 
 export const Study = (props: Props) => {
@@ -36,7 +35,7 @@ export const Study = (props: Props) => {
           },
         })
         if (action === 'success') {
-          await actionSuccess(id)
+          await actionSuccess(id, email)
         }
         if (action === 'failure') {
           await actionFailure(id)
@@ -83,18 +82,7 @@ export const Study = (props: Props) => {
   return (
     <Show
       when={currentFlashcard() !== undefined}
-      fallback={
-        props.isSet ? (
-          <div>
-            🎉 Congratulations, you've completed the set 🎉
-            <Button color="check" onClick={() => window.location.reload()}>
-              Next set
-            </Button>
-          </div>
-        ) : (
-          <div>No flashcards left</div>
-        )
-      }
+      fallback={<div>No flashcards left</div>}
     >
       <div class="max-w-3xl mx-auto py-3">
         <div class="flex items-center justify-between overflow-auto gap-2 mb-5">

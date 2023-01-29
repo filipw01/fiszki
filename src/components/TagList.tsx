@@ -32,12 +32,10 @@ export const TagList = (props: Props) => {
   return (
     <div class="flex flex-wrap gap-x-1 gap-y-2 lg:gap-x-2 lg:gap-y-4">
       {props.folder && (
-        <A href={`/study/study-tag/${props.folder}`}>
-          <div class={tagClasses()} style={folderColor}>
-            <FolderIcon class="mr-2" />
-            <span class="mt-0.5">{props.folder}</span>
-          </div>
-        </A>
+        <div class={tagClasses()} style={folderColor}>
+          <FolderIcon class="mr-2" />
+          <span class="mt-0.5">{props.folder}</span>
+        </div>
       )}
       {props.tags.map(({ color: { r, g, b }, name, id }) => {
         const tagColor = {
@@ -45,7 +43,7 @@ export const TagList = (props: Props) => {
           ...tagStyle,
         } as JSX.CSSProperties
         return (
-          <A href={`/study/tag/${id}`}>
+          <A href={`/tags/${id}`}>
             <div class={tagClasses()} style={tagColor}>
               <span class="mt-0.5">{name}</span>
             </div>

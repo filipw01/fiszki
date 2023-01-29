@@ -7,13 +7,11 @@ export const Folder = ({
   count,
   color,
   nameLink,
-  studyLink,
 }: {
   name: string
   count?: number
   color: string
   nameLink: string
-  studyLink?: string
 }) => {
   return (
     <div>
@@ -31,11 +29,6 @@ export const Folder = ({
           </A>
         </GridItem>
       </div>
-      {studyLink && (
-        <A href={studyLink}>
-          <div class="mt-4 text-center">Study</div>
-        </A>
-      )}
     </div>
   )
 }

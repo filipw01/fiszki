@@ -44,8 +44,7 @@ export default function Index() {
             return (
               <div>
                 <Folder
-                  nameLink={`/study/tag/${id}`}
-                  studyLink={`/study/study-tag/${name}`}
+                  nameLink={`/tags/${id}`}
                   name={name}
                   count={flashcardsCount}
                   color={`rgb(${r},${g},${b})`}

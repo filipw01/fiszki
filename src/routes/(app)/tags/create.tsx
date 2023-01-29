@@ -36,7 +36,7 @@ export default function CreateTag() {
           owner: { connect: { email } },
         },
       })
-      return redirect('/study/tag')
+      return redirect('/tags')
     }
   )
 

@@ -7,7 +7,7 @@ import { Flashcard } from '~/components/Flashcard'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { Folder } from '~/components/Folder'
-import { FoldersContainer } from '~/routes/(app)/study/tag'
+import { FoldersContainer } from '~/routes/(app)/tags'
 import { A, RouteDataArgs, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
@@ -96,7 +96,6 @@ export default function Subfolder() {
         {data()?.subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder
             nameLink={`/flashcards/folder/${id}`}
-            studyLink={`/study/study-tag/${data()?.folderName}/${name}`}
             name={name}
             count={flashcardsCount}
             color={color}

@@ -1,98 +1,129 @@
-import { PrismaClient, type Prisma } from '@prisma/client'
-import { register } from '~/session.server'
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
+import { faker } from '@faker-js/faker'
 
 const db = new PrismaClient()
 
 async function seed() {
-  const user1 = await register({
+  const user = await register({
     email: 'test@test.com',
     password: 'test',
   })
-  const tagNames = (
-    await Promise.all([
-      db.tag.create({
-        data: {
-          name: 'English',
-          color: '#0000ff',
-          owner: { connect: { email: user1.email } },
-        },
-      }),
-      db.tag.create({
-        data: {
-          name: 'Spanish',
-          color: '#ff0000',
-          owner: { connect: { email: user1.email } },
-        },
-      }),
-    ])
-  ).map((tag) => tag.name)
+  const tagIds = (
+    await Promise.all(
+      Array(10)
+        .fill(undefined)
+        .map(() => {
+          return db.tag.create({
+            data: {
+              name: faker.random.word(),
+              color: faker.color.rgb({ prefix: '#' }),
+              owner: { connect: { email: user.email } },
+            },
+          })
+        })
+    )
+  ).map((tag) => tag.id)
 
-  const folder = await db.folder.create({
+  await db.folder.create({
     data: {
-      name: 'Movies',
-      color: '#34ebff',
-      ownerEmail: user1.email,
+      name: faker.random.word(),
+      color: faker.color.rgb({ prefix: '#' }),
+      ownerEmail: user.email,
       folders: {
         createMany: {
           data: [
             {
-              name: 'The Godfather',
-              color: '#b90d0d',
-              ownerEmail: user1.email,
+              name: faker.random.word(),
+              color: faker.color.rgb({ prefix: '#' }),
+              ownerEmail: user.email,
             },
             {
-              name: 'Dark',
-              color: '#ffd500',
-              ownerEmail: user1.email,
+              name: faker.random.word(),
+              color: faker.color.rgb({ prefix: '#' }),
+              ownerEmail: user.email,
+            },
+            {
+              name: faker.random.word(),
+              color: faker.color.rgb({ prefix: '#' }),
+              ownerEmail: user.email,
             },
           ],
         },
       },
     },
   })
+  const folders = await db.folder.findMany()
   await Promise.all(
-    getFlashcards({
-      folderId: folder.id,
-      ownerEmail: user1.email,
-      tagNames,
-    }).map((flashcard) => {
-      return db.flashcard.create({ data: flashcard })
-    })
+    Array(1000)
+      .fill(undefined)
+      .map(() => {
+        const randomFolder = faker.datatype.number({ max: folders.length - 1 })
+        const folder = folders[randomFolder]
+        const randomTagIds = [
+          ...new Set(
+            Array(faker.datatype.number({ min: 1, max: 4 }))
+              .fill(undefined)
+              .map(() => {
+                return tagIds[faker.datatype.number({ max: tagIds.length - 1 })]
+              })
+          ),
+        ]
+
+        return db.flashcard.create({
+          data: getRandomFlashcard({
+            folderId: folder.id,
+            ownerEmail: user.email,
+            tagIds: randomTagIds,
+          }),
+        })
+      })
   )
 }
 
-seed()
-
-function getFlashcards({
+const getRandomFlashcard = ({
   folderId,
   ownerEmail,
-  tagNames,
+  tagIds,
 }: {
   folderId: string
   ownerEmail: string
-  tagNames: string[]
-}): Prisma.FlashcardCreateInput[] {
-  return [
-    {
-      front: 'skóra',
-      back: 'el cuero',
-      folder: {
-        connect: {
-          id: folderId,
-        },
-      },
-      owner: {
-        connect: {
-          email: ownerEmail,
-        },
-      },
-      streak: 0,
-      nextStudy: new Date(),
-      lastSeen: new Date(),
-      randomSideAllowed: false,
-      tags: {
-        connect: tagNames.map((id) => ({ id })),
+  tagIds: string[]
+}) => {
+  return {
+    front: faker.random.word(),
+    back: faker.random.word(),
+    folder: {
+      connect: {
+        id: folderId,
       },
     },
-  ]
+    owner: {
+      connect: {
+        email: ownerEmail,
+      },
+    },
+    streak: faker.datatype.number({ max: 3 }),
+    nextStudy: faker.date.soon(30),
+    lastSeen: faker.date.recent(30),
+    randomSideAllowed: false,
+    tags: {
+      connect: tagIds.map((id) => ({ id })),
+    },
+  }
 }
+
+const register = async ({
+  password,
+  email,
+}: {
+  password: string
+  email: string
+}) => {
+  const passwordHash = await bcrypt.hash(password, 10)
+  return await db.user.create({
+    data: { email, password: passwordHash },
+  })
+}
+
+seed()

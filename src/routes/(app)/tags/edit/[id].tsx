@@ -61,7 +61,7 @@ export default function EditFolder() {
           owner: { connect: { email } },
         },
       })
-      return redirect('/study/tag')
+      return redirect('/tags')
     }
   )
 
@@ -81,7 +81,7 @@ export default function EditFolder() {
         },
       })
       await db.tag.delete({ where: { id } })
-      return redirect('/study/tag')
+      return redirect('/tags')
     }
   )
 
