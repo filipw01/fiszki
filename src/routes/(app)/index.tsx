@@ -127,16 +127,19 @@ export default function Calendar() {
       if (Number.isNaN(dayNumber)) {
         throw new Error(`Day must be a number, got "${day}"`)
       }
+      const minDay =
+        dayNumber > 0 ? new Date(daysFromNow(dayNumber)) : undefined
+      const maxDay = new Date(daysFromNow(dayNumber + 1))
       await db.flashcard.updateMany({
         where: {
           ownerEmail: email,
           nextStudy: {
-            gt: new Date(daysFromNow(dayNumber)),
-            lte: new Date(daysFromNow(dayNumber + 1)),
+            gte: minDay,
+            lt: maxDay,
           },
         },
         data: {
-          lastSeen: new Date(),
+          lastSeen: new Date(dayNumber),
         },
       })
 
@@ -144,8 +147,8 @@ export default function Calendar() {
         where: {
           ownerEmail: email,
           nextStudy: {
-            gt: new Date(daysFromNow(dayNumber)),
-            lte: new Date(daysFromNow(dayNumber + 1)),
+            gte: minDay,
+            lt: maxDay,
           },
         },
         select: { id: true },
