@@ -3,12 +3,17 @@ import { Prisma } from '@prisma/client'
 import { FolderIcon } from '~/components/FolderIcon'
 import { clsx } from '~/utils'
 import { db } from '~/db/db.server'
-import { createServerData$ } from 'solid-start/server'
+import {
+  createServerAction$,
+  createServerData$,
+  redirect,
+} from 'solid-start/server'
 import { A, Outlet, useParams, useRouteData } from 'solid-start'
-import { createSignal, onCleanup, onMount } from 'solid-js'
+import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
 import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
+import { createLearningSession } from '~/service/learningSession'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -60,16 +65,68 @@ export const routeData = () =>
   })
 
 export default function Flashcards() {
+  const [selectedFolders, setSelectedFolders] = createSignal<
+    Record<string, true>
+  >({})
+
+  const [creatingLearningSession, { Form }] = createServerAction$(
+    async (formData: FormData, { request }) => {
+      const email = await requireUserEmail(request)
+      const foldersIds = formData.getAll('folderId')
+      if (foldersIds.some((id) => typeof id !== 'string' || !id.length)) {
+        throw new Error('Invalid folderId')
+      }
+      await createLearningSession(email, 0, foldersIds as string[])
+      return redirect('/learning-session')
+    }
+  )
+
   const data = useRouteData<typeof routeData>()
+
+  const handleSelect = createMemo(() => (id: string) => {
+    const subfolders =
+      data()?.folders.find((folder) => folder.id === id)?.subfolders ?? []
+    if (selectedFolders()[id]) {
+      if (subfolders.every((subfolder) => selectedFolders()[subfolder.id])) {
+        const newSelectedFolders = { ...selectedFolders() }
+        delete newSelectedFolders[id]
+        setSelectedFolders(newSelectedFolders)
+      } else {
+        for (const subfolder of subfolders) {
+          batch(() => {
+            setSelectedFolders({ ...selectedFolders(), [subfolder.id]: true })
+          })
+        }
+      }
+    } else {
+      setSelectedFolders({ ...selectedFolders(), [id]: true })
+    }
+  })
   return (
     <div class="flex h-full">
       <div class="flex-shrink-0 border-gray border-t py-5 bg-white">
         <A href="/flashcards/all" class="ml-2">
           All flashcards
         </A>
-        {data()?.folders.map((folder) => {
-          return <FolderComponent {...folder} preexistingPadding={0} />
-        })}
+        <Form>
+          {data()?.folders.map((folder) => {
+            return (
+              <FolderComponent
+                {...folder}
+                preexistingPadding={0}
+                selectedFolders={selectedFolders()}
+                onSelect={handleSelect()}
+              />
+            )
+          })}
+          {creatingLearningSession.pending && <div>Creating session...</div>}
+          {creatingLearningSession.error && (
+            <div>{creatingLearningSession.error.message}</div>
+          )}
+          <button disabled={creatingLearningSession.pending}>
+            Create session
+          </button>
+        </Form>
       </div>
       <div class="h-full overflow-auto flex-grow py-5 px-8">
         <Outlet />
@@ -78,15 +135,21 @@ export default function Flashcards() {
   )
 }
 
-const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
-  const { folderId } = useParams() // todo: fix, it doesn't see params of a child route
+const FolderComponent = (
+  props: Folder & {
+    preexistingPadding: number
+    selectedFolders: Record<string, true>
+    onSelect: (id: string) => void
+  }
+) => {
+  const params = useParams()
   const [isOpen, setIsOpen] = createSignal(true)
   return (
     <div>
       <div
         class="flex items-center gap-1"
         style={`padding-left: ${props.preexistingPadding + 10}px; background: ${
-          props.id === folderId ? 'hsla(217, 100%, 96%, 1)' : undefined
+          props.id === params.folderId ? 'hsla(217, 100%, 96%, 1)' : undefined
         }`}
       >
         {props.subfolders.length > 0 ? (
@@ -110,6 +173,13 @@ const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
         </A>
         <AddButton folderId={props.id} />
         <MoreButton folderId={props.id} />
+        <input
+          type="checkbox"
+          name="folderId"
+          value={props.id}
+          checked={props.selectedFolders[props.id]}
+          onChange={() => props.onSelect(props.id)}
+        />
       </div>
       <div>
         {isOpen()
@@ -117,6 +187,8 @@ const FolderComponent = (props: Folder & { preexistingPadding: number }) => {
               return (
                 <FolderComponent
                   {...subfolder}
+                  selectedFolders={props.selectedFolders}
+                  onSelect={props.onSelect}
                   preexistingPadding={props.preexistingPadding + 10}
                 />
               )

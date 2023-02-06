@@ -11,6 +11,7 @@ import { requireUserEmail } from '~/session.server'
 import { createMemo, Show } from 'solid-js'
 import { Button } from '~/components/Button'
 import { db } from '~/db/db.server'
+import { createLearningSession } from '~/service/learningSession'
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
@@ -127,50 +128,7 @@ export default function Calendar() {
       if (Number.isNaN(dayNumber)) {
         throw new Error(`Day must be a number, got "${day}"`)
       }
-      const minDay =
-        dayNumber > 0 ? new Date(daysFromNow(dayNumber)) : undefined
-      const maxDay = new Date(daysFromNow(dayNumber + 1))
-      await db.flashcard.updateMany({
-        where: {
-          ownerEmail: email,
-          nextStudy: {
-            gte: minDay,
-            lt: maxDay,
-          },
-        },
-        data: {
-          lastSeen: new Date(dayNumber),
-        },
-      })
-
-      const flashcardsIds = await db.flashcard.findMany({
-        where: {
-          ownerEmail: email,
-          nextStudy: {
-            gte: minDay,
-            lt: maxDay,
-          },
-        },
-        select: { id: true },
-      })
-
-      await db.learningSession.upsert({
-        where: {
-          ownerEmail: email,
-        },
-        create: {
-          ownerEmail: email,
-          uncompletedFlashcards: {
-            connect: flashcardsIds,
-          },
-        },
-        update: {
-          uncompletedFlashcards: {
-            set: flashcardsIds,
-          },
-          completedFlashcards: { set: [] },
-        },
-      })
+      await createLearningSession(email, dayNumber)
       return redirect('/learning-session')
     })
 
