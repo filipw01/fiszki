@@ -1,5 +1,6 @@
 import { db } from '~/db/db.server'
 import { daysFromNow } from '~/utils'
+import { randomNumber } from '~/utils.server'
 
 export const createLearningSession = async (
   email: string,
@@ -23,7 +24,7 @@ export const createLearningSession = async (
   await db.flashcard.updateMany({
     where,
     data: {
-      lastSeen: new Date(dayNumber),
+      lastSeen: new Date(daysFromNow(dayNumber)),
     },
   })
 
