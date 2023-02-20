@@ -154,6 +154,7 @@ const FolderComponent = (
       >
         {props.subfolders.length > 0 ? (
           <button
+            type="button"
             onClick={() => setIsOpen((isOpen) => !isOpen)}
             class={clsx('transition-transform', { 'rotate-90': isOpen() })}
           >
@@ -221,6 +222,7 @@ const AddButton = (props: { folderId: string }) => {
   return (
     <div class="relative" ref={ref}>
       <button
+        type="button"
         class="h-4 w-4 bg-blue rounded text-white block"
         onClick={() => setIsOpen((prevVal) => !prevVal)}
       >

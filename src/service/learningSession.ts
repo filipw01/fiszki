@@ -1,6 +1,5 @@
 import { db } from '~/db/db.server'
 import { daysFromNow } from '~/utils'
-import { randomNumber } from '~/utils.server'
 
 export const createLearningSession = async (
   email: string,
