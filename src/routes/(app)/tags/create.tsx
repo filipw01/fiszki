@@ -1,6 +1,6 @@
 import { requireUserEmail } from '~/session.server'
 import { isNonEmptyString } from '~/utils.server'
-import { Input } from '~/components/Input'
+import { Input } from '~/components/base/Input'
 import {
   createServerAction$,
   createServerData$,

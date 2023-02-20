@@ -6,7 +6,7 @@ import {
 } from '~/utils.server'
 import { TagList } from '~/components/TagList'
 import { LetterButton } from '~/components/LetterButton'
-import { Button } from '~/components/Button'
+import { Button } from '~/components/base/Button'
 import { Flashcard } from './Flashcard'
 import { createServerAction$ } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
@@ -88,7 +88,7 @@ export const Study = (props: Props) => {
         <div class="flex items-center justify-between overflow-auto gap-2 mb-5">
           <TagList
             tags={currentFlashcard().tags}
-            folder={currentFlashcard().folder}
+            folder={currentFlashcard().folder.path}
           />
           <div style={{ display: 'flex', 'align-items': 'center' }}>
             <div style={{ 'margin-right': '1rem' }}>

@@ -5,7 +5,7 @@ import {
   isNonEmptyStringArray,
   isString,
 } from '~/utils.server'
-import { Textarea } from '~/components/Textarea'
+import { Textarea } from '~/components/base/Textarea'
 import {
   createServerAction$,
   createServerData$,

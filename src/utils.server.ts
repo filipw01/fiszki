@@ -10,7 +10,7 @@ export interface Flashcard {
   back: string
   backImage?: string | null
   backDescription?: string | null
-  folder: string
+  folder: { id: string; path: string }
   tags: Tag[]
   randomSideAllowed: boolean
   streak: number
@@ -73,7 +73,7 @@ export function mapFlashcard(
     ...other,
     nextStudy: nextStudy.toISOString().slice(0, 10),
     lastSeen: lastSeen.getTime(),
-    folder: folderPath,
+    folder: { id: folderId, path: folderPath },
     tags: tags.map(mapTag),
   }
 }
