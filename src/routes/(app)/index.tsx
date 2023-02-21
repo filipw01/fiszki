@@ -8,7 +8,7 @@ import {
   redirect,
 } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
-import { batch, createMemo, createSignal, Show } from 'solid-js'
+import { createMemo, createSignal, Show } from 'solid-js'
 import { Button } from '~/components/base/Button'
 import { db } from '~/db/db.server'
 import { createLearningSession } from '~/service/learningSession'
@@ -112,12 +112,12 @@ const weekDayNames = [
 
 export default function Calendar() {
   const data = useRouteData<typeof routeData>()
-  const [folders, setFolders] = useFolders()
+  const [selectedFolders, setFolders] = useFolders()
   const flashcards = createMemo(() => {
     if (data === undefined) return []
     return data.data()?.flashcards.filter((flashcard) => {
-      return folders().length > 0
-        ? folders().includes(flashcard.folder.id)
+      return selectedFolders().length > 0
+        ? selectedFolders().includes(flashcard.folder.id)
         : true
     })
   })
@@ -198,24 +198,33 @@ export default function Calendar() {
       return redirect('/learning-session')
     })
 
+  const getAllSubfolders = (folder: Folder): Folder[] => {
+    return folder.subfolders.reduce(
+      (acc, subfolder) => [...acc, subfolder, ...getAllSubfolders(subfolder)],
+      [] as Folder[]
+    )
+  }
+
   const handleSelect = createMemo(() => (id: string) => {
-    const subfolders =
-      data.folders()?.find((folder) => folder.id === id)?.subfolders ?? []
-    if (folders().find((folder) => folder === id)) {
+    const newSelectedFolder = data.folders()?.find((folder) => folder.id === id)
+    const subfolders = newSelectedFolder
+      ? getAllSubfolders(newSelectedFolder)
+      : []
+    if (selectedFolders().find((folder) => folder === id)) {
       if (
         subfolders.every((subfolder) =>
-          folders().find((folder) => folder === subfolder.id)
+          selectedFolders().find((folder) => folder === subfolder.id)
         )
       ) {
-        setFolders(folders().filter((folder) => folder !== id))
+        setFolders(selectedFolders().filter((folder) => folder !== id))
       } else {
         setFolders([
-          ...folders(),
+          ...selectedFolders(),
           ...subfolders.map((subfolder) => subfolder.id),
         ])
       }
     } else {
-      setFolders([...folders(), id])
+      setFolders([...selectedFolders(), id])
     }
   })
 
@@ -225,7 +234,7 @@ export default function Calendar() {
     <div class="flex h-full">
       <div
         class={clsx(
-          'absolute z-10 left-0 bg-white p-4 transition',
+          'absolute z-10 left-0 bg-white p-4 transition h-full overflow-auto flex-shrink-0',
           'md:bg-transparent md:static md:translate-x-0',
           {
             '-translate-x-full': !isSidebarOpen(),
@@ -238,13 +247,13 @@ export default function Calendar() {
             <FolderComponent
               {...folder}
               preexistingMargin={10}
-              selectedFolders={folders()}
+              selectedFolders={selectedFolders()}
               onSelect={handleSelect()}
             />
           )
         })}
       </div>
-      <div class="overflow-auto p-4">
+      <div class="overflow-auto p-4 flex-grow">
         {splittingEvenly.pending && <div>Splitting evenly...</div>}
         {splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}
         {creatingLearningSession.pending && (
@@ -283,7 +292,11 @@ export default function Calendar() {
           <div class="day day--present">
             <CreateLearningSessionForm>
               <input type="hidden" name="day" value={0} />
-              <input type="hidden" name="folders" value={folders().join(',')} />
+              <input
+                type="hidden"
+                name="folders"
+                value={selectedFolders().join(',')}
+              />
               <button>
                 {todaySeenFlashcards()?.length}/{todayFlashcards()?.length}
                 <div class="day__date">{Number(isoDate.slice(-2))}</div>
@@ -302,7 +315,7 @@ export default function Calendar() {
                     <input
                       type="hidden"
                       name="folders"
-                      value={folders().join(',')}
+                      value={selectedFolders().join(',')}
                     />
                     <button>
                       {todayFlashcards.length}

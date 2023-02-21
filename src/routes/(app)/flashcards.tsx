@@ -3,17 +3,12 @@ import { Prisma } from '@prisma/client'
 import { FolderIcon } from '~/components/FolderIcon'
 import { clsx } from '~/utils'
 import { db } from '~/db/db.server'
-import {
-  createServerAction$,
-  createServerData$,
-  redirect,
-} from 'solid-start/server'
+import { createServerData$ } from 'solid-start/server'
 import { A, Outlet, useParams, useRouteData } from 'solid-start'
 import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
 import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
-import { createLearningSession } from '~/service/learningSession'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -69,18 +64,6 @@ export default function Flashcards() {
     Record<string, true>
   >({})
 
-  const [creatingLearningSession, { Form }] = createServerAction$(
-    async (formData: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const foldersIds = formData.getAll('folderId')
-      if (foldersIds.some((id) => typeof id !== 'string' || !id.length)) {
-        throw new Error('Invalid folderId')
-      }
-      await createLearningSession(email, 0, foldersIds as string[])
-      return redirect('/learning-session')
-    }
-  )
-
   const data = useRouteData<typeof routeData>()
 
   const handleSelect = createMemo(() => (id: string) => {
@@ -104,29 +87,20 @@ export default function Flashcards() {
   })
   return (
     <div class="flex h-full">
-      <div class="flex-shrink-0 border-gray border-t py-5 bg-white">
+      <div class="flex-shrink-0 border-gray border-t py-5 bg-white h-full overflow-auto">
         <A href="/flashcards/all" class="ml-2">
           All flashcards
         </A>
-        <Form>
-          {data()?.folders.map((folder) => {
-            return (
-              <FolderComponent
-                {...folder}
-                preexistingPadding={0}
-                selectedFolders={selectedFolders()}
-                onSelect={handleSelect()}
-              />
-            )
-          })}
-          {creatingLearningSession.pending && <div>Creating session...</div>}
-          {creatingLearningSession.error && (
-            <div>{creatingLearningSession.error.message}</div>
-          )}
-          <button disabled={creatingLearningSession.pending}>
-            Create session
-          </button>
-        </Form>
+        {data()?.folders.map((folder) => {
+          return (
+            <FolderComponent
+              {...folder}
+              preexistingPadding={0}
+              selectedFolders={selectedFolders()}
+              onSelect={handleSelect()}
+            />
+          )
+        })}
       </div>
       <div class="h-full overflow-auto flex-grow py-5 px-8">
         <Outlet />
@@ -174,13 +148,6 @@ const FolderComponent = (
         </A>
         <AddButton folderId={props.id} />
         <MoreButton folderId={props.id} />
-        <input
-          type="checkbox"
-          name="folderId"
-          value={props.id}
-          checked={props.selectedFolders[props.id]}
-          onChange={() => props.onSelect(props.id)}
-        />
       </div>
       <div>
         {isOpen()

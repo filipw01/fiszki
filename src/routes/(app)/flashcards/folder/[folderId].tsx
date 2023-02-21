@@ -8,7 +8,7 @@ import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { Folder } from '~/components/Folder'
 import { FoldersContainer } from '~/routes/(app)/tags'
-import { A, RouteDataArgs, useRouteData } from 'solid-start'
+import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { createSignal, Show } from 'solid-js'
@@ -85,6 +85,7 @@ export async function getNestedFlashcardsCount(
 
 export default function Subfolder() {
   const data = useRouteData<typeof routeData>()
+  const params = useParams()
 
   return (
     <div>
@@ -92,6 +93,21 @@ export default function Subfolder() {
       {data()?.parentFolder && (
         <A href={`/flashcards/folder/${data()?.parentFolder}`}>Up</A>
       )}
+      <div class="flex gap-4">
+        <A
+          class="block w-32 h-32 p-4 rounded-2xl bg-white shadow-sm"
+          href={`/flashcards/create?folderId=${params.folderId}`}
+        >
+          Create new flashcard here
+        </A>
+        <A
+          class="block w-32 h-32 p-4 rounded-2xl bg-white shadow-sm"
+          href={`/flashcards/folder/create?folderId=${params.folderId}`}
+        >
+          Create new folder here
+        </A>
+      </div>
+
       <FoldersContainer>
         {data()?.subfolders.map(({ id, color, flashcardsCount, name }) => (
           <Folder
