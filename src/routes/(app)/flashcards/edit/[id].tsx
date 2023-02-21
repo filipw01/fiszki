@@ -1,6 +1,6 @@
 import { requireUserEmail } from '~/session.server'
 import {
-  getFolderPath,
+  getFolderNamePath,
   isNonEmptyString,
   isNonEmptyStringArray,
   isString,
@@ -40,7 +40,7 @@ export const routeData = ({ params }: RouteDataArgs) =>
         .map((folder) => {
           return {
             ...folder,
-            name: getFolderPath(folder.id, folders),
+            name: getFolderNamePath(folder.id, folders),
           }
         })
         .sort((a, b) => a.name.localeCompare(b.name))

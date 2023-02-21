@@ -12,6 +12,9 @@ import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { createSignal, Show } from 'solid-js'
+import { Heading } from '~/components/base/Heading'
+import AddIcon from '~icons/ri/add-fill?width=24&height=24'
+import HomeIcon from '~icons/ri/home-4-line?width=24&height=24'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -40,8 +43,7 @@ export const routeData = ({ params }: RouteDataArgs) =>
 
       return {
         flashcards: folder.flashcards.map((tag) => mapFlashcard(tag, folders)),
-        folderName: getFolderPath(folder.id, folders),
-        parentFolder: folder.parentFolderId,
+        folderPath: getFolderPath(folder.id, folders),
         subfolders: await Promise.all(
           folder.folders.map(async (folder) => ({
             ...folder,
@@ -89,43 +91,70 @@ export default function Subfolder() {
 
   return (
     <div>
-      <h1>Folder {data()?.folderName}</h1>
-      {data()?.parentFolder && (
-        <A href={`/flashcards/folder/${data()?.parentFolder}`}>Up</A>
-      )}
-      <div class="flex gap-4">
-        <A
-          class="block w-32 h-32 p-4 rounded-2xl bg-white shadow-sm"
-          href={`/flashcards/create?folderId=${params.folderId}`}
-        >
-          Create new flashcard here
-        </A>
-        <A
-          class="block w-32 h-32 p-4 rounded-2xl bg-white shadow-sm"
-          href={`/flashcards/folder/create?folderId=${params.folderId}`}
-        >
-          Create new folder here
-        </A>
-      </div>
-
-      <FoldersContainer>
-        {data()?.subfolders.map(({ id, color, flashcardsCount, name }) => (
-          <Folder
-            nameLink={`/flashcards/folder/${id}`}
-            name={name}
-            count={flashcardsCount}
-            color={color}
-          />
+      <div class="flex gap-2 items-center mb-4">
+        <HomeIcon />/
+        {data()?.folderPath.map((folder, index) => (
+          <>
+            <Show when={index > 0}>{'/'}</Show>
+            <A href={`/flashcards/folder/${folder.id}`}>{folder.name}</A>
+          </>
         ))}
-      </FoldersContainer>
-      <div
-        class="grid gap-4"
-        style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))"
-      >
-        {data()?.flashcards.map((flashcard) => {
-          return <TurnableFlashcard flashcard={flashcard} />
-        })}
       </div>
+      <HeadingWithCreate
+        url={`/flashcards/folder/create?folderId=${params.folderId}`}
+      >
+        Folders
+      </HeadingWithCreate>
+      <Show
+        when={data()?.subfolders.length ?? 0 > 0}
+        fallback={
+          <div class="flex bg-white shadow-sm rounded-lg h-8 w-full justify-center items-center mt-2 mb-4">
+            No folders here
+          </div>
+        }
+      >
+        <FoldersContainer class="mt-4 mb-6">
+          {data()?.subfolders.map(({ id, color, flashcardsCount, name }) => (
+            <Folder
+              nameLink={`/flashcards/folder/${id}`}
+              name={name}
+              count={flashcardsCount}
+              color={color}
+            />
+          ))}
+        </FoldersContainer>
+      </Show>
+      <HeadingWithCreate url={`/flashcards/create?folderId=${params.folderId}`}>
+        Flashcards
+      </HeadingWithCreate>
+      <Show
+        when={data()?.flashcards.length ?? 0 > 0}
+        fallback={
+          <div class="flex bg-white shadow-sm rounded-lg h-8 w-full justify-center items-center mt-2 mb-4">
+            No flashcards here
+          </div>
+        }
+      >
+        <div
+          class="grid gap-4 mt-4 mb-6"
+          style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))"
+        >
+          {data()?.flashcards.map((flashcard) => {
+            return <TurnableFlashcard flashcard={flashcard} />
+          })}
+        </div>
+      </Show>
+    </div>
+  )
+}
+
+const HeadingWithCreate = (props: { children: string; url: string }) => {
+  return (
+    <div class="flex gap-3 items-center">
+      <Heading>{props.children}</Heading>
+      <A href={props.url} class="h-6 w-6 bg-blue rounded-full text-white block">
+        <AddIcon />
+      </A>
     </div>
   )
 }

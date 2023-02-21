@@ -9,6 +9,7 @@ import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
 import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
+import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -132,7 +133,7 @@ const FolderComponent = (
             onClick={() => setIsOpen((isOpen) => !isOpen)}
             class={clsx('transition-transform', { 'rotate-90': isOpen() })}
           >
-            ⏵
+            <ArrowIcon />
           </button>
         ) : undefined}
         <A

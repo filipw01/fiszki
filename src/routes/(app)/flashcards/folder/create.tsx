@@ -1,5 +1,5 @@
 import { requireUserEmail } from '~/session.server'
-import { getFolderPath, isNonEmptyString, isString } from '~/utils.server'
+import { getFolderNamePath, isNonEmptyString, isString } from '~/utils.server'
 import { Input } from '~/components/base/Input'
 import {
   createServerAction$,
@@ -17,7 +17,7 @@ export const routeData = () =>
       .map((folder) => {
         return {
           ...folder,
-          name: getFolderPath(folder.id, folders),
+          name: getFolderNamePath(folder.id, folders),
         }
       })
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -86,11 +86,15 @@ export default function CreateFolder() {
           <select
             name="parentFolderId"
             class="border-dark-gray border rounded-lg ml-2"
-            value={searchParams.folderId ?? undefined}
           >
             <option value="">None</option>
             {data()?.map((folder) => (
-              <option value={folder.id}>{folder.name}</option>
+              <option
+                value={folder.id}
+                selected={searchParams.folderId === folder.id}
+              >
+                {folder.name}
+              </option>
             ))}
           </select>
         </label>

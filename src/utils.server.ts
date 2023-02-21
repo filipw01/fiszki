@@ -68,7 +68,7 @@ export function mapFlashcard(
   }>,
   folders: Prisma.FolderGetPayload<{}>[]
 ): Flashcard {
-  const folderPath = getFolderPath(folderId, folders)
+  const folderPath = getFolderNamePath(folderId, folders)
   return {
     ...other,
     nextStudy: nextStudy.toISOString().slice(0, 10),
@@ -78,7 +78,7 @@ export function mapFlashcard(
   }
 }
 
-export function getFolderPath(
+export function getFolderNamePath(
   folderId: string,
   folders: Prisma.FolderGetPayload<{}>[]
 ) {
@@ -93,6 +93,23 @@ export function getFolderPath(
     nextFolderId = folder.parentFolderId
   }
   return folderPath.join('/')
+}
+
+export function getFolderPath(
+  folderId: string,
+  folders: Prisma.FolderGetPayload<{}>[]
+) {
+  let nextFolderId: string | null = folderId
+  const folderPath = []
+  while (nextFolderId) {
+    const folder = folders.find((folder) => folder.id === nextFolderId)
+    if (!folder) {
+      throw new Error('Folder not found')
+    }
+    folderPath.unshift(folder)
+    nextFolderId = folder.parentFolderId
+  }
+  return folderPath
 }
 
 export function mapTag(tag: Prisma.TagGetPayload<{}>): Tag {

@@ -3,9 +3,9 @@ type Props = {
 }
 
 export const Heading = (props: Props) => {
-  return <h1 class="text-xl">{props.children}</h1>
+  return <h2 class="text-xl">{props.children}</h2>
 }
 
 export const HeadingSmall = (props: Props) => {
-  return <h2 class="text-lg">{props.children}</h2>
+  return <h3 class="text-lg">{props.children}</h3>
 }

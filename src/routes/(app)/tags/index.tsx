@@ -59,10 +59,13 @@ export default function Index() {
   )
 }
 
-export const FoldersContainer = (props: { children: JSX.Element }) => {
+export const FoldersContainer = (props: {
+  children: JSX.Element
+  class?: string
+}) => {
   return (
     <div
-      class="grid gap-4 my-4"
+      class={`grid gap-4 my-4 ${props.class ?? ''}`}
       style="grid-template-columns: repeat(auto-fill, minmax(122px, 1fr))"
     >
       {props.children}

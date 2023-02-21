@@ -14,9 +14,13 @@ import { db } from '~/db/db.server'
 import { createLearningSession } from '~/service/learningSession'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import { Prisma } from '@prisma/client'
-import { FolderIcon } from '~/components/FolderIcon'
+// import { FolderIcon } from '~/components/FolderIcon'
 import { HeadingSmall } from '~/components/base/Heading'
 import { useSidebarVisibility } from '~/routes/(app)'
+import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
+import CheckmarkIcon from '~icons/ri/check-line?width=12&height=12'
+import ArrowDownIcon from '~icons/ri/arrow-down-line?width=12&height=12'
+import FolderIcon from '~icons/ri/folder-line?width=20&height=20'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -110,6 +114,12 @@ const weekDayNames = [
   'Sunday',
 ]
 
+const getAllSubfolders = (folder: Folder): Folder[] => {
+  return folder.subfolders.reduce(
+    (acc, subfolder) => [...acc, subfolder, ...getAllSubfolders(subfolder)],
+    [] as Folder[]
+  )
+}
 export default function Calendar() {
   const data = useRouteData<typeof routeData>()
   const [selectedFolders, setFolders] = useFolders()
@@ -198,15 +208,12 @@ export default function Calendar() {
       return redirect('/learning-session')
     })
 
-  const getAllSubfolders = (folder: Folder): Folder[] => {
-    return folder.subfolders.reduce(
-      (acc, subfolder) => [...acc, subfolder, ...getAllSubfolders(subfolder)],
-      [] as Folder[]
-    )
-  }
-
   const handleSelect = createMemo(() => (id: string) => {
-    const newSelectedFolder = data.folders()?.find((folder) => folder.id === id)
+    const flatFolders = [
+      ...(data.folders() ?? []),
+      ...(data.folders()?.flatMap((folder) => getAllSubfolders(folder)) ?? []),
+    ]
+    const newSelectedFolder = flatFolders.find((folder) => folder.id === id)
     const subfolders = newSelectedFolder
       ? getAllSubfolders(newSelectedFolder)
       : []
@@ -245,7 +252,7 @@ export default function Calendar() {
         {data.folders()?.map((folder) => {
           return (
             <FolderComponent
-              {...folder}
+              folder={folder}
               preexistingMargin={10}
               selectedFolders={selectedFolders()}
               onSelect={handleSelect()}
@@ -372,24 +379,33 @@ export default function Calendar() {
   )
 }
 
-const FolderComponent = (
-  props: Folder & {
-    preexistingMargin: number
-    selectedFolders: string[]
-    onSelect: (id: string) => void
-  }
-) => {
+const FolderComponent = (props: {
+  folder: Folder
+  preexistingMargin: number
+  selectedFolders: string[]
+  onSelect: (id: string) => void
+}) => {
   const params = useParams()
   const [isOpen, setIsOpen] = createSignal(true)
+  const areAllSubfoldersSelected = createMemo(() => {
+    return getAllSubfolders(props.folder).every((subfolder) =>
+      props.selectedFolders.includes(subfolder.id)
+    )
+  })
+  const isFolderSelected = createMemo(() => {
+    return props.selectedFolders.includes(props.folder.id)
+  })
   return (
     <div>
       <div
         class="flex items-center gap-1 relative"
         style={`margin-left: ${props.preexistingMargin}px; background: ${
-          props.id === params.folderId ? 'hsla(217, 100%, 96%, 1)' : undefined
+          props.folder.id === params.folderId
+            ? 'hsla(217, 100%, 96%, 1)'
+            : undefined
         }`}
       >
-        {props.subfolders.length > 0 ? (
+        {props.folder.subfolders.length > 0 ? (
           <button
             onClick={() => setIsOpen((isOpen) => !isOpen)}
             class={clsx(
@@ -399,33 +415,51 @@ const FolderComponent = (
               }
             )}
           >
-            ⏵
+            <ArrowIcon />
           </button>
         ) : undefined}
-        <div class="flex gap-2 items-center h-7">
-          <div style={{ color: props.color }}>
-            <FolderIcon height={13} width={16} />
+        <label class="flex gap-2 items-center h-7">
+          <div
+            class={clsx('grid place-items-center grid-cols-1', {
+              'text-yellow-600':
+                isFolderSelected() && !areAllSubfoldersSelected(),
+              'text-green-600':
+                isFolderSelected() && areAllSubfoldersSelected(),
+            })}
+          >
+            <FolderIcon class="col-start-1 row-start-1" />
+            <Show when={isFolderSelected()}>
+              <Show
+                when={areAllSubfoldersSelected()}
+                fallback={<ArrowDownIcon class="col-start-1 row-start-1" />}
+              >
+                <CheckmarkIcon class="col-start-1 row-start-1" />
+              </Show>
+            </Show>
           </div>
-          {props.name}
+          {props.folder.name}
           <div class="rounded bg-dark-gray w-0.5 h-0.5" />
-          <span class="text-dark-gray">{props.flashcardsCount}</span>
-        </div>
-        <input
-          type="checkbox"
-          name="folderId"
-          value={props.id}
-          checked={
-            !!props.selectedFolders.find((folder) => folder === props.id)
-          }
-          onChange={() => props.onSelect(props.id)}
-        />
+          <span class="text-dark-gray">{props.folder.flashcardsCount}</span>
+          <input
+            class="sr-only"
+            type="checkbox"
+            name="folderId"
+            value={props.folder.id}
+            checked={
+              !!props.selectedFolders.find(
+                (folder) => folder === props.folder.id
+              )
+            }
+            onChange={() => props.onSelect(props.folder.id)}
+          />
+        </label>
       </div>
       <div>
         {isOpen()
-          ? props.subfolders.map((subfolder) => {
+          ? props.folder.subfolders.map((subfolder) => {
               return (
                 <FolderComponent
-                  {...subfolder}
+                  folder={subfolder}
                   selectedFolders={props.selectedFolders}
                   onSelect={props.onSelect}
                   preexistingMargin={props.preexistingMargin + 10}
