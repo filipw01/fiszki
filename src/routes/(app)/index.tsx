@@ -1,4 +1,4 @@
-import { indexLoader, isNonEmptyString } from '~/utils.server'
+import { indexLoader, isNonEmptyString, isString } from '~/utils.server'
 import { chunk, groupBy } from 'lodash-es'
 import { clsx, daysFromNow } from '~/utils'
 import { A, useParams, useRouteData, useSearchParams } from 'solid-start'
@@ -183,14 +183,18 @@ export default function Calendar() {
       if (!isNonEmptyString(day)) {
         throw new Error('Day for the learning session was not provided')
       }
-      if (!isNonEmptyString(folders)) {
+      if (!isString(folders)) {
         throw new Error('Folders for the learning session were not provided')
       }
       const dayNumber = Number(day)
       if (Number.isNaN(dayNumber)) {
         throw new Error(`Day must be a number, got "${day}"`)
       }
-      await createLearningSession(email, dayNumber, folders.split(','))
+      await createLearningSession(
+        email,
+        dayNumber,
+        isNonEmptyString(folders) ? folders.split(',') : undefined
+      )
       return redirect('/learning-session')
     })
 
