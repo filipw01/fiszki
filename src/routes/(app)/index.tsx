@@ -14,9 +14,8 @@ import { db } from '~/db/db.server'
 import { createLearningSession } from '~/service/learningSession'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import { Prisma } from '@prisma/client'
-// import { FolderIcon } from '~/components/FolderIcon'
 import { HeadingSmall } from '~/components/base/Heading'
-import { useSidebarVisibility } from '~/routes/(app)'
+import { Sidebar } from '~/components/Sidebar'
 import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
 import CheckmarkIcon from '~icons/ri/check-line?width=12&height=12'
 import ArrowDownIcon from '~icons/ri/arrow-down-line?width=12&height=12'
@@ -235,19 +234,9 @@ export default function Calendar() {
     }
   })
 
-  const [isSidebarOpen] = useSidebarVisibility()
-
   return (
-    <div class="flex h-full">
-      <div
-        class={clsx(
-          'absolute z-10 left-0 bg-white p-4 transition h-full overflow-auto flex-shrink-0',
-          'md:bg-transparent md:static md:translate-x-0',
-          {
-            '-translate-x-full': !isSidebarOpen(),
-          }
-        )}
-      >
+    <div class="flex h-full relative">
+      <Sidebar>
         <HeadingSmall>Folders</HeadingSmall>
         {data.folders()?.map((folder) => {
           return (
@@ -259,7 +248,7 @@ export default function Calendar() {
             />
           )
         })}
-      </div>
+      </Sidebar>
       <div class="overflow-auto p-4 flex-grow">
         {splittingEvenly.pending && <div>Splitting evenly...</div>}
         {splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}

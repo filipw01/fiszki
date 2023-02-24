@@ -12,8 +12,8 @@
     "start": "solid-start start"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.272.0",
-    "@iconify/json": "^2.2.25",
+    "@aws-sdk/client-s3": "^3.279.0",
+    "@iconify/json": "^2.2.27",
     "@motionone/solid": "^10.15.5",
     "@prisma/client": "^4.10.1",
     "@solidjs/meta": "^0.28.0",
@@ -24,14 +24,14 @@
     "lodash-es": "^4.17.21",
     "nanoid": "^4.0.1",
     "solid-js": "^1.6.11",
-    "solid-start": "^0.2.21",
-    "solid-start-node": "^0.2.21",
+    "solid-start": "^0.2.22",
+    "solid-start-node": "^0.2.22",
     "undici": "^5.20.0",
     "unplugin-icons": "^0.15.3"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
-    "@playwright/test": "^1.30.0",
+    "@playwright/test": "^1.31.1",
     "@types/bcryptjs": "^2.4.2",
     "@types/lodash-es": "^4.17.6",
     "@vitest/coverage-c8": "^0.28.5",

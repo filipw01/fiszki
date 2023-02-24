@@ -15,6 +15,7 @@ type Props = {
   hidden?: boolean
   correct?: boolean | null
   language?: 'en' | 'es'
+  streak?: number
   isEditable?: boolean
   onClick?: () => void
   tags?: Tag[]
@@ -126,6 +127,11 @@ export const Flashcard = (props: Props) => {
             </Show>
           </Show>
         </ConditionalButton>
+        <Show when={props.streak}>
+          <div class="absolute top-4 left-4 text-sm lg:text-lg">
+            {'🔥'.repeat(props.streak!)}
+          </div>
+        </Show>
         <Show
           when={
             !props.hidden && props.text && props.text.split(' ').length <= 5

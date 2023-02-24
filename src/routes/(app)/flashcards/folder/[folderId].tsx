@@ -12,9 +12,8 @@ import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { createSignal, Show } from 'solid-js'
-import { Heading } from '~/components/base/Heading'
-import AddIcon from '~icons/ri/add-fill?width=24&height=24'
 import HomeIcon from '~icons/ri/home-4-line?width=24&height=24'
+import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -148,17 +147,6 @@ export default function Subfolder() {
   )
 }
 
-const HeadingWithCreate = (props: { children: string; url: string }) => {
-  return (
-    <div class="flex gap-3 items-center">
-      <Heading>{props.children}</Heading>
-      <A href={props.url} class="h-6 w-6 bg-blue rounded-full text-white block">
-        <AddIcon />
-      </A>
-    </div>
-  )
-}
-
 const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = createSignal(true)
   const turn = () => setIsFront((prev) => !prev)
@@ -184,6 +172,7 @@ const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
         tags={props.flashcard.tags}
         id={props.flashcard.id}
         isEditable
+        streak={props.flashcard.streak}
       />
     </Show>
   )

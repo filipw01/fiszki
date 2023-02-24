@@ -7,6 +7,7 @@ import { createServerData$ } from 'solid-start/server'
 import { A, Outlet, useParams, useRouteData } from 'solid-start'
 import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
+import { Sidebar } from '~/components/Sidebar'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
 import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
 import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
@@ -87,22 +88,24 @@ export default function Flashcards() {
     }
   })
   return (
-    <div class="flex h-full">
-      <div class="flex-shrink-0 border-gray border-t py-5 bg-white h-full overflow-auto">
-        <A href="/flashcards/all" class="ml-2">
-          All flashcards
-        </A>
-        {data()?.folders.map((folder) => {
-          return (
-            <FolderComponent
-              {...folder}
-              preexistingPadding={0}
-              selectedFolders={selectedFolders()}
-              onSelect={handleSelect()}
-            />
-          )
-        })}
-      </div>
+    <div class="flex h-full relative">
+      <Sidebar>
+        <div class="-mx-4">
+          <A href="/flashcards/all" class="ml-4">
+            All flashcards
+          </A>
+          {data()?.folders.map((folder) => {
+            return (
+              <FolderComponent
+                {...folder}
+                preexistingPadding={12}
+                selectedFolders={selectedFolders()}
+                onSelect={handleSelect()}
+              />
+            )
+          })}
+        </div>
+      </Sidebar>
       <div class="h-full overflow-auto flex-grow py-5 px-8">
         <Outlet />
       </div>
@@ -122,8 +125,12 @@ const FolderComponent = (
   return (
     <div>
       <div
-        class="flex items-center gap-1"
-        style={`padding-left: ${props.preexistingPadding + 10}px; background: ${
+        class="flex items-center gap-1 pr-2"
+        style={`padding-left: ${
+          props.subfolders.length > 0
+            ? props.preexistingPadding
+            : props.preexistingPadding + 16
+        }px; background: ${
           props.id === params.folderId ? 'hsla(217, 100%, 96%, 1)' : undefined
         }`}
       >
@@ -158,7 +165,7 @@ const FolderComponent = (
                   {...subfolder}
                   selectedFolders={props.selectedFolders}
                   onSelect={props.onSelect}
-                  preexistingPadding={props.preexistingPadding + 10}
+                  preexistingPadding={props.preexistingPadding + 16}
                 />
               )
             })

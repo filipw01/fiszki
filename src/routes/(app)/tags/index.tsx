@@ -1,10 +1,11 @@
 import { mapTag } from '~/utils.server'
-import { Folder } from '~/components/Folder'
 import { requireUserEmail } from '~/session.server'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { A, useRouteData } from 'solid-start'
-import { JSX } from 'solid-js'
+import { For, JSX } from 'solid-js'
+import { Tag } from '~/components/Tag'
+import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 
 export const routeData = () =>
   createServerData$(async (_, { request }) => {
@@ -35,26 +36,22 @@ export default function Index() {
   const data = useRouteData<typeof routeData>()
   return (
     <div class="p-8">
-      <h2>Tags</h2>
+      <HeadingWithCreate url="/tags/create">Tags</HeadingWithCreate>
 
-      <A href="/tags/create">Create new tag</A>
-      <FoldersContainer>
-        {data()?.tags.map(
-          ({ color: { r, g, b }, name, flashcardsCount, id }) => {
-            return (
-              <div>
-                <Folder
-                  nameLink={`/tags/${id}`}
-                  name={name}
-                  count={flashcardsCount}
-                  color={`rgb(${r},${g},${b})`}
-                />
-                <A href={`/tags/edit/${id}`}>Edit</A>
-              </div>
-            )
-          }
-        )}
-      </FoldersContainer>
+      <div class="flex flex-wrap gap-x-2 gap-y-2 lg:gap-x-4 lg:gap-y-4 mt-4">
+        <For each={data()?.tags}>
+          {(tag) => (
+            <div class="flex items-center gap-2">
+              <A href={`/tags/${tag.id}`}>
+                <Tag color={tag.color}>
+                  {`${tag.name} (${tag.flashcardsCount})`}
+                </Tag>
+              </A>
+              <A href={`/tags/edit/${tag.id}`}>Edit</A>
+            </div>
+          )}
+        </For>
+      </div>
     </div>
   )
 }
