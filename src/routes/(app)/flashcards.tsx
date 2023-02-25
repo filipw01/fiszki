@@ -5,7 +5,7 @@ import { clsx } from '~/utils'
 import { db } from '~/db/db.server'
 import { createServerData$ } from 'solid-start/server'
 import { A, Outlet, useParams, useRouteData } from 'solid-start'
-import { batch, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
+import { createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import { Sidebar } from '~/components/Sidebar'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
@@ -68,7 +68,7 @@ export default function Flashcards() {
 
   const data = useRouteData<typeof routeData>()
 
-  const handleSelect = createMemo(() => (id: string) => {
+  const handleSelect = (id: string) => {
     const subfolders =
       data()?.folders.find((folder) => folder.id === id)?.subfolders ?? []
     if (selectedFolders()[id]) {
@@ -77,16 +77,16 @@ export default function Flashcards() {
         delete newSelectedFolders[id]
         setSelectedFolders(newSelectedFolders)
       } else {
-        for (const subfolder of subfolders) {
-          batch(() => {
-            setSelectedFolders({ ...selectedFolders(), [subfolder.id]: true })
-          })
-        }
+        const allSubfolders: Record<string, true> = Object.fromEntries(
+          subfolders.map((subfolder) => [subfolder.id, true])
+        )
+        setSelectedFolders({ ...selectedFolders(), ...allSubfolders })
       }
     } else {
       setSelectedFolders({ ...selectedFolders(), [id]: true })
     }
-  })
+  }
+
   return (
     <div class="flex h-full relative">
       <Sidebar>
@@ -94,16 +94,16 @@ export default function Flashcards() {
           <A href="/flashcards/all" class="ml-4">
             All flashcards
           </A>
-          {data()?.folders.map((folder) => {
-            return (
+          <For each={data()?.folders}>
+            {(folder) => (
               <FolderComponent
                 {...folder}
                 preexistingPadding={12}
                 selectedFolders={selectedFolders()}
-                onSelect={handleSelect()}
+                onSelect={handleSelect}
               />
-            )
-          })}
+            )}
+          </For>
         </div>
       </Sidebar>
       <div class="h-full overflow-auto flex-grow py-5 px-8">
@@ -134,7 +134,7 @@ const FolderComponent = (
           props.id === params.folderId ? 'hsla(217, 100%, 96%, 1)' : undefined
         }`}
       >
-        {props.subfolders.length > 0 ? (
+        <Show when={props.subfolders.length > 0}>
           <button
             type="button"
             onClick={() => setIsOpen((isOpen) => !isOpen)}
@@ -142,7 +142,7 @@ const FolderComponent = (
           >
             <ArrowIcon />
           </button>
-        ) : undefined}
+        </Show>
         <A
           href={`/flashcards/folder/${props.id}`}
           class="flex gap-2 items-center h-7"
@@ -158,18 +158,18 @@ const FolderComponent = (
         <MoreButton folderId={props.id} />
       </div>
       <div>
-        {isOpen()
-          ? props.subfolders.map((subfolder) => {
-              return (
-                <FolderComponent
-                  {...subfolder}
-                  selectedFolders={props.selectedFolders}
-                  onSelect={props.onSelect}
-                  preexistingPadding={props.preexistingPadding + 16}
-                />
-              )
-            })
-          : undefined}
+        <Show when={isOpen()}>
+          <For each={props.subfolders}>
+            {(subfolder) => (
+              <FolderComponent
+                {...subfolder}
+                selectedFolders={props.selectedFolders}
+                onSelect={props.onSelect}
+                preexistingPadding={props.preexistingPadding + 16}
+              />
+            )}
+          </For>
+        </Show>
       </div>
     </div>
   )
@@ -203,7 +203,7 @@ const AddButton = (props: { folderId: string }) => {
       >
         <AddIcon />
       </button>
-      {isOpen() && (
+      <Show when={isOpen()}>
         <div class="flex flex-col absolute top-full left-0 rounded-lg px-4 py-2 bg-white shadow z-10 w-max">
           <A
             href={`/flashcards/create?folderId=${props.folderId}`}
@@ -218,7 +218,7 @@ const AddButton = (props: { folderId: string }) => {
             Create new folder here
           </A>
         </div>
-      )}
+      </Show>
     </div>
   )
 }

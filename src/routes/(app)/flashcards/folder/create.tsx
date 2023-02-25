@@ -8,6 +8,7 @@ import {
 } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { FormError, useRouteData, useSearchParams } from 'solid-start'
+import { For } from 'solid-js'
 
 export const routeData = () =>
   createServerData$(async (_, { request }) => {
@@ -88,14 +89,16 @@ export default function CreateFolder() {
             class="border-dark-gray border rounded-lg ml-2"
           >
             <option value="">None</option>
-            {data()?.map((folder) => (
-              <option
-                value={folder.id}
-                selected={searchParams.folderId === folder.id}
-              >
-                {folder.name}
-              </option>
-            ))}
+            <For each={data()}>
+              {(folder) => (
+                <option
+                  value={folder.id}
+                  selected={searchParams.folderId === folder.id}
+                >
+                  {folder.name}
+                </option>
+              )}
+            </For>
           </select>
         </label>
         <button
