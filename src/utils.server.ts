@@ -7,9 +7,11 @@ export interface Flashcard {
   front: string
   frontImage?: string | null
   frontDescription?: string | null
+  frontLanguage: string
   back: string
   backImage?: string | null
   backDescription?: string | null
+  backLanguage: string
   folder: { id: string; path: string }
   tags: Tag[]
   randomSideAllowed: boolean

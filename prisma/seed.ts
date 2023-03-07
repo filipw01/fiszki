@@ -92,6 +92,8 @@ const getRandomFlashcard = ({
 }) => {
   return {
     front: faker.random.word(),
+    frontLanguage: 'en-US',
+    backLanguage: 'en-US',
     back: faker.random.word(),
     folder: {
       connect: {

@@ -37,6 +37,8 @@ model Flashcard {
   nextStudy                    DateTime         @default(now())
   lastSeen                     DateTime         @default(now())
   randomSideAllowed            Boolean          @default(true)
+  frontLanguage                String
+  backLanguage                 String
   uncompletedLearningSessionId String?
   completedLearningSessionId   String?
   uncompletedLearningSession   LearningSession? @relation(name: "LearningSessionUncompletedFlashcards", fields: [uncompletedLearningSessionId], references: [id])
@@ -53,15 +55,17 @@ model Tag {
 }
 
 model Folder {
-  id             String      @id @default(uuid())
-  name           String
-  color          String
-  flashcards     Flashcard[] @relation(name: "FolderFlashcards")
-  parentFolderId String?
-  parentFolder   Folder?     @relation(name: "FolderFolders", fields: [parentFolderId], references: [id])
-  folders        Folder[]    @relation(name: "FolderFolders")
-  ownerEmail     String
-  owner          User        @relation(name: "UserFolders", fields: [ownerEmail], references: [email])
+  id                   String      @id @default(uuid())
+  name                 String
+  color                String
+  defaultFrontLanguage String?
+  defaultBackLanguage  String?
+  flashcards           Flashcard[] @relation(name: "FolderFlashcards")
+  parentFolderId       String?
+  parentFolder         Folder?     @relation(name: "FolderFolders", fields: [parentFolderId], references: [id])
+  folders              Folder[]    @relation(name: "FolderFolders")
+  ownerEmail           String
+  owner                User        @relation(name: "UserFolders", fields: [ownerEmail], references: [email])
 }
 
 model LearningSession {

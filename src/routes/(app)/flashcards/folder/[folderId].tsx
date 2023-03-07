@@ -161,6 +161,7 @@ const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
           example={props.flashcard.backDescription}
           tags={props.flashcard.tags}
           id={props.flashcard.id}
+          language={props.flashcard.backLanguage}
         />
       }
     >
@@ -173,6 +174,7 @@ const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
         id={props.flashcard.id}
         isEditable
         streak={props.flashcard.streak}
+        language={props.flashcard.frontLanguage}
       />
     </Show>
   )

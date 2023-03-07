@@ -12,9 +12,10 @@ import {
   createServerData$,
   redirect,
 } from 'solid-start/server'
-import { RouteDataArgs, useParams, useRouteData } from 'solid-start'
+import { FormError, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { deleteFromS3, s3Url } from '~/db/uploadHandler.server'
-import { createMemo } from 'solid-js'
+import { createMemo, For } from 'solid-js'
+import { supportedLocales } from '~/routes/(app)/flashcards/create'
 // import { deleteFromS3, s3Url } from '~/uploadHandler.server'
 
 export const routeData = ({ params }: RouteDataArgs) =>
@@ -73,16 +74,27 @@ export default function EditFlashcard() {
         const backDescription = form.get('backDescription')
         const frontDescription = form.get('frontDescription')
         const randomSideAllowed = Boolean(form.get('randomSideAllowed'))
+        const frontLanguage = form.get('frontLanguage')
+        const backLanguage = form.get('backLanguage')
 
         if (
           !isNonEmptyString(front) ||
           !isNonEmptyString(back) ||
+          !isNonEmptyString(frontLanguage) ||
+          !isNonEmptyString(backLanguage) ||
           !isNonEmptyString(folderId) ||
           !isNonEmptyStringArray(tags) ||
           !isString(backDescription) ||
           !isString(frontDescription)
         ) {
           throw new Error('Missing data')
+        }
+
+        if (!supportedLocales.includes(frontLanguage)) {
+          return new FormError(`Unsupported locale "${frontLanguage}"`)
+        }
+        if (!supportedLocales.includes(backLanguage)) {
+          return new FormError(`Unsupported locale "${backLanguage}"`)
         }
 
         await db.folder.findFirstOrThrow({
@@ -113,11 +125,13 @@ export default function EditFlashcard() {
           data: {
             front,
             back,
+            frontDescription,
+            backDescription,
+            frontLanguage,
+            backLanguage,
+            randomSideAllowed,
             folder: { connect: { id: folderId } },
             tags: { set: tags.map((id) => ({ id })) },
-            backDescription,
-            frontDescription,
-            randomSideAllowed,
           },
         })
         return redirect(`/flashcards/folder/${folderId}`)
@@ -138,6 +152,18 @@ export default function EditFlashcard() {
     }
   )
   const tagIds = createMemo(() => data()?.flashcard.tags.map((tag) => tag.id))
+
+  const formatter = new Intl.DisplayNames('en-US', {
+    type: 'language',
+    languageDisplay: 'standard',
+  })
+  const availableLocales = supportedLocales.map((baseName) => {
+    return {
+      value: baseName,
+      label: formatter.of(baseName),
+    }
+  })
+
   return (
     <div>
       {isEditing.pending && <div>Updating...</div>}
@@ -157,6 +183,28 @@ export default function EditFlashcard() {
                 name="frontDescription"
                 value={data()?.flashcard.frontDescription}
               />
+              <label>
+                Front language
+                <select
+                  name="frontLanguage"
+                  class="border border-dark-gray rounded-lg ml-2"
+                >
+                  <For each={availableLocales}>
+                    {(locale) => {
+                      return (
+                        <option
+                          selected={
+                            data()?.flashcard.frontLanguage === locale.value
+                          }
+                          value={locale.value}
+                        >
+                          {locale.label}
+                        </option>
+                      )
+                    }}
+                  </For>
+                </select>
+              </label>
             </div>
             <div class="flex flex-col flex-grow">
               <Textarea
@@ -169,6 +217,28 @@ export default function EditFlashcard() {
                 name="backDescription"
                 value={data()?.flashcard.backDescription}
               />
+              <label>
+                Back language
+                <select
+                  name="backLanguage"
+                  class="border border-dark-gray rounded-lg ml-2"
+                >
+                  <For each={availableLocales}>
+                    {(locale) => {
+                      return (
+                        <option
+                          selected={
+                            data()?.flashcard.backLanguage === locale.value
+                          }
+                          value={locale.value}
+                        >
+                          {locale.label}
+                        </option>
+                      )
+                    }}
+                  </For>
+                </select>
+              </label>
             </div>
           </div>
           <label>

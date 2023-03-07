@@ -14,6 +14,7 @@ import {
 import { db } from '~/db/db.server'
 import { FormError, useRouteData, useSearchParams } from 'solid-start'
 import { uploadImageToS3 } from '~/db/uploadHandler.server'
+import { For } from 'solid-js'
 
 export const routeData = () =>
   createServerData$(async (_, { request }) => {
@@ -41,6 +42,8 @@ const isFile = (input: FormDataEntryValue | null): input is File =>
 const isFileOrNull = (input: FormDataEntryValue | null): input is File | null =>
   input === null || isFile(input)
 
+export const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES']
+
 export default function CreateFlashcard() {
   const data = useRouteData<typeof routeData>()
   const [searchParams] = useSearchParams()
@@ -57,14 +60,18 @@ export default function CreateFlashcard() {
       const tags = form.getAll('tags')
       const backDescription = form.get('backDescription')
       const backImage = form.get('backImage')
+      const backLanguage = form.get('backLanguage')
       const frontDescription = form.get('frontDescription')
       const frontImage = form.get('frontImage')
+      const frontLanguage = form.get('frontLanguage')
       const randomSideAllowed = Boolean(form.get('randomSideAllowed'))
 
       if (
         (!isNonEmptyString(front) && !isFile(frontImage)) ||
         (!isNonEmptyString(back) && !isFile(backImage)) ||
         !isNonEmptyString(folderId) ||
+        !isNonEmptyString(frontLanguage) ||
+        !isNonEmptyString(backLanguage) ||
         !isNonEmptyStringArray(tags) ||
         !isString(front) ||
         !isString(back) ||
@@ -74,6 +81,13 @@ export default function CreateFlashcard() {
         !isFileOrNull(frontImage)
       ) {
         return new FormError('Missing data')
+      }
+
+      if (!supportedLocales.includes(frontLanguage)) {
+        return new FormError(`Unsupported locale "${frontLanguage}"`)
+      }
+      if (!supportedLocales.includes(backLanguage)) {
+        return new FormError(`Unsupported locale "${backLanguage}"`)
       }
 
       const ownedTags = await db.tag.findMany({
@@ -99,14 +113,16 @@ export default function CreateFlashcard() {
         data: {
           front,
           back,
+          frontLanguage,
+          backLanguage,
+          frontDescription,
+          backDescription,
+          frontImage: frontImageUrl,
+          backImage: backImageUrl,
+          randomSideAllowed,
           folder: { connect: { id: folderId } },
           owner: { connect: { email } },
           tags: { connect: tags.map((id) => ({ id })) },
-          backDescription,
-          backImage: backImageUrl,
-          frontDescription,
-          frontImage: frontImageUrl,
-          randomSideAllowed,
           lastSeen: new Date(Date.now() - ONE_DAY_IN_MS),
         },
       })
@@ -114,6 +130,17 @@ export default function CreateFlashcard() {
       return redirect(`/flashcards/folder/${folderId}`)
     }
   )
+
+  const formatter = new Intl.DisplayNames('en-US', {
+    type: 'language',
+    languageDisplay: 'standard',
+  })
+  const availableLocales = supportedLocales.map((baseName) => {
+    return {
+      value: baseName,
+      label: formatter.of(baseName),
+    }
+  })
 
   return (
     <Form enctype="multipart/form-data">
@@ -128,6 +155,28 @@ export default function CreateFlashcard() {
               Front image
               <input type="file" name="frontImage" />
             </label>
+            <label>
+              Front language
+              <select
+                name="frontLanguage"
+                class="border border-dark-gray rounded-lg ml-2"
+              >
+                <For each={availableLocales}>
+                  {(locale) => {
+                    return (
+                      <option
+                        selected={
+                          false /* TODO: Add default selected based on folder default language */
+                        }
+                        value={locale.value}
+                      >
+                        {locale.label}
+                      </option>
+                    )
+                  }}
+                </For>
+              </select>
+            </label>
           </div>
           <div class="flex flex-col flex-grow">
             <Textarea name="back" label="Back" />
@@ -135,6 +184,23 @@ export default function CreateFlashcard() {
             <label>
               Back image
               <input type="file" name="backImage" />
+            </label>
+            <label>
+              Back language
+              <select
+                name="backLanguage"
+                class="border border-dark-gray rounded-lg ml-2"
+              >
+                <For each={availableLocales}>
+                  {(locale) => {
+                    return (
+                      <option selected={false} value={locale.value}>
+                        {locale.label}
+                      </option>
+                    )
+                  }}
+                </For>
+              </select>
             </label>
           </div>
         </div>

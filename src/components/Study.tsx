@@ -107,7 +107,7 @@ export const Study = (props: Props) => {
             text={currentFlashcard().front}
             example={currentFlashcard().frontDescription}
             image={currentFlashcard().frontImage}
-            language={'en' /*not implemented*/}
+            language={currentFlashcard().frontLanguage}
             id={currentFlashcard().id}
           />
           <Flashcard
@@ -116,7 +116,7 @@ export const Study = (props: Props) => {
             example={currentFlashcard().backDescription}
             image={currentFlashcard().backImage}
             hidden={typedCorrectly() === null}
-            language={'en' /*not implemented*/}
+            language={currentFlashcard().backLanguage}
             correct={typedCorrectly()}
           />
         </div>

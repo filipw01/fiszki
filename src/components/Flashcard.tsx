@@ -14,7 +14,7 @@ type Props = {
   example?: string | null
   hidden?: boolean
   correct?: boolean | null
-  language?: 'en' | 'es'
+  language: string
   streak?: number
   isEditable?: boolean
   onClick?: () => void
@@ -22,20 +22,27 @@ type Props = {
 }
 
 export const Flashcard = (props: Props) => {
+  if (typeof window !== 'undefined') {
+    window.speechSynthesis.getVoices()
+  }
   const handleSpeak: JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent> = (
     e
   ) => {
     e.stopPropagation()
     const utterance = new SpeechSynthesisUtterance(props.text)
-    const lang = props.language === 'es' ? 'es-ES' : 'en-GB'
-    const voice =
-      speechSynthesis.getVoices().find((voice) => voice.lang === lang) ??
-      speechSynthesis.getVoices().find((voice) => voice.lang === 'en-US')
+    let lang = props.language
+    let voice = speechSynthesis.getVoices().find((voice) => voice.lang === lang)
+    if (!voice) {
+      console.warn('No voice for', lang, 'trying en-US')
+      lang = 'en-US'
+      voice = speechSynthesis.getVoices().find((voice) => voice.lang === lang)
+    }
     if (voice) {
       utterance.voice = voice
+      utterance.rate = 0.9
       window.speechSynthesis.speak(utterance)
     } else {
-      console.log(`No voice for ${lang}`)
+      console.error(`No voice for ${lang}`)
     }
   }
 

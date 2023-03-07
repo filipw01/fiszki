@@ -69,6 +69,7 @@ const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
       image={props.flashcard.frontImage}
       tags={props.flashcard.tags}
       id={props.flashcard.id}
+      language={props.flashcard.frontLanguage}
     />
   ) : (
     <Flashcard
@@ -78,6 +79,7 @@ const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
       image={props.flashcard.backImage}
       example={props.flashcard.backDescription}
       tags={props.flashcard.tags}
+      language={props.flashcard.backLanguage}
     />
   )
 }
