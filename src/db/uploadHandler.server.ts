@@ -27,7 +27,8 @@ export const uploadImageToS3 = async (file: File | null) => {
     new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
-      Body: (await file.stream().getReader().read()).value,
+      // @ts-ignore - This SDK is weird and node centric, we use ArrayBuffer API instead of Buffer
+      Body: await file.arrayBuffer(),
       ContentLength: file.size,
       ContentType: file.type,
     })

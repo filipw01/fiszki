@@ -291,6 +291,7 @@ export default function EditFlashcard() {
         </div>
       </Form>
       <Form method="post" class="flex flex-col mt-8 gap-2">
+        <input type="hidden" name="id" value={params.id} />
         <label>
           <input type="checkbox" required class="mr-2" />I confirm that I want
           to delete this flashcard
