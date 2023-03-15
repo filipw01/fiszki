@@ -189,11 +189,11 @@ const randomNumber = (min: number, max: number) =>
 const getNumberOfDays = (hotStreak: number) => {
   switch (hotStreak) {
     case 0:
-      return 3
+      return randomNumber(3, 4)
     case 1:
-      return randomNumber(6, 8)
+      return randomNumber(9, 12)
     case 2:
-      return randomNumber(18, 23)
+      return randomNumber(25, 31)
     case 3:
       return randomNumber(85, 100)
     default:
