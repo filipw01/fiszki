@@ -11,6 +11,7 @@ import { Sidebar } from '~/components/Sidebar'
 import AddIcon from '~icons/ri/add-fill?width=16&height=16'
 import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
 import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
+import { isServer } from 'solid-js/web'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -192,7 +193,9 @@ const AddButton = (props: { folderId: string }) => {
     window.addEventListener('click', handleClick)
   })
   onCleanup(() => {
-    window.removeEventListener('click', handleClick)
+    if (!isServer) {
+      window.removeEventListener('click', handleClick)
+    }
   })
   return (
     <div class="relative" ref={ref}>
