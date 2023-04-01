@@ -16,10 +16,10 @@ import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[fold
 import { Prisma } from '@prisma/client'
 import { HeadingSmall } from '~/components/base/Heading'
 import { Sidebar } from '~/components/Sidebar'
-import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
-import CheckmarkIcon from '~icons/ri/check-line?width=12&height=12'
-import ArrowDownIcon from '~icons/ri/arrow-down-line?width=12&height=12'
-import FolderIcon from '~icons/ri/folder-line?width=20&height=20'
+import ArrowIcon from '~icons/ri/arrow-right-s-line'
+import CheckmarkIcon from '~icons/ri/check-line'
+import ArrowDownIcon from '~icons/ri/arrow-down-line'
+import FolderIcon from '~icons/ri/folder-line'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -404,7 +404,7 @@ const FolderComponent = (props: {
               }
             )}
           >
-            <ArrowIcon />
+            <ArrowIcon class="w-3 h-3" />
           </button>
         ) : undefined}
         <label class="flex gap-2 items-center h-7">
@@ -416,13 +416,15 @@ const FolderComponent = (props: {
                 isFolderSelected() && areAllSubfoldersSelected(),
             })}
           >
-            <FolderIcon class="col-start-1 row-start-1" />
+            <FolderIcon class="col-start-1 row-start-1 w-5 h-5" />
             <Show when={isFolderSelected()}>
               <Show
                 when={areAllSubfoldersSelected()}
-                fallback={<ArrowDownIcon class="col-start-1 row-start-1" />}
+                fallback={
+                  <ArrowDownIcon class="col-start-1 row-start-1 w-3 h-3" />
+                }
               >
-                <CheckmarkIcon class="col-start-1 row-start-1" />
+                <CheckmarkIcon class="col-start-1 row-start-1 w-3 h-3" />
               </Show>
             </Show>
           </div>

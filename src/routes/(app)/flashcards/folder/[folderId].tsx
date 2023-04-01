@@ -12,7 +12,7 @@ import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { createSignal, Show } from 'solid-js'
-import HomeIcon from '~icons/ri/home-4-line?width=24&height=24'
+import HomeIcon from '~icons/ri/home-4-line'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 
 export const routeData = ({ params }: RouteDataArgs) =>
@@ -91,7 +91,7 @@ export default function Subfolder() {
   return (
     <div>
       <div class="flex gap-2 items-center mb-4">
-        <HomeIcon />/
+        <HomeIcon class="w-6 h-6" />/
         {data()?.folderPath.map((folder, index) => (
           <>
             <Show when={index > 0}>{'/'}</Show>

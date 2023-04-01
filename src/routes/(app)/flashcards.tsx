@@ -8,9 +8,9 @@ import { A, Outlet, useParams, useRouteData } from 'solid-start'
 import { createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import { Sidebar } from '~/components/Sidebar'
-import AddIcon from '~icons/ri/add-fill?width=16&height=16'
-import MoreIcon from '~icons/ri/more-fill?width=16&height=16'
-import ArrowIcon from '~icons/ri/arrow-right-s-line?width=12&height=12'
+import AddIcon from '~icons/ri/add-fill'
+import MoreIcon from '~icons/ri/more-fill'
+import ArrowIcon from '~icons/ri/arrow-right-s-line'
 import { isServer } from 'solid-js/web'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
@@ -141,7 +141,7 @@ const FolderComponent = (
             onClick={() => setIsOpen((isOpen) => !isOpen)}
             class={clsx('transition-transform', { 'rotate-90': isOpen() })}
           >
-            <ArrowIcon />
+            <ArrowIcon class="w-3 h-3" />
           </button>
         </Show>
         <A
@@ -204,7 +204,7 @@ const AddButton = (props: { folderId: string }) => {
         class="h-4 w-4 bg-blue rounded text-white block"
         onClick={() => setIsOpen((prevVal) => !prevVal)}
       >
-        <AddIcon />
+        <AddIcon class="w-4 h-4" />
       </button>
       <Show when={isOpen()}>
         <div class="flex flex-col absolute top-full left-0 rounded-lg px-4 py-2 bg-white shadow z-10 w-max">
@@ -233,7 +233,7 @@ const MoreButton = (props: { folderId: string }) => {
         class="h-4 w-4 bg-blue rounded text-white block"
         href={`/flashcards/folder/edit/${props.folderId}`}
       >
-        <MoreIcon />
+        <MoreIcon class="w-4 h-4" />
       </A>
     </div>
   )
