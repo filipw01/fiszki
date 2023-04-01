@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.304.0",
-    "@iconify/json": "^2.2.42",
+    "@iconify/json": "^2.2.43",
     "@motionone/solid": "^10.16.0",
     "@prisma/client": "^4.12.0",
     "@solidjs/meta": "^0.28.2",
@@ -36,7 +36,7 @@
     "@types/lodash-es": "^4.17.7",
     "@vitest/coverage-c8": "^0.29.8",
     "autoprefixer": "^10.4.14",
-    "concurrently": "^7.6.0",
+    "concurrently": "^8.0.1",
     "esbuild": "^0.17.14",
     "esbuild-register": "^3.4.2",
     "eslint": "^8.37.0",
@@ -44,7 +44,7 @@
     "prettier": "^2.8.7",
     "prisma": "^4.12.0",
     "tailwindcss": "^3.3.1",
-    "typescript": "^4.9.5",
+    "typescript": "^5.0.3",
     "vite": "^4.2.1",
     "vitest": "^0.29.8"
   },
