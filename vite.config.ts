@@ -2,12 +2,24 @@
 import { defineConfig } from 'vite'
 import Icons from 'unplugin-icons/vite'
 import solid from 'solid-start/vite'
+import devtools from 'solid-devtools/vite'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
 export default defineConfig({
-  plugins: [solid(), Icons({ compiler: 'solid' })],
+  plugins: [
+    devtools({
+      autoname: true,
+      locator: {
+        targetIDE: 'webstorm',
+        componentLocation: true,
+        jsxLocation: true,
+      },
+    }),
+    solid(),
+    Icons({ compiler: 'solid' }),
+  ],
   ssr: { external: ['@prisma/client'] },
   test: {
     exclude: [
