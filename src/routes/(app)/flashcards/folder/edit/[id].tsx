@@ -1,5 +1,5 @@
 import { requireUserEmail } from '~/session.server'
-import { getFolderNamePath, isNonEmptyString, isString } from '~/utils.server'
+import { getFolderNamePath, isNonEmptyString, parseForm } from '~/utils.server'
 import { Input } from '~/components/base/Input'
 import {
   createServerAction$,
@@ -8,6 +8,7 @@ import {
 } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { FormError, RouteDataArgs, useParams, useRouteData } from 'solid-start'
+import { folderForm } from '~/schemas/folder'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -60,17 +61,7 @@ export default function EditFolder() {
         throw new FormError(`Couldn't find folder with id ${id}`)
       }
 
-      const name = form.get('name')
-      const color = form.get('color')
-      const parentFolderId = form.get('parentFolderId')
-
-      if (
-        !isNonEmptyString(name) ||
-        !isNonEmptyString(color) ||
-        !isString(parentFolderId)
-      ) {
-        return new FormError('Missing data')
-      }
+      const { parentFolderId, name, color } = folderForm.parse(parseForm(form))
 
       const parentFolderIds: string[] = []
       let currentParentFolderId: string | null | undefined = parentFolderId

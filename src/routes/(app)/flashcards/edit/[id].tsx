@@ -1,10 +1,5 @@
 import { requireUserEmail } from '~/session.server'
-import {
-  getFolderNamePath,
-  isNonEmptyString,
-  isNonEmptyStringArray,
-  isString,
-} from '~/utils.server'
+import { getFolderNamePath, isNonEmptyString, parseForm } from '~/utils.server'
 import { Textarea } from '~/components/base/Textarea'
 import { db } from '~/db/db.server'
 import {
@@ -12,10 +7,11 @@ import {
   createServerData$,
   redirect,
 } from 'solid-start/server'
-import { FormError, RouteDataArgs, useParams, useRouteData } from 'solid-start'
+import { RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { deleteFromS3, s3Url } from '~/db/uploadHandler.server'
 import { createMemo, For } from 'solid-js'
 import { supportedLocales } from '~/routes/(app)/flashcards/create'
+import { z } from 'zod'
 // import { deleteFromS3, s3Url } from '~/uploadHandler.server'
 
 export const routeData = ({ params }: RouteDataArgs) =>
@@ -67,35 +63,29 @@ export default function EditFlashcard() {
       })
 
       if (action === 'update') {
-        const front = form.get('front')
-        const back = form.get('back')
-        const folderId = form.get('folderId')
-        const tags = form.getAll('tags')
-        const backDescription = form.get('backDescription')
-        const frontDescription = form.get('frontDescription')
-        const randomSideAllowed = Boolean(form.get('randomSideAllowed'))
-        const frontLanguage = form.get('frontLanguage')
-        const backLanguage = form.get('backLanguage')
-
-        if (
-          !isNonEmptyString(front) ||
-          !isNonEmptyString(back) ||
-          !isNonEmptyString(frontLanguage) ||
-          !isNonEmptyString(backLanguage) ||
-          !isNonEmptyString(folderId) ||
-          !isNonEmptyStringArray(tags) ||
-          !isString(backDescription) ||
-          !isString(frontDescription)
-        ) {
-          throw new Error('Missing data')
-        }
-
-        if (!supportedLocales.includes(frontLanguage)) {
-          return new FormError(`Unsupported locale "${frontLanguage}"`)
-        }
-        if (!supportedLocales.includes(backLanguage)) {
-          return new FormError(`Unsupported locale "${backLanguage}"`)
-        }
+        const {
+          backDescription,
+          backLanguage,
+          frontDescription,
+          frontLanguage,
+          front,
+          back,
+          randomSideAllowed,
+          folderId,
+          tags,
+        } = z
+          .object({
+            front: z.string().nonempty(),
+            back: z.string().nonempty(),
+            frontLanguage: z.enum(supportedLocales),
+            backLanguage: z.enum(supportedLocales),
+            folderId: z.string().nonempty(),
+            tags: z.array(z.string().nonempty()).default([]),
+            backDescription: z.string(),
+            frontDescription: z.string(),
+            randomSideAllowed: z.boolean().optional(),
+          })
+          .parse(parseForm(form))
 
         await db.folder.findFirstOrThrow({
           where: {

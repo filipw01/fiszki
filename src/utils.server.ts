@@ -204,8 +204,19 @@ const getNumberOfDays = (hotStreak: number) => {
 export const isNonEmptyString = (input: unknown): input is string =>
   typeof input === 'string' && input.length > 0
 
-export const isNonEmptyStringArray = (input: unknown): input is string[] =>
-  Array.isArray(input) && input.every(isNonEmptyString)
-
-export const isString = (input: unknown): input is string =>
-  typeof input === 'string'
+export const parseForm = (form: FormData) => {
+  const data: Record<string, FormDataEntryValue | FormDataEntryValue[]> = {}
+  for (const [key, value] of form.entries()) {
+    if (!data[key]) {
+      data[key] = value
+    } else {
+      const dataValue = data[key]
+      if (Array.isArray(dataValue)) {
+        dataValue.push(value)
+      } else {
+        data[key] = [dataValue, value]
+      }
+    }
+  }
+  return data
+}

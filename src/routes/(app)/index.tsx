@@ -1,4 +1,4 @@
-import { indexLoader, isNonEmptyString, isString } from '~/utils.server'
+import { indexLoader } from '~/utils.server'
 import { chunk, groupBy } from 'lodash-es'
 import { clsx, daysFromNow } from '~/utils'
 import { A, useParams, useRouteData, useSearchParams } from 'solid-start'
@@ -20,6 +20,7 @@ import ArrowIcon from '~icons/ri/arrow-right-s-line'
 import CheckmarkIcon from '~icons/ri/check-line'
 import ArrowDownIcon from '~icons/ri/arrow-down-line'
 import FolderIcon from '~icons/ri/folder-line'
+import { z } from 'zod'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -187,22 +188,20 @@ export default function Calendar() {
   const [creatingLearningSession, { Form: CreateLearningSessionForm }] =
     createServerAction$(async (formData: FormData, { request }) => {
       const email = await requireUserEmail(request)
-      const day = formData.get('day')
-      const folders = formData.get('folders')
-      if (!isNonEmptyString(day)) {
-        throw new Error('Day for the learning session was not provided')
-      }
-      if (!isString(folders)) {
-        throw new Error('Folders for the learning session were not provided')
-      }
-      const dayNumber = Number(day)
-      if (Number.isNaN(dayNumber)) {
-        throw new Error(`Day must be a number, got "${day}"`)
-      }
+      const schema = z.object({
+        day: z.string(),
+        folders: z.string(),
+      })
+      const { day, folders } = schema.parse(
+        Object.fromEntries(formData.entries())
+      )
+
+      const dayNumber = parseInt(day)
+      z.number().parse(dayNumber)
       await createLearningSession(
         email,
         dayNumber,
-        isNonEmptyString(folders) ? folders.split(',') : undefined
+        folders === '' ? undefined : folders.split(',')
       )
       return redirect('/learning-session')
     })

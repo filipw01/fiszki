@@ -1,10 +1,5 @@
 import { requireUserEmail } from '~/session.server'
-import {
-  getFolderNamePath,
-  isNonEmptyString,
-  isNonEmptyStringArray,
-  isString,
-} from '~/utils.server'
+import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Textarea } from '~/components/base/Textarea'
 import {
   createServerAction$,
@@ -12,9 +7,10 @@ import {
   redirect,
 } from 'solid-start/server'
 import { db } from '~/db/db.server'
-import { FormError, useRouteData, useSearchParams } from 'solid-start'
+import { useRouteData, useSearchParams } from 'solid-start'
 import { uploadImageToS3 } from '~/db/uploadHandler.server'
 import { For } from 'solid-js'
+import { z } from 'zod'
 
 export const routeData = () =>
   createServerData$(async (_, { request }) => {
@@ -37,12 +33,7 @@ export const routeData = () =>
     return { folders: foldersWithMappedName, tags }
   })
 
-const isFile = (input: FormDataEntryValue | null): input is File =>
-  typeof input !== 'string'
-const isFileOrNull = (input: FormDataEntryValue | null): input is File | null =>
-  input === null || isFile(input)
-
-export const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES']
+export const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
 
 export default function CreateFlashcard() {
   const data = useRouteData<typeof routeData>()
@@ -54,41 +45,51 @@ export default function CreateFlashcard() {
 
       const email = await requireUserEmail(request)
 
-      const front = form.get('front')
-      const back = form.get('back')
-      const folderId = form.get('folderId')
-      const tags = form.getAll('tags')
-      const backDescription = form.get('backDescription')
-      const backImage = form.get('backImage')
-      const backLanguage = form.get('backLanguage')
-      const frontDescription = form.get('frontDescription')
-      const frontImage = form.get('frontImage')
-      const frontLanguage = form.get('frontLanguage')
-      const randomSideAllowed = Boolean(form.get('randomSideAllowed'))
+      const { front, frontImage } = z
+        .object({
+          frontImage: z.instanceof(File).refine((file) => file.size > 0),
+          front: z.string(),
+        })
+        .or(
+          z.object({
+            frontImage: z.instanceof(File).refine((file) => file.size === 0),
+            front: z.string().nonempty(),
+          })
+        )
+        .parse(parseForm(form))
 
-      if (
-        (!isNonEmptyString(front) && !isFile(frontImage)) ||
-        (!isNonEmptyString(back) && !isFile(backImage)) ||
-        !isNonEmptyString(folderId) ||
-        !isNonEmptyString(frontLanguage) ||
-        !isNonEmptyString(backLanguage) ||
-        !isNonEmptyStringArray(tags) ||
-        !isString(front) ||
-        !isString(back) ||
-        !isString(backDescription) ||
-        !isString(frontDescription) ||
-        !isFileOrNull(backImage) ||
-        !isFileOrNull(frontImage)
-      ) {
-        return new FormError('Missing data')
-      }
+      const { back, backImage } = z
+        .object({
+          backImage: z.instanceof(File).refine((file) => file.size > 0),
+          back: z.string(),
+        })
+        .or(
+          z.object({
+            backImage: z.instanceof(File).refine((file) => file.size === 0),
+            back: z.string().nonempty(),
+          })
+        )
+        .parse(parseForm(form))
 
-      if (!supportedLocales.includes(frontLanguage)) {
-        return new FormError(`Unsupported locale "${frontLanguage}"`)
-      }
-      if (!supportedLocales.includes(backLanguage)) {
-        return new FormError(`Unsupported locale "${backLanguage}"`)
-      }
+      const {
+        tags,
+        randomSideAllowed,
+        folderId,
+        frontLanguage,
+        backLanguage,
+        frontDescription,
+        backDescription,
+      } = z
+        .object({
+          folderId: z.string(),
+          tags: z.array(z.string().nonempty()).default([]),
+          randomSideAllowed: z.boolean().optional(),
+          frontLanguage: z.enum(supportedLocales),
+          frontDescription: z.string(),
+          backLanguage: z.enum(supportedLocales),
+          backDescription: z.string(),
+        })
+        .parse(parseForm(form))
 
       const ownedTags = await db.tag.findMany({
         where: {

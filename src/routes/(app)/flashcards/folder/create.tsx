@@ -1,5 +1,5 @@
 import { requireUserEmail } from '~/session.server'
-import { getFolderNamePath, isNonEmptyString, isString } from '~/utils.server'
+import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Input } from '~/components/base/Input'
 import {
   createServerAction$,
@@ -7,7 +7,8 @@ import {
   redirect,
 } from 'solid-start/server'
 import { db } from '~/db/db.server'
-import { FormError, useRouteData, useSearchParams } from 'solid-start'
+import { folderForm } from '~/schemas/folder'
+import { useRouteData, useSearchParams } from 'solid-start'
 import { For } from 'solid-js'
 
 export const routeData = () =>
@@ -31,17 +32,7 @@ export default function CreateFolder() {
     async (form: FormData, { request }) => {
       const email = await requireUserEmail(request)
 
-      const name = form.get('name')
-      const color = form.get('color')
-      const parentFolderId = form.get('parentFolderId')
-
-      if (
-        !isNonEmptyString(name) ||
-        !isNonEmptyString(color) ||
-        !isString(parentFolderId)
-      ) {
-        return new FormError('Missing data')
-      }
+      const { name, color, parentFolderId } = folderForm.parse(parseForm(form))
 
       if (parentFolderId) {
         db.folder.findFirstOrThrow({
