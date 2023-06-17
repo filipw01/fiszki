@@ -58,12 +58,12 @@ export const Study = (props: Props) => {
 
   const nextFlashcard = () => {
     setTypedCorrectly(null)
-    if (input) {
-      setTimeout(() => {
-        input?.focus()
-      })
-      input.value = ''
-    }
+    setTimeout(() => {
+      if (input) {
+        input.value = ''
+        input.focus()
+      }
+    })
     setCurrentFlashcardIndex((prevIndex) => prevIndex + 1)
   }
 
