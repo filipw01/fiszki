@@ -47,12 +47,12 @@ export default function CreateFlashcard() {
 
       const { front, frontImage } = z
         .object({
-          frontImage: z.instanceof(File).refine((file) => file.size > 0),
+          frontImage: z.any().refine((file) => file.size > 0),
           front: z.string(),
         })
         .or(
           z.object({
-            frontImage: z.instanceof(File).refine((file) => file.size === 0),
+            frontImage: z.any().refine((file) => file.size === 0),
             front: z.string().nonempty(),
           })
         )
@@ -60,12 +60,12 @@ export default function CreateFlashcard() {
 
       const { back, backImage } = z
         .object({
-          backImage: z.instanceof(File).refine((file) => file.size > 0),
+          backImage: z.any().refine((file) => file.size > 0),
           back: z.string(),
         })
         .or(
           z.object({
-            backImage: z.instanceof(File).refine((file) => file.size === 0),
+            backImage: z.any().refine((file) => file.size === 0),
             back: z.string().nonempty(),
           })
         )
