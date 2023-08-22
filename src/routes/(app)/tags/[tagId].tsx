@@ -1,10 +1,9 @@
-import { Flashcard as FlashcardType, mapFlashcard } from '~/utils.server'
-import { Flashcard } from '~/components/Flashcard'
+import { mapFlashcard } from '~/utils.server'
 import { requireUserEmail } from '~/session.server'
 import { createServerData$ } from 'solid-start/server'
 import { RouteDataArgs, useRouteData, useLocation, A } from 'solid-start'
 import { db } from '~/db/db.server'
-import { createSignal } from 'solid-js'
+import { TurnableFlashcard } from '~/components/TurnableFlashcard/TurnableFlashcard'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -55,31 +54,5 @@ export default function Tag() {
         })}
       </div>
     </div>
-  )
-}
-
-const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
-  const [isFront, setIsFront] = createSignal(true)
-  const turn = () => setIsFront((prev) => !prev)
-  return isFront() ? (
-    <Flashcard
-      onClick={turn}
-      text={props.flashcard.front}
-      example={props.flashcard.frontDescription}
-      image={props.flashcard.frontImage}
-      tags={props.flashcard.tags}
-      id={props.flashcard.id}
-      language={props.flashcard.frontLanguage}
-    />
-  ) : (
-    <Flashcard
-      id={props.flashcard.id}
-      onClick={turn}
-      text={props.flashcard.back}
-      image={props.flashcard.backImage}
-      example={props.flashcard.backDescription}
-      tags={props.flashcard.tags}
-      language={props.flashcard.backLanguage}
-    />
   )
 }

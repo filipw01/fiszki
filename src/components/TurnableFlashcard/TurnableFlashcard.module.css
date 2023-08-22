@@ -1,0 +1,11 @@
+.wrapper {
+  box-shadow: var(--shadow-elevation-low);
+  will-change: transform;
+  transition: box-shadow 500ms, transform 500ms;
+}
+
+.wrapper:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-elevation-medium);
+  transition: box-shadow 200ms, transform 200ms;
+}

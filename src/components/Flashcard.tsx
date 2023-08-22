@@ -86,7 +86,7 @@ export const Flashcard = (props: Props) => {
                   'translateX(0px)',
                 ],
         }}
-        class="relative flex flex-col justify-center items-center rounded-3xl p-4 lg:p-8 text-center shadow bg-white aspect-square break-words lg:text-5xl text-2xl leading-normal lg:leading-normal"
+        class="relative flex flex-col justify-center items-center rounded-3xl p-4 lg:p-8 text-center bg-white aspect-square break-words lg:text-5xl text-2xl leading-normal lg:leading-normal"
         style={border()}
         onClick={props.onClick}
       >
@@ -161,17 +161,16 @@ export const Flashcard = (props: Props) => {
   )
 }
 
-const ConditionalButton = ({
-  children,
-  onClick,
-}: {
+type ConditionalButtonProps = {
   children: JSX.Element
   onClick?: () => void
-}) => {
-  if (onClick) {
-    return <button>{children}</button>
+}
+
+const ConditionalButton = (props: ConditionalButtonProps) => {
+  if (props.onClick) {
+    return <button>{props.children}</button>
   }
-  return <div>{children}</div>
+  return <div>{props.children}</div>
 }
 
 const getTextLengthBasedFontWeight = (text: string) =>
