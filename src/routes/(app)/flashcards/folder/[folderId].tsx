@@ -1,19 +1,15 @@
-import {
-  Flashcard as FlashcardType,
-  getFolderPath,
-  mapFlashcard,
-} from '~/utils.server'
-import { Flashcard } from '~/components/Flashcard'
+import { getFolderPath, mapFlashcard } from '~/utils.server'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
 import { Folder } from '~/components/Folder'
 import { FoldersContainer } from '~/routes/(app)/tags'
+import { Show } from 'solid-js'
 import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
-import { createSignal, Show } from 'solid-js'
 import HomeIcon from '~icons/ri/home-4-line'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
+import { TurnableFlashcard } from '~/components/TurnableFlashcard/TurnableFlashcard'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -144,38 +140,5 @@ export default function Subfolder() {
         </div>
       </Show>
     </div>
-  )
-}
-
-const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
-  const [isFront, setIsFront] = createSignal(true)
-  const turn = () => setIsFront((prev) => !prev)
-  return (
-    <Show
-      when={isFront()}
-      fallback={
-        <Flashcard
-          onClick={turn}
-          text={props.flashcard.back}
-          image={props.flashcard.backImage}
-          example={props.flashcard.backDescription}
-          tags={props.flashcard.tags}
-          id={props.flashcard.id}
-          language={props.flashcard.backLanguage}
-        />
-      }
-    >
-      <Flashcard
-        onClick={turn}
-        text={props.flashcard.front}
-        example={props.flashcard.frontDescription}
-        image={props.flashcard.frontImage}
-        tags={props.flashcard.tags}
-        id={props.flashcard.id}
-        isEditable
-        streak={props.flashcard.streak}
-        language={props.flashcard.frontLanguage}
-      />
-    </Show>
   )
 }
