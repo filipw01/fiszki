@@ -8,10 +8,12 @@
   transition: box-shadow 500ms, transform 500ms;
 }
 
-.card:hover {
-  box-shadow: var(--shadow-elevation-medium);
-  transform: scale(1.02);
-  transition: box-shadow 200ms, transform 200ms;
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    box-shadow: var(--shadow-elevation-medium);
+    transform: scale(1.02);
+    transition: box-shadow 200ms, transform 200ms;
+  }
 }
 
 .streakWrapper {
