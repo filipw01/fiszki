@@ -132,7 +132,7 @@ export default function Subfolder() {
       >
         <div
           class="grid gap-4 mt-4 mb-6"
-          style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))"
+          style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); align-items: start"
         >
           {data()?.flashcards.map((flashcard) => {
             return <TurnableFlashcard flashcard={flashcard} />

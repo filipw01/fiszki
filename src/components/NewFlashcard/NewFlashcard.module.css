@@ -1,0 +1,39 @@
+.wrapper {
+  --padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 171px;
+  border-radius: 16px;
+  padding-inline: var(--padding);
+  background-color: hsl(0 0% 100%);
+  text-align: center;
+  overflow: clip;
+}
+
+.mainContent {
+  flex: 1;
+  margin-block: var(--padding);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.example {
+  color: #9d8189;
+  margin-top: 6px;
+}
+
+.tags {
+  border-top: 1px solid #e9ecef;
+  margin-inline: calc(var(--padding) * -1);
+  padding: 10px;
+}
+
+.imageWrapper {
+  margin-inline: calc(var(--padding) * -1);
+}
