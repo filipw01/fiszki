@@ -1,11 +1,51 @@
-.wrapper {
+.card {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px;
+  border-radius: 16px;
   box-shadow: var(--shadow-elevation-low);
   will-change: transform;
   transition: box-shadow 500ms, transform 500ms;
 }
 
-.wrapper:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-elevation-medium);
-  transition: box-shadow 200ms, transform 200ms;
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    box-shadow: var(--shadow-elevation-medium);
+    transform: scale(1.02);
+    transition: box-shadow 200ms, transform 200ms;
+  }
+}
+
+.streakWrapper {
+  position: absolute;
+  right: 0;
+  top: 20px;
+  transform: translateX(50%);
+}
+
+.streakDot {
+  height: 10px;
+  aspect-ratio: 1;
+  background-color: #f4acb7;
+  border-radius: 50%;
+  margin-bottom: 6px;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.speakerWrapper {
+  margin-left: auto;
+}
+
+.iconButton {
+  color: var(--color);
+  transition: color 400ms, transform 400ms;
+}
+.iconButton:hover {
+  color: var(--hover-color);
+  transform: scale(1.1) rotate(4deg);
+  transition: color 200ms, transform 200ms;
 }

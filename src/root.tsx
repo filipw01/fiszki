@@ -23,12 +23,15 @@ export default function Root() {
         <Title>Fiszki</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Link rel="preconnect" href="https://fonts.googleapis.com" />
         <Link
-          rel="preload"
-          href="/Comfortaa-Variable.ttf"
-          as="font"
-          type="font/ttf"
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
           crossorigin="anonymous"
+        />
+        <Link
+          href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400..700&display=swap"
+          rel="stylesheet"
         />
       </Head>
       <Body class="h-full flex flex-col" style={{ background: '#f8f8f8' }}>

@@ -1,12 +1,7 @@
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('/Comfortaa-Variable.ttf') format('truetype');
-}
-
 *,
 *::before,
 *::after {
-  font-family: 'Comfortaa', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   box-sizing: border-box;
 }
 

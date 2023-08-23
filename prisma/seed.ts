@@ -62,7 +62,7 @@ async function seed() {
         const folder = folders[randomFolder]
         const randomTagIds = [
           ...new Set(
-            Array(faker.datatype.number({ min: 1, max: 4 }))
+            Array(faker.datatype.number({ min: 0, max: 4 }))
               .fill(undefined)
               .map(() => {
                 return tagIds[faker.datatype.number({ max: tagIds.length - 1 })]
@@ -91,10 +91,16 @@ const getRandomFlashcard = ({
   tagIds: string[]
 }) => {
   return {
-    front: faker.random.word(),
+    front: faker.word.words(faker.number.int({ min: 1, max: 7 })),
     frontLanguage: 'en-US',
     backLanguage: 'en-US',
-    back: faker.random.word(),
+    frontImage: faker.datatype.boolean()
+      ? 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmiro.medium.com%2Fmax%2F3840%2F1*xMuIOwjliGUPjkzukeWKfw.jpeg&f=1&nofb=1&ipt=022a3ab5d6d53abd2540496747958c2c664ad89843635a281e3542b6984a789f&ipo=images'
+      : null,
+    back: faker.word.words(faker.number.int(7)),
+    frontDescription: faker.datatype.boolean()
+      ? faker.lorem.sentence({ min: 5, max: 60 })
+      : null,
     folder: {
       connect: {
         id: folderId,
@@ -105,7 +111,7 @@ const getRandomFlashcard = ({
         email: ownerEmail,
       },
     },
-    streak: faker.datatype.number({ max: 3 }),
+    streak: faker.number.int({ max: 3 }),
     nextStudy: faker.date.soon(30),
     lastSeen: faker.date.recent(30),
     randomSideAllowed: false,
