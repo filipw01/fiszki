@@ -1,4 +1,4 @@
-import { createSignal, For, Show, JSX } from 'solid-js'
+import { createSignal, Index, Show, JSX } from 'solid-js'
 import { A } from 'solid-start'
 import { Flashcard as FlashcardType } from '~/utils.server'
 import { NewFlashcard } from '../NewFlashcard/NewFlashcard'
@@ -10,7 +10,7 @@ import styles from './TurnableFlashcard.module.css'
 export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = createSignal(true)
   const turn = () => setIsFront((prev) => !prev)
-  const _iconSize = '24px'
+  const iconSize = '24px'
 
   if (typeof window !== 'undefined') {
     window.speechSynthesis.getVoices()
@@ -63,26 +63,26 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
         </Show>
         <Show when={props.flashcard.streak}>
           <div class={styles.streakWrapper}>
-            <For each={Array(props.flashcard.streak).fill(undefined)}>
+            <Index each={Array(props.flashcard.streak).fill(undefined)}>
               {() => <div class={styles.streakDot}></div>}
-            </For>
+            </Index>
           </div>
         </Show>
       </button>
       <div class={styles.buttons}>
         <ButtonWrapper color="#adb5bd" hoverColor="#e52a2a">
           {/* TODO */}
-          <BinIcon height={_iconSize} width={_iconSize} />
+          <BinIcon height={iconSize} width={iconSize} />
         </ButtonWrapper>
         <ButtonWrapper color="#adb5bd" hoverColor="#6c757d">
           <A href={`/flashcards/edit/${props.flashcard.id}`}>
-            <EditIcon height={_iconSize} width={_iconSize} />
+            <EditIcon height={iconSize} width={iconSize} />
           </A>
         </ButtonWrapper>
         <div class={styles.speakerWrapper}>
           <ButtonWrapper color="#729bd7" hoverColor="#3770C6">
             <button onClick={handleSpeak}>
-              <SpeakerIcon height={_iconSize} width={_iconSize} />
+              <SpeakerIcon height={iconSize} width={iconSize} />
             </button>
           </ButtonWrapper>
         </div>

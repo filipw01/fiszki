@@ -29,7 +29,7 @@ export const NewFlashcard = (props: Props) => {
           </Show>
         </div>
       </Show>
-      <Show when={props.tags && props.tags?.length > 0}>
+      <Show when={props.tags && props.tags.length > 0}>
         <div class={styles.tags}>
           <TagList tags={props.tags!} size="small" />
         </div>
