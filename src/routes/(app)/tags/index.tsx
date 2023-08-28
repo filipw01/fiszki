@@ -3,7 +3,7 @@ import { requireUserEmail } from '~/session.server'
 import { createServerData$ } from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { A, useRouteData } from 'solid-start'
-import { For, JSX } from 'solid-js'
+import { For } from 'solid-js'
 import { Tag } from '~/components/Tag'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 
@@ -52,20 +52,6 @@ export default function Index() {
           )}
         </For>
       </div>
-    </div>
-  )
-}
-
-export const FoldersContainer = (props: {
-  children: JSX.Element
-  class?: string
-}) => {
-  return (
-    <div
-      class={`grid gap-4 my-4 ${props.class ?? ''}`}
-      style="grid-template-columns: repeat(auto-fill, minmax(122px, 1fr))"
-    >
-      {props.children}
     </div>
   )
 }

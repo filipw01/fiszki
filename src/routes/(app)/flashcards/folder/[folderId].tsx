@@ -1,8 +1,7 @@
 import { getFolderPath, mapFlashcard } from '~/utils.server'
 import { requireUserEmail } from '~/session.server'
 import { Prisma } from '@prisma/client'
-import { Folder } from '~/components/Folder'
-import { FoldersContainer } from '~/routes/(app)/tags'
+import { Folder } from '~/components/Folder/Folder'
 import { Show } from 'solid-js'
 import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 import { createServerData$ } from 'solid-start/server'
@@ -10,6 +9,7 @@ import { db } from '~/db/db.server'
 import HomeIcon from '~icons/ri/home-4-line'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 import { TurnableFlashcard } from '~/components/TurnableFlashcard/TurnableFlashcard'
+import { FoldersGrid } from '~/components/FoldersGrid/FoldersGrid'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -108,7 +108,7 @@ export default function Subfolder() {
           </div>
         }
       >
-        <FoldersContainer class="mt-4 mb-6">
+        <FoldersGrid>
           {data()?.subfolders.map(({ id, color, flashcardsCount, name }) => (
             <Folder
               nameLink={`/flashcards/folder/${id}`}
@@ -117,7 +117,7 @@ export default function Subfolder() {
               color={color}
             />
           ))}
-        </FoldersContainer>
+        </FoldersGrid>
       </Show>
       <HeadingWithCreate url={`/flashcards/create?folderId=${params.folderId}`}>
         Flashcards
