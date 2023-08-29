@@ -4,7 +4,7 @@ import styles from './Folder.module.css'
 
 type Props = {
   name: string
-  count?: number
+  count: number
   color: string
   nameLink: string
 }
@@ -17,9 +17,7 @@ export const Folder = (props: Props) => {
       </div>
       <div class={styles.textWrapper}>
         <p class={styles.name}>{props.name}</p>
-        <p class={styles.counter}>
-          {(props.count !== undefined ? props.count : 0) + ' flashcards'}
-        </p>
+        <p class={styles.counter}>{props.count + ' flashcards'}</p>
       </div>
     </A>
   )

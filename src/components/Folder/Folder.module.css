@@ -11,7 +11,7 @@
 }
 
 .icon {
-  transition: transform 400ms;
+  transition: transform 500ms;
   color: var(--icon-color);
 }
 
@@ -34,12 +34,12 @@
 
 .name {
   color: var(--black);
-  line-height: 1.1rem;
+  line-height: 1.1em;
   font-weight: 700;
 }
 
 .counter {
   color: #aeaeae;
-  font-size: 0.876rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
