@@ -1,3 +1,4 @@
+import { shuffle } from 'lodash-es'
 import { db } from '~/db/db.server'
 import { daysFromNow } from '~/utils'
 
@@ -32,21 +33,35 @@ export const createLearningSession = async (
     select: { id: true },
   })
 
-  await db.learningSession.upsert({
-    where: {
-      ownerEmail: email,
-    },
-    create: {
-      ownerEmail: email,
-      uncompletedFlashcards: {
-        connect: flashcardsIds,
+  const flashcardsIdsShuffled = shuffle(flashcardsIds)
+
+  await db.$transaction([
+    db.learningSession.upsert({
+      where: {
+        ownerEmail: email,
       },
-    },
-    update: {
-      uncompletedFlashcards: {
-        set: flashcardsIds,
+      create: {
+        ownerEmail: email,
+        uncompletedFlashcards: {
+          connect: flashcardsIds,
+        },
       },
-      completedFlashcards: { set: [] },
-    },
-  })
+      update: {
+        uncompletedFlashcards: {
+          set: flashcardsIds,
+        },
+        completedFlashcards: { set: [] },
+      },
+    }),
+    ...flashcardsIdsShuffled.map((flashcard, index) => {
+      return db.flashcard.update({
+        where: {
+          id: flashcard.id,
+        },
+        data: {
+          learningSessionSortingIndex: index,
+        },
+      })
+    }),
+  ])
 }

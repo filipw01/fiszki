@@ -72,7 +72,7 @@ export default function CreateFlashcard() {
         .parse(parseForm(form))
 
       const {
-        tags,
+        tags: tagsOrTag,
         randomSideAllowed,
         folderId,
         frontLanguage,
@@ -82,7 +82,10 @@ export default function CreateFlashcard() {
       } = z
         .object({
           folderId: z.string(),
-          tags: z.array(z.string().nonempty()).default([]),
+          tags: z
+            .array(z.string().nonempty())
+            .default([])
+            .or(z.string().nonempty()),
           randomSideAllowed: z.boolean().optional(),
           frontLanguage: z.enum(supportedLocales),
           frontDescription: z.string(),
@@ -90,6 +93,8 @@ export default function CreateFlashcard() {
           backDescription: z.string(),
         })
         .parse(parseForm(form))
+
+      const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
 
       const ownedTags = await db.tag.findMany({
         where: {

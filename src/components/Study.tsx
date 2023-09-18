@@ -38,7 +38,7 @@ export const Study = (props: Props) => {
           await actionSuccess(id, email)
         }
         if (action === 'failure') {
-          await actionFailure(id)
+          await actionFailure(id, email)
         }
       }
       return null

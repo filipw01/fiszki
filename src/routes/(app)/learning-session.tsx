@@ -14,12 +14,9 @@ export const routeData = () =>
       },
       include: {
         uncompletedFlashcards: {
-          orderBy: [
-            {
-              lastSeen: 'asc',
-            },
-            { id: 'asc' },
-          ],
+          orderBy: {
+            learningSessionSortingIndex: 'asc',
+          },
           include: {
             folder: true,
             tags: true,

@@ -39,6 +39,7 @@ model Flashcard {
   randomSideAllowed            Boolean          @default(true)
   frontLanguage                String
   backLanguage                 String
+  learningSessionSortingIndex  Int?
   uncompletedLearningSessionId String?
   completedLearningSessionId   String?
   uncompletedLearningSession   LearningSession? @relation(name: "LearningSessionUncompletedFlashcards", fields: [uncompletedLearningSessionId], references: [id])
