@@ -72,7 +72,7 @@ export default function EditFlashcard() {
           back,
           randomSideAllowed,
           folderId,
-          tags,
+          tags: tagsOrTag,
         } = z
           .object({
             front: z.string().nonempty(),
@@ -80,12 +80,17 @@ export default function EditFlashcard() {
             frontLanguage: z.enum(supportedLocales),
             backLanguage: z.enum(supportedLocales),
             folderId: z.string().nonempty(),
-            tags: z.array(z.string().nonempty()).default([]),
+            tags: z
+              .array(z.string().nonempty())
+              .default([])
+              .or(z.string().nonempty()),
             backDescription: z.string(),
             frontDescription: z.string(),
             randomSideAllowed: z.boolean().optional(),
           })
           .parse(parseForm(form))
+
+        const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
 
         await db.folder.findFirstOrThrow({
           where: {
