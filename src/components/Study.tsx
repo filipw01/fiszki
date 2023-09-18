@@ -13,12 +13,46 @@ import { requireUserEmail } from '~/session.server'
 import { db } from '~/db/db.server'
 import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { isServer } from 'solid-js/web'
+import { shuffle } from 'lodash-es'
 
 interface Props {
   flashcards: FlashcardType[]
 }
 
 export const Study = (props: Props) => {
+  const [isRepeating, { Form: RepeatForm }] = createServerAction$(
+    async (_form: FormData, { request }) => {
+      const email = await requireUserEmail(request)
+      const flashcardsInSession = await db.learningSession.findFirst({
+        where: {
+          ownerEmail: email,
+        },
+        select: {
+          uncompletedFlashcards: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      })
+      const shuffledFlashcards = shuffle(
+        flashcardsInSession?.uncompletedFlashcards ?? []
+      )
+      await db.$transaction(
+        shuffledFlashcards.map((flashcard, index) => {
+          return db.flashcard.update({
+            where: {
+              id: flashcard.id,
+            },
+            data: {
+              learningSessionSortingIndex: index,
+            },
+          })
+        })
+      )
+    }
+  )
+
   const [isSubmitting, { Form }] = createServerAction$(
     async (form: FormData, { request }) => {
       const email = await requireUserEmail(request)
@@ -38,7 +72,7 @@ export const Study = (props: Props) => {
           await actionSuccess(id, email)
         }
         if (action === 'failure') {
-          await actionFailure(id, email)
+          await actionFailure(id)
         }
       }
       return null
@@ -80,118 +114,151 @@ export const Study = (props: Props) => {
   }
 
   return (
-    <Show
-      when={currentFlashcard() !== undefined}
-      fallback={<div>No flashcards left</div>}
-    >
-      <div class="max-w-3xl mx-auto py-3">
-        <div class="flex items-center justify-between overflow-auto gap-2 mb-5">
-          <TagList
-            tags={currentFlashcard().tags}
-            folder={currentFlashcard().folder.path}
-          />
-          <div style={{ display: 'flex', 'align-items': 'center' }}>
-            <div style={{ 'margin-right': '1rem' }}>
-              {currentFlashcardIndex() + 1}/{flashcardsCount()}
-            </div>
-            <div>
-              Streak:{' '}
-              {currentFlashcard().streak
-                ? '🔥'.repeat(currentFlashcard().streak)
-                : '➖'}
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center gap-x-4 lg:gap-x-8">
-          <Flashcard
-            text={currentFlashcard().front}
-            example={currentFlashcard().frontDescription}
-            image={currentFlashcard().frontImage}
-            language={currentFlashcard().frontLanguage}
-            id={currentFlashcard().id}
-          />
-          <Flashcard
-            id={currentFlashcard().id}
-            text={currentFlashcard().back}
-            example={currentFlashcard().backDescription}
-            image={currentFlashcard().backImage}
-            hidden={typedCorrectly() === null}
-            language={currentFlashcard().backLanguage}
-            correct={typedCorrectly()}
-          />
-        </div>
+    <>
+      <Show
+        when={currentFlashcard() !== undefined}
+        fallback={
+          <div>
+            No flashcards left
+            <RepeatForm>
+              <Show when={isRepeating.pending}>Repeating...</Show>
 
-        <div class="relative mt-7">
-          <div
-            style={{ transform: 'translateX(calc(-100% - 8px))' }}
-            class="hidden absolute lg:flex flex-col gap-1"
-          >
-            {['ñ', 'í', 'é', 'á', 'ú', 'ü'].map((letter) => (
-              <LetterButton
-                letter={letter}
-                onClick={(letter) => {
-                  if (input && typedCorrectly() === null) {
-                    // insert character at cursor
-                    const start = input.selectionStart
-                    const end = input.selectionEnd
-                    const value = input.value
-                    input.value =
-                      value.substring(0, start) + letter + value.substring(end)
-                    input.focus()
-                    input.selectionStart = start + 1
-                    input.selectionEnd = input.selectionStart
-                  }
-                }}
-              />
-            ))}
+              <Button onClick={() => setCurrentFlashcardIndex(0)} color="check">
+                Rinse and repeat
+              </Button>
+            </RepeatForm>
           </div>
-          <textarea
-            class="block py-6 px-7 -mr-2 h-48 w-full bg-white rounded-t-3xl shadow text-xl resize-none placeholder-dark-gray focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-dark-gray focus-visible:ring-inset"
-            style={
-              typedCorrectly() === null
-                ? undefined
-                : typedCorrectly()
-                ? 'color: rgb(138, 201, 38)'
-                : 'color: rgb(218, 80, 5)'
-            }
-            placeholder="Hm.."
-            ref={input}
-            autofocus
-            onKeyDown={(e) => {
-              if (e.code === 'Enter' && typedCorrectly() === null) {
-                handleCheck()
-                e.stopPropagation()
-              }
-            }}
-            disabled={typedCorrectly() !== null}
-            spellcheck={false}
-          />
-          {typedCorrectly() === null ? (
-            <div class="flex">
-              <Button
-                type="button"
-                color="check"
-                position="left"
-                onClick={handleCheck}
-              >
-                check
-              </Button>
-              <Button
-                position="right"
-                color="skip"
-                size="small"
-                onClick={nextFlashcard}
-              >
-                skip
-              </Button>
+        }
+      >
+        <div class="max-w-3xl mx-auto py-3">
+          <div class="flex items-center justify-between overflow-auto gap-2 mb-5">
+            <TagList
+              tags={currentFlashcard().tags}
+              folder={currentFlashcard().folder.path}
+            />
+            <div style={{ display: 'flex', 'align-items': 'center' }}>
+              <div style={{ 'margin-right': '1rem' }}>
+                {currentFlashcardIndex() + 1}/{flashcardsCount()}
+              </div>
+              <div>
+                Streak:{' '}
+                {currentFlashcard().streak
+                  ? '🔥'.repeat(currentFlashcard().streak)
+                  : '➖'}
+              </div>
             </div>
-          ) : (
-            <div class="flex">
-              {isSubmitting.pending && <div>Submitting...</div>}
-              {isSubmitting.error && (
-                <div>Error: {isSubmitting.error.message}</div>
-              )}
-              {!typedCorrectly() && (
+          </div>
+          <div class="flex items-center gap-x-4 lg:gap-x-8">
+            <Flashcard
+              text={currentFlashcard().front}
+              example={currentFlashcard().frontDescription}
+              image={currentFlashcard().frontImage}
+              language={currentFlashcard().frontLanguage}
+              id={currentFlashcard().id}
+            />
+            <Flashcard
+              id={currentFlashcard().id}
+              text={currentFlashcard().back}
+              example={currentFlashcard().backDescription}
+              image={currentFlashcard().backImage}
+              hidden={typedCorrectly() === null}
+              language={currentFlashcard().backLanguage}
+              correct={typedCorrectly()}
+            />
+          </div>
+
+          <div class="relative mt-7">
+            <div
+              style={{ transform: 'translateX(calc(-100% - 8px))' }}
+              class="hidden absolute lg:flex flex-col gap-1"
+            >
+              {['ñ', 'í', 'é', 'á', 'ú', 'ü'].map((letter) => (
+                <LetterButton
+                  letter={letter}
+                  onClick={(letter) => {
+                    if (input && typedCorrectly() === null) {
+                      // insert character at cursor
+                      const start = input.selectionStart
+                      const end = input.selectionEnd
+                      const value = input.value
+                      input.value =
+                        value.substring(0, start) +
+                        letter +
+                        value.substring(end)
+                      input.focus()
+                      input.selectionStart = start + 1
+                      input.selectionEnd = input.selectionStart
+                    }
+                  }}
+                />
+              ))}
+            </div>
+            <textarea
+              class="block py-6 px-7 -mr-2 h-48 w-full bg-white rounded-t-3xl shadow text-xl resize-none placeholder-dark-gray focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-dark-gray focus-visible:ring-inset"
+              style={
+                typedCorrectly() === null
+                  ? undefined
+                  : typedCorrectly()
+                  ? 'color: rgb(138, 201, 38)'
+                  : 'color: rgb(218, 80, 5)'
+              }
+              placeholder="Hm.."
+              ref={input}
+              autofocus
+              onKeyDown={(e) => {
+                if (e.code === 'Enter' && typedCorrectly() === null) {
+                  handleCheck()
+                  e.stopPropagation()
+                }
+              }}
+              disabled={typedCorrectly() !== null}
+              spellcheck={false}
+            />
+            {typedCorrectly() === null ? (
+              <div class="flex">
+                <Button
+                  type="button"
+                  color="check"
+                  position="left"
+                  onClick={handleCheck}
+                >
+                  check
+                </Button>
+                <Button
+                  position="right"
+                  color="skip"
+                  size="small"
+                  onClick={nextFlashcard}
+                >
+                  skip
+                </Button>
+              </div>
+            ) : (
+              <div class="flex">
+                {isSubmitting.pending && <div>Submitting...</div>}
+                {isSubmitting.error && (
+                  <div>Error: {isSubmitting.error.message}</div>
+                )}
+                {!typedCorrectly() && (
+                  <Form
+                    class="basis-0 flex-grow flex-shrink"
+                    onSubmit={nextFlashcard}
+                  >
+                    <input
+                      type="hidden"
+                      name="flashcardId"
+                      value={currentFlashcard().id}
+                    />
+                    <Button
+                      color="bad"
+                      position="left"
+                      name="_action"
+                      value="failure"
+                    >
+                      wrong
+                    </Button>
+                  </Form>
+                )}
                 <Form
                   class="basis-0 flex-grow flex-shrink"
                   onSubmit={nextFlashcard}
@@ -201,39 +268,21 @@ export const Study = (props: Props) => {
                     name="flashcardId"
                     value={currentFlashcard().id}
                   />
-                  <Button
-                    color="bad"
-                    position="left"
-                    name="_action"
-                    value="failure"
-                  >
-                    wrong
-                  </Button>
+                  <input type="hidden" name="_action" value="success" />
+                  {typedCorrectly() ? (
+                    <GoodButton />
+                  ) : (
+                    <Button color="good" position="right">
+                      correct
+                    </Button>
+                  )}
                 </Form>
-              )}
-              <Form
-                class="basis-0 flex-grow flex-shrink"
-                onSubmit={nextFlashcard}
-              >
-                <input
-                  type="hidden"
-                  name="flashcardId"
-                  value={currentFlashcard().id}
-                />
-                <input type="hidden" name="_action" value="success" />
-                {typedCorrectly() ? (
-                  <GoodButton />
-                ) : (
-                  <Button color="good" position="right">
-                    correct
-                  </Button>
-                )}
-              </Form>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </Show>
+      </Show>
+    </>
   )
 }
 

@@ -4,6 +4,7 @@ import { createServerData$, redirect } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/db/db.server'
 import { mapFlashcard } from '~/utils.server'
+import { createEffect } from 'solid-js'
 
 export const routeData = () =>
   createServerData$(async (_, event) => {
@@ -40,6 +41,9 @@ export const routeData = () =>
 
 export default function LearningSession() {
   const data = useRouteData<typeof routeData>()
+  createEffect(() => {
+    console.log('data', data())
+  })
 
   return <Study flashcards={data() ?? []} />
 }

@@ -171,30 +171,16 @@ export const actionSuccess = async (
   })
 }
 
-export const actionFailure = async (
-  flashcardId: string,
-  ownerEmail: string
-) => {
-  await Promise.all([
-    db.learningSession.update({
-      where: {
-        ownerEmail,
-      },
-      data: {
-        completedFlashcards: { connect: { id: flashcardId } },
-        uncompletedFlashcards: { disconnect: { id: flashcardId } },
-      },
-    }),
-    db.flashcard.update({
-      where: {
-        id: flashcardId,
-      },
-      data: {
-        streak: 0,
-        lastSeen: new Date(),
-      },
-    }),
-  ])
+export const actionFailure = async (flashcardId: string) => {
+  await db.flashcard.update({
+    where: {
+      id: flashcardId,
+    },
+    data: {
+      streak: 0,
+      lastSeen: new Date(),
+    },
+  })
 }
 
 const randomNumber = (min: number, max: number) =>
