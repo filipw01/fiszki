@@ -11,7 +11,14 @@ import { Flashcard } from './Flashcard'
 import { createServerAction$ } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/db/db.server'
-import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js'
 import { isServer } from 'solid-js/web'
 import { shuffle } from 'lodash-es'
 
@@ -120,12 +127,9 @@ export const Study = (props: Props) => {
         fallback={
           <div>
             No flashcards left
-            <RepeatForm>
+            <RepeatForm onSubmit={() => setCurrentFlashcardIndex(0)}>
               <Show when={isRepeating.pending}>Repeating...</Show>
-
-              <Button onClick={() => setCurrentFlashcardIndex(0)} color="check">
-                Rinse and repeat
-              </Button>
+              <Button color="check">Rinse and repeat</Button>
             </RepeatForm>
           </div>
         }
@@ -150,7 +154,7 @@ export const Study = (props: Props) => {
           </div>
           <div class="flex items-center gap-x-4 lg:gap-x-8">
             <Flashcard
-              text={currentFlashcard().front}
+              text={currentFlashcard()?.front}
               example={currentFlashcard().frontDescription}
               image={currentFlashcard().frontImage}
               language={currentFlashcard().frontLanguage}
