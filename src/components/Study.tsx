@@ -11,14 +11,7 @@ import { Flashcard } from './Flashcard'
 import { createServerAction$ } from 'solid-start/server'
 import { requireUserEmail } from '~/session.server'
 import { db } from '~/db/db.server'
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js'
+import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { isServer } from 'solid-js/web'
 import { shuffle } from 'lodash-es'
 
