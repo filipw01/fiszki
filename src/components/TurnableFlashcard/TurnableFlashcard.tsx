@@ -9,8 +9,10 @@ import styles from './TurnableFlashcard.module.css'
 
 export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = createSignal(true)
+  const [isDeleting, setDeleting] = createSignal(false)
   const turn = () => setIsFront((prev) => !prev)
   const iconSize = '24px'
+  let timeoutId: number
 
   if (typeof window !== 'undefined') {
     window.speechSynthesis.getVoices()
@@ -38,6 +40,21 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
     } else {
       console.error(`No voice for ${lang}`)
     }
+  }
+
+  function deleteFlashcard() {
+    setDeleting(true)
+    timeoutId = setTimeout(() => {
+      if (isDeleting()) {
+        console.log('delete')
+        //TODO add deleting function
+      }
+    }, 2500) as any
+  }
+
+  function cancelDeleting() {
+    clearTimeout(timeoutId)
+    setDeleting(false)
   }
 
   return (
@@ -72,10 +89,20 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
         </Show>
       </button>
       <div class={styles.buttons}>
-        <ButtonWrapper color="#adb5bd" hoverColor="#e52a2a">
-          {/* TODO */}
-          <BinIcon height={iconSize} width={iconSize} />
-        </ButtonWrapper>
+        <div class={styles.binContainer}>
+          <ButtonWrapper color="#adb5bd" hoverColor="#e52a2a">
+            <button
+              onpointerdown={deleteFlashcard}
+              onpointerup={cancelDeleting}
+              onpointerout={cancelDeleting}
+            >
+              <BinIcon height={iconSize} width={iconSize} />
+            </button>
+          </ButtonWrapper>
+          <Show when={isDeleting()}>
+            <AnimatedDots />
+          </Show>
+        </div>
         <ButtonWrapper color="#adb5bd" hoverColor="#6c757d">
           <A href={`/flashcards/edit/${props.flashcard.id}`}>
             <EditIcon height={iconSize} width={iconSize} />
@@ -104,6 +131,18 @@ const ButtonWrapper = (props: {
       style={`--color:  ${props.color}; --hover-color: ${props.hoverColor}`}
     >
       {props.children}
+    </div>
+  )
+}
+
+const AnimatedDots = () => {
+  return (
+    <div class={styles.dotsContainer}>
+      <div class={styles.dot}></div>
+      <div class={styles.dot}></div>
+      <div class={styles.dot}></div>
+      <div class={styles.dot}></div>
+      <div class={styles.dot}></div>
     </div>
   )
 }
