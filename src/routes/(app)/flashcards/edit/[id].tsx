@@ -8,11 +8,10 @@ import {
   redirect,
 } from 'solid-start/server'
 import { RouteDataArgs, useParams, useRouteData } from 'solid-start'
-import { deleteFromS3, s3Url } from '~/db/uploadHandler.server'
 import { createMemo, For } from 'solid-js'
 import { supportedLocales } from '~/routes/(app)/flashcards/create'
 import { z } from 'zod'
-// import { deleteFromS3, s3Url } from '~/uploadHandler.server'
+import { deleteFlashcard } from '~/flashcard.server'
 
 export const routeData = ({ params }: RouteDataArgs) =>
   createServerData$(
@@ -131,17 +130,7 @@ export default function EditFlashcard() {
         })
         return redirect(`/flashcards/folder/${folderId}`)
       } else if (action === 'delete') {
-        const flashcard = await db.flashcard.delete({
-          where: { id },
-        })
-        await Promise.all(
-          [flashcard.backImage, flashcard.frontImage].map((image) => {
-            if (isNonEmptyString(image) && image.startsWith(`${s3Url}/`)) {
-              const key = image.replace(`${s3Url}/`, '')
-              return deleteFromS3(key)
-            }
-          })
-        )
+        const flashcard = await deleteFlashcard(id)
         return redirect(`/flashcards/folder/${flashcard.folderId}`)
       }
     }
