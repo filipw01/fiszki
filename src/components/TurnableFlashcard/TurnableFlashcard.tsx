@@ -1,18 +1,34 @@
 import { createSignal, Index, Show, JSX } from 'solid-js'
-import { A } from 'solid-start'
-import { Flashcard as FlashcardType } from '~/utils.server'
+import { A, refetchRouteData } from 'solid-start'
+import { Flashcard as FlashcardType, isNonEmptyString } from '~/utils.server'
 import { NewFlashcard } from '../NewFlashcard/NewFlashcard'
 import BinIcon from '~icons/ri/delete-bin-line'
 import EditIcon from '~icons/ri/edit-2-line'
 import SpeakerIcon from '~icons/ri/volume-up-line'
 import styles from './TurnableFlashcard.module.css'
+import server$ from 'solid-start/server'
+import { requireUserEmail } from '~/session.server'
+import { db } from '~/db/db.server'
+import { deleteFlashcard as serverDeleteFlashcard } from '~/flashcard.server'
+
+const server2deleteFlashcard = server$(async (id) => {
+  // @ts-ignore This is not typed here, take care of it later
+  const email = await requireUserEmail(this.request)
+  if (!isNonEmptyString(id)) throw new Error('Missing data')
+
+  await db.flashcard.findFirstOrThrow({
+    where: { id, owner: { email } },
+  })
+
+  await serverDeleteFlashcard(id)
+})
 
 export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = createSignal(true)
   const [isDeleting, setDeleting] = createSignal(false)
   const turn = () => setIsFront((prev) => !prev)
   const iconSize = '24px'
-  let timeoutId: number
+  let timeoutId: NodeJS.Timeout
 
   if (typeof window !== 'undefined') {
     window.speechSynthesis.getVoices()
@@ -44,12 +60,10 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
 
   function deleteFlashcard() {
     setDeleting(true)
-    timeoutId = setTimeout(() => {
-      if (isDeleting()) {
-        console.log('delete')
-        //TODO add deleting function
-      }
-    }, 2500) as any
+    timeoutId = setTimeout(async () => {
+      await server2deleteFlashcard(props.flashcard.id)
+      await refetchRouteData()
+    }, 2500)
   }
 
   function cancelDeleting() {
