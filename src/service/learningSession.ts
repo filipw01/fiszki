@@ -21,12 +21,6 @@ export const createLearningSession = async (
         }
       : undefined,
   }
-  await db.flashcard.updateMany({
-    where,
-    data: {
-      lastSeen: new Date(daysFromNow(dayNumber)),
-    },
-  })
 
   const flashcardsIds = await db.flashcard.findMany({
     where,

@@ -41,9 +41,6 @@ export const routeData = () =>
 
 export default function LearningSession() {
   const data = useRouteData<typeof routeData>()
-  createEffect(() => {
-    console.log('data', data())
-  })
 
   return <Study flashcards={data() ?? []} />
 }

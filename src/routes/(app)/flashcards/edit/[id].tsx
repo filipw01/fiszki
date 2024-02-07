@@ -85,7 +85,7 @@ export default function EditFlashcard() {
               .or(z.string().nonempty()),
             backDescription: z.string(),
             frontDescription: z.string(),
-            randomSideAllowed: z.boolean().optional(),
+            randomSideAllowed: z.literal('on').optional(),
           })
           .parse(parseForm(form))
 
@@ -123,7 +123,7 @@ export default function EditFlashcard() {
             backDescription,
             frontLanguage,
             backLanguage,
-            randomSideAllowed,
+            randomSideAllowed: randomSideAllowed === 'on',
             folder: { connect: { id: folderId } },
             tags: { set: tags.map((id) => ({ id })) },
           },

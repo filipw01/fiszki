@@ -86,7 +86,7 @@ export default function CreateFlashcard() {
             .array(z.string().nonempty())
             .default([])
             .or(z.string().nonempty()),
-          randomSideAllowed: z.boolean().optional(),
+          randomSideAllowed: z.literal('on').optional(),
           frontLanguage: z.enum(supportedLocales),
           frontDescription: z.string(),
           backLanguage: z.enum(supportedLocales),
@@ -125,7 +125,7 @@ export default function CreateFlashcard() {
           backDescription,
           frontImage: frontImageUrl,
           backImage: backImageUrl,
-          randomSideAllowed,
+          randomSideAllowed: randomSideAllowed === 'on',
           folder: { connect: { id: folderId } },
           owner: { connect: { email } },
           tags: { connect: tags.map((id) => ({ id })) },
