@@ -1,88 +1,54 @@
 import { getFolderPath, mapFlashcard } from '~/utils.server'
-import { requireUserEmail } from '~/session.server'
-import { Prisma } from '@prisma/client'
+import { requireUserEmail } from '~/server/session.server'
 import { Folder } from '~/components/Folder/Folder'
 import { Show } from 'solid-js'
-import { A, RouteDataArgs, useParams, useRouteData } from 'solid-start'
-import { createServerData$ } from 'solid-start/server'
-import { db } from '~/db/db.server'
+import { cache, createAsync, useParams } from '@solidjs/router'
 import HomeIcon from '~icons/ri/home-4-line'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
 import { TurnableFlashcard } from '~/components/TurnableFlashcard/TurnableFlashcard'
 import { FoldersGrid } from '~/components/FoldersGrid/FoldersGrid'
+import { db } from '~/db/db.server'
+import { getNestedFlashcardsCount } from '~/server/getNestedFlashcardsCount'
 
-export const routeData = ({ params }: RouteDataArgs) =>
-  createServerData$(
-    async ([, folderId], { request }) => {
-      const email = await requireUserEmail(request)
+const flashcardsFolderId = cache(async (folderId: string) => {
+  'use server'
 
-      const folder = await db.folder.findFirst({
-        where: {
-          id: folderId,
-          owner: { email },
-        },
-        include: {
-          flashcards: {
-            include: {
-              folder: true,
-              tags: true,
-            },
-          },
-          folders: true,
-        },
-      })
-      const folders = await db.folder.findMany({ where: { owner: { email } } })
-      if (!folder) {
-        throw new Error('Not found')
-      }
-
-      return {
-        flashcards: folder.flashcards.map((tag) => mapFlashcard(tag, folders)),
-        folderPath: getFolderPath(folder.id, folders),
-        subfolders: await Promise.all(
-          folder.folders.map(async (folder) => ({
-            ...folder,
-            flashcardsCount: await getNestedFlashcardsCount(folder, email),
-          }))
-        ),
-      }
-    },
-    { key: () => ['folder', params.folderId] }
-  )
-
-export async function getNestedFlashcardsCount(
-  folder: Prisma.FolderGetPayload<{}>,
-  email: string
-): Promise<number> {
-  const folders = await db.folder.findMany({
+  const email = await requireUserEmail()
+  const folder = await db.folder.findFirst({
     where: {
-      id: folder.id,
+      id: folderId,
       owner: { email },
     },
     include: {
-      _count: {
-        select: {
-          flashcards: true,
+      flashcards: {
+        include: {
+          folder: true,
+          tags: true,
         },
       },
-
       folders: true,
     },
   })
-  let sum = 0
-  for (const folder of folders) {
-    sum += folder._count.flashcards
-    for (const subfolder of folder.folders) {
-      sum += await getNestedFlashcardsCount(subfolder, email)
-    }
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
+  if (!folder) {
+    throw new Error('Not found')
   }
 
-  return sum
-}
+  return {
+    flashcards: folder.flashcards.map((tag) => mapFlashcard(tag, folders)),
+    folderPath: getFolderPath(folder.id, folders),
+    subfolders: await Promise.all(
+      folder.folders.map(async (folder) => ({
+        ...folder,
+        flashcardsCount: await getNestedFlashcardsCount(folder, email),
+      }))
+    ),
+  }
+}, 'folder-folderId')
 
 export default function Subfolder() {
-  const data = useRouteData<typeof routeData>()
   const params = useParams()
+  const data = createAsync(() => flashcardsFolderId(params.folderId))
 
   return (
     <div>
@@ -91,7 +57,7 @@ export default function Subfolder() {
         {data()?.folderPath.map((folder, index) => (
           <>
             <Show when={index > 0}>{'/'}</Show>
-            <A href={`/flashcards/folder/${folder.id}`}>{folder.name}</A>
+            <a href={`/flashcards/folder/${folder.id}`}>{folder.name}</a>
           </>
         ))}
       </div>

@@ -1,18 +1,21 @@
 import { indexLoader } from '~/utils.server'
 import { chunk, groupBy } from 'lodash-es'
 import { clsx, daysFromNow } from '~/utils'
-import { A, useParams, useRouteData, useSearchParams } from 'solid-start'
 import {
-  createServerAction$,
-  createServerData$,
+  useParams,
+  useSearchParams,
   redirect,
-} from 'solid-start/server'
-import { requireUserEmail } from '~/session.server'
+  cache,
+  createAsync,
+  action,
+  useSubmission,
+} from '@solidjs/router'
+import { requireUserEmail } from '~/server/session.server'
+import { getNestedFlashcardsCount } from '~/server/getNestedFlashcardsCount'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { Button } from '~/components/base/Button'
 import { db } from '~/db/db.server'
 import { createLearningSession } from '~/service/learningSession'
-import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
 import { Prisma } from '@prisma/client'
 import { HeadingSmall } from '~/components/base/Heading'
 import { Sidebar } from '~/components/Sidebar'
@@ -29,80 +32,123 @@ type Folder = Prisma.FolderGetPayload<{}> & {
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000
 
-export const flashcardsServerData = () =>
-  createServerData$(async (_, event) => {
-    const email = await requireUserEmail(event.request)
-    return await indexLoader(email)
-  })
+const flashcardsServerData = async () => {
+  const email = await requireUserEmail()
+  return await indexLoader(email)
+}
 
-const activeLearningSession = () =>
-  createServerData$(async (_, event) => {
-    const email = await requireUserEmail(event.request)
-    return await db.learningSession.findUnique({
-      where: {
-        ownerEmail: email,
-      },
-      include: {
-        _count: {
-          select: {
-            completedFlashcards: true,
-            uncompletedFlashcards: true,
-          },
+const activeLearningSession = async () => {
+  const email = await requireUserEmail()
+  return await db.learningSession.findUnique({
+    where: {
+      ownerEmail: email,
+    },
+    include: {
+      _count: {
+        select: {
+          completedFlashcards: true,
+          uncompletedFlashcards: true,
         },
       },
-    })
+    },
   })
+}
 
-const folders = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const allFolders: Array<Folder> = await Promise.all(
-      (
-        await db.folder.findMany({
-          where: {
-            owner: {
-              email,
-            },
+const folders = async () => {
+  const email = await requireUserEmail()
+  const allFolders: Array<Folder> = await Promise.all(
+    (
+      await db.folder.findMany({
+        where: {
+          owner: {
+            email,
           },
-        })
-      ).map(async (folder) => {
-        return {
-          ...folder,
-          flashcardsCount: await getNestedFlashcardsCount(folder, email),
-          subfolders: [],
-        }
+        },
       })
-    )
-    const foldersById = Object.fromEntries(
-      allFolders.map((folder) => [folder.id, folder])
-    )
-    const folders: Array<Folder> = []
-    for (const folder of allFolders) {
-      if (folder.parentFolderId === null) {
-        folders.push(folder)
+    ).map(async (folder) => {
+      return {
+        ...folder,
+        flashcardsCount: await getNestedFlashcardsCount(folder, email),
+        subfolders: [],
+      }
+    })
+  )
+  const foldersById = Object.fromEntries(
+    allFolders.map((folder) => [folder.id, folder])
+  )
+  const folders: Array<Folder> = []
+  for (const folder of allFolders) {
+    if (folder.parentFolderId === null) {
+      folders.push(folder)
+    } else {
+      const parent = foldersById[folder.parentFolderId]
+      if (parent) {
+        parent.subfolders.push(folder)
       } else {
-        const parent = foldersById[folder.parentFolderId]
-        if (parent) {
-          parent.subfolders.push(folder)
-        } else {
-          throw new Error(
-            `Invalid folder structure, got ${JSON.stringify(
-              folder
-            )}, but folder with ${folder.parentFolderId} does not exist`
-          )
-        }
+        throw new Error(
+          `Invalid folder structure, got ${JSON.stringify(
+            folder
+          )}, but folder with ${folder.parentFolderId} does not exist`
+        )
       }
     }
-    return folders
-  })
-
-export const routeData = () => {
-  return {
-    data: flashcardsServerData(),
-    learningSession: activeLearningSession(),
-    folders: folders(),
   }
+  return folders
 }
+
+const routeData = cache(async () => {
+  'use server'
+
+  return {
+    data: await flashcardsServerData(),
+    learningSession: await activeLearningSession(),
+    folders: await folders(),
+  }
+}, 'index')
+
+const splitEvenly = action(async () => {
+  'use server'
+  const email = await requireUserEmail()
+  const flashcards = await db.flashcard.findMany({
+    where: { nextStudy: { lt: new Date(daysFromNow(0)) } },
+  })
+  await Promise.all(
+    chunk(flashcards, Math.ceil(flashcards.length / 30)).map(
+      (flashcard, index) => {
+        return db.flashcard.updateMany({
+          where: {
+            id: { in: flashcard.map((f) => f.id) },
+            ownerEmail: email,
+          },
+          data: { nextStudy: new Date(daysFromNow(index)) },
+        })
+      }
+    )
+  )
+}, 'splitEvenly')
+
+const createLearningSessionAction = action(async (formData: FormData) => {
+  'use server'
+  console.log('request')
+  const email = await requireUserEmail()
+  console.log(email)
+  const schema = z.object({
+    day: z.string(),
+    folders: z.string(),
+  })
+  const { day, folders } = schema.parse(Object.fromEntries(formData.entries()))
+  console.log(day, folders)
+
+  const dayNumber = parseInt(day)
+  z.number().parse(dayNumber)
+  console.log(email, dayNumber, folders)
+  await createLearningSession(
+    email,
+    dayNumber,
+    folders === '' ? undefined : folders.split(',')
+  )
+  return redirect('/learning-session')
+}, 'createLearningSession')
 
 const weekDayNames = [
   'Monday',
@@ -121,11 +167,11 @@ const getAllSubfolders = (folder: Folder): Folder[] => {
   )
 }
 export default function Calendar() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData(), { deferStream: true })
   const [selectedFolders, setFolders] = useFolders()
   const flashcards = createMemo(() => {
     if (data === undefined) return []
-    return data.data()?.flashcards.filter((flashcard) => {
+    return data()?.data.flashcards.filter((flashcard) => {
       return selectedFolders().length > 0
         ? selectedFolders().includes(flashcard.folder.id)
         : true
@@ -163,53 +209,12 @@ export default function Calendar() {
     )
   })
 
-  const [splittingEvenly, { Form }] = createServerAction$(
-    async (_: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const flashcards = await db.flashcard.findMany({
-        where: { nextStudy: { lt: new Date(daysFromNow(0)) } },
-      })
-      await Promise.all(
-        chunk(flashcards, Math.ceil(flashcards.length / 30)).map(
-          (flashcard, index) => {
-            return db.flashcard.updateMany({
-              where: {
-                id: { in: flashcard.map((f) => f.id) },
-                ownerEmail: email,
-              },
-              data: { nextStudy: new Date(daysFromNow(index)) },
-            })
-          }
-        )
-      )
-    }
-  )
-
-  const [creatingLearningSession, { Form: CreateLearningSessionForm }] =
-    createServerAction$(async (formData: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const schema = z.object({
-        day: z.string(),
-        folders: z.string(),
-      })
-      const { day, folders } = schema.parse(
-        Object.fromEntries(formData.entries())
-      )
-
-      const dayNumber = parseInt(day)
-      z.number().parse(dayNumber)
-      await createLearningSession(
-        email,
-        dayNumber,
-        folders === '' ? undefined : folders.split(',')
-      )
-      return redirect('/learning-session')
-    })
-
+  const splittingEvenly = useSubmission(splitEvenly)
+  const creatingLearningSession = useSubmission(createLearningSessionAction)
   const handleSelect = createMemo(() => (id: string) => {
     const flatFolders = [
-      ...(data.folders() ?? []),
-      ...(data.folders()?.flatMap((folder) => getAllSubfolders(folder)) ?? []),
+      ...(data()?.folders ?? []),
+      ...(data()?.folders?.flatMap((folder) => getAllSubfolders(folder)) ?? []),
     ]
     const newSelectedFolder = flatFolders.find((folder) => folder.id === id)
     const subfolders = newSelectedFolder
@@ -237,7 +242,7 @@ export default function Calendar() {
     <div class="flex h-full relative">
       <Sidebar>
         <HeadingSmall>Folders</HeadingSmall>
-        {data.folders()?.map((folder) => {
+        {data()?.folders?.map((folder) => {
           return (
             <FolderComponent
               folder={folder}
@@ -250,19 +255,19 @@ export default function Calendar() {
       </Sidebar>
       <div class="overflow-auto p-4 flex-grow">
         {splittingEvenly.pending && <div>Splitting evenly...</div>}
-        {splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}
+        {/*{splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}*/}
         {creatingLearningSession.pending && (
           <div>Creating learning session...</div>
         )}
-        {creatingLearningSession.error && (
-          <div>{creatingLearningSession.error.message}</div>
-        )}
-        <Show when={data.learningSession()}>
+        {/*{creatingLearningSession.error && (*/}
+        {/*  <div>{creatingLearningSession.error.message}</div>*/}
+        {/*)}*/}
+        <Show when={data()?.learningSession}>
           <div class="flex justify-between bg-white p-4 shadow-sm mb-6 rounded-lg">
-            {data.learningSession()?._count.completedFlashcards}/
-            {(data.learningSession()?._count.completedFlashcards ?? 0) +
-              (data.learningSession()?._count.uncompletedFlashcards ?? 0)}{' '}
-            learned in last session<A href="/learning-session">Continue</A>
+            {data()?.learningSession?._count.completedFlashcards}/
+            {(data()?.learningSession?._count.completedFlashcards ?? 0) +
+              (data()?.learningSession?._count.uncompletedFlashcards ?? 0)}{' '}
+            learned in last session<a href="/learning-session">Continue</a>
           </div>
         </Show>
         <div
@@ -285,8 +290,8 @@ export default function Calendar() {
               )
             })}
           <div class="day day--present">
-            <CreateLearningSessionForm>
-              <input type="hidden" name="day" value={0} />
+            <form action={createLearningSessionAction} method="post">
+              <input type="hidden" name="day" value="0" />
               <input
                 type="hidden"
                 name="folders"
@@ -296,7 +301,7 @@ export default function Calendar() {
                 {todaySeenFlashcards()?.length}/{todayFlashcards()?.length}
                 <div class="day__date">{Number(isoDate.slice(-2))}</div>
               </button>
-            </CreateLearningSessionForm>
+            </form>
           </div>
           {Array(27 - normalizedCurrentWeekDay)
             .fill(undefined)
@@ -305,7 +310,7 @@ export default function Calendar() {
               const todayFlashcards = flashcardsByNextStudy()[isoDate] ?? []
               return (
                 <div class="day day--future">
-                  <CreateLearningSessionForm>
+                  <form action={createLearningSessionAction} method="post">
                     <input type="hidden" name="day" value={index + 1} />
                     <input
                       type="hidden"
@@ -316,7 +321,7 @@ export default function Calendar() {
                       {todayFlashcards.length}
                       <div class="day__date">{Number(isoDate.slice(-2))}</div>
                     </button>
-                  </CreateLearningSessionForm>
+                  </form>
                 </div>
               )
             })}
@@ -349,7 +354,7 @@ export default function Calendar() {
               )
             })}
         </div>
-        <Form>
+        <form action={splitEvenly} method="post">
           <label>
             Are you sure?
             <input type="checkbox" required checked={splittingEvenly.pending} />
@@ -361,7 +366,7 @@ export default function Calendar() {
           <Button color="bad">
             Split today's flashcards evenly this month
           </Button>
-        </Form>
+        </form>
       </div>
     </div>
   )

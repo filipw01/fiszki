@@ -1,12 +1,16 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { Prisma } from '@prisma/client'
 import { FolderIcon } from '~/components/FolderIcon'
 import { clsx } from '~/utils'
 import { db } from '~/db/db.server'
-import { createServerData$ } from 'solid-start/server'
-import { A, Outlet, useParams, useRouteData } from 'solid-start'
+import {
+  cache,
+  createAsync,
+  RouteSectionProps,
+  useParams,
+} from '@solidjs/router'
 import { createSignal, For, onCleanup, onMount, Show } from 'solid-js'
-import { getNestedFlashcardsCount } from '~/routes/(app)/flashcards/folder/[folderId]'
+import { getNestedFlashcardsCount } from '~/server/getNestedFlashcardsCount'
 import { Sidebar } from '~/components/Sidebar'
 import AddIcon from '~icons/ri/add-fill'
 import MoreIcon from '~icons/ri/more-fill'
@@ -18,56 +22,56 @@ type Folder = Prisma.FolderGetPayload<{}> & {
   subfolders: Array<Folder>
 }
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const allFolders: Array<Folder> = await Promise.all(
-      (
-        await db.folder.findMany({
-          where: {
-            owner: {
-              email,
-            },
+const routeData = cache(async () => {
+  'use server'
+  const email = await requireUserEmail()
+  const allFolders: Array<Folder> = await Promise.all(
+    (
+      await db.folder.findMany({
+        where: {
+          owner: {
+            email,
           },
-        })
-      ).map(async (folder) => {
-        return {
-          ...folder,
-          flashcardsCount: await getNestedFlashcardsCount(folder, email),
-          subfolders: [],
-        }
+        },
       })
-    )
-    const foldersById = Object.fromEntries(
-      allFolders.map((folder) => [folder.id, folder])
-    )
-    const folders: Array<Folder> = []
-    for (const folder of allFolders) {
-      if (folder.parentFolderId === null) {
-        folders.push(folder)
+    ).map(async (folder) => {
+      return {
+        ...folder,
+        flashcardsCount: await getNestedFlashcardsCount(folder, email),
+        subfolders: [],
+      }
+    })
+  )
+  const foldersById = Object.fromEntries(
+    allFolders.map((folder) => [folder.id, folder])
+  )
+  const folders: Array<Folder> = []
+  for (const folder of allFolders) {
+    if (folder.parentFolderId === null) {
+      folders.push(folder)
+    } else {
+      const parent = foldersById[folder.parentFolderId]
+      if (parent) {
+        parent.subfolders.push(folder)
       } else {
-        const parent = foldersById[folder.parentFolderId]
-        if (parent) {
-          parent.subfolders.push(folder)
-        } else {
-          throw new Error(
-            `Invalid folder structure, got ${JSON.stringify(
-              folder
-            )}, but folder with ${folder.parentFolderId} does not exist`
-          )
-        }
+        throw new Error(
+          `Invalid folder structure, got ${JSON.stringify(
+            folder
+          )}, but folder with ${folder.parentFolderId} does not exist`
+        )
       }
     }
+  }
 
-    return { folders }
-  })
+  return { folders }
+}, 'flashcards')
 
-export default function Flashcards() {
+export default function Flashcards(props: RouteSectionProps) {
   const [selectedFolders, setSelectedFolders] = createSignal<
     Record<string, true>
   >({})
 
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
 
   const handleSelect = (id: string) => {
     const subfolders =
@@ -92,9 +96,9 @@ export default function Flashcards() {
     <div class="flex h-full relative">
       <Sidebar>
         <div class="-mx-4">
-          <A href="/flashcards/all" class="ml-4">
+          <a href="/flashcards/all" class="ml-4">
             All flashcards
-          </A>
+          </a>
           <For each={data()?.folders}>
             {(folder) => (
               <FolderComponent
@@ -108,7 +112,7 @@ export default function Flashcards() {
         </div>
       </Sidebar>
       <div class="h-full overflow-auto flex-grow py-5 px-8">
-        <Outlet />
+        {props.children}
       </div>
     </div>
   )
@@ -144,7 +148,7 @@ const FolderComponent = (
             <ArrowIcon class="w-3 h-3" />
           </button>
         </Show>
-        <A
+        <a
           href={`/flashcards/folder/${props.id}`}
           class="flex gap-2 items-center h-7"
         >
@@ -154,7 +158,7 @@ const FolderComponent = (
           {props.name}
           <div class="rounded bg-dark-gray w-0.5 h-0.5" />
           <span class="text-dark-gray">{props.flashcardsCount}</span>
-        </A>
+        </a>
         <AddButton folderId={props.id} />
         <MoreButton folderId={props.id} />
       </div>
@@ -208,18 +212,18 @@ const AddButton = (props: { folderId: string }) => {
       </button>
       <Show when={isOpen()}>
         <div class="flex flex-col absolute top-full left-0 rounded-lg px-4 py-2 bg-white shadow z-10 w-max">
-          <A
+          <a
             href={`/flashcards/create?folderId=${props.folderId}`}
             onClick={close}
           >
             Create new flashcard here
-          </A>
-          <A
+          </a>
+          <a
             href={`/flashcards/folder/create?folderId=${props.folderId}`}
             onClick={close}
           >
             Create new folder here
-          </A>
+          </a>
         </div>
       </Show>
     </div>
@@ -229,12 +233,12 @@ const AddButton = (props: { folderId: string }) => {
 const MoreButton = (props: { folderId: string }) => {
   return (
     <div>
-      <A
+      <a
         class="h-4 w-4 bg-blue rounded text-white block"
         href={`/flashcards/folder/edit/${props.folderId}`}
       >
         <MoreIcon class="w-4 h-4" />
-      </A>
+      </a>
     </div>
   )
 }

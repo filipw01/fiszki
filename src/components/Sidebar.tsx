@@ -1,6 +1,6 @@
 import { JSX } from 'solid-js'
-import { useSidebarVisibility } from '~/routes/(app)'
 import { clsx } from '~/utils'
+import { useSidebarVisibility } from '~/components/SidebarVisibilityContext'
 
 export const Sidebar = (props: { children: JSX.Element }) => {
   const [isSidebarOpen] = useSidebarVisibility()

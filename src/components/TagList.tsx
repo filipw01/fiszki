@@ -1,6 +1,5 @@
 import { Tag as TagType } from '~/utils.server'
 import { For, Show } from 'solid-js'
-import { A } from 'solid-start'
 import { Tag } from './Tag'
 
 interface Props {
@@ -19,11 +18,11 @@ export const TagList = (props: Props) => {
       </Show>
       <For each={props.tags}>
         {(tag) => (
-          <A href={`/tags/${tag.id}`}>
+          <a href={`/tags/${tag.id}`}>
             <Tag color={tag.color} size={props.size}>
               {tag.name}
             </Tag>
-          </A>
+          </a>
         )}
       </For>
     </div>

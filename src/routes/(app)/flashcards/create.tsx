@@ -1,141 +1,148 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Textarea } from '~/components/base/Textarea'
-import {
-  createServerAction$,
-  createServerData$,
-  redirect,
-} from 'solid-start/server'
 import { db } from '~/db/db.server'
-import { useRouteData, useSearchParams } from 'solid-start'
+import {
+  useSearchParams,
+  redirect,
+  cache,
+  createAsync,
+  action,
+  useSubmission,
+} from '@solidjs/router'
 import { uploadImageToS3 } from '~/db/uploadHandler.server'
 import { For } from 'solid-js'
 import { z } from 'zod'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const folders = await db.folder.findMany({
-      where: { owner: { email } },
-    })
-    const tags = await db.tag.findMany({
-      where: { owner: { email } },
-    })
-    const foldersWithMappedName = folders
-      .map((folder) => {
-        return {
-          ...folder,
-          name: getFolderNamePath(folder.id, folders),
-        }
-      })
-      .sort((a, b) => a.name.localeCompare(b.name))
+const routeData = cache(async () => {
+  'use server'
 
-    return { folders: foldersWithMappedName, tags }
+  const email = await requireUserEmail()
+  const folders = await db.folder.findMany({
+    where: { owner: { email } },
+  })
+  const tags = await db.tag.findMany({
+    where: { owner: { email } },
+  })
+  const foldersWithMappedName = folders
+    .map((folder) => {
+      return {
+        ...folder,
+        name: getFolderNamePath(folder.id, folders),
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  return { folders: foldersWithMappedName, tags }
+}, 'flashcards-create')
+
+const createFlashcard = action(async (form: FormData) => {
+  'use server'
+
+  const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
+
+  const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
+
+  const email = await requireUserEmail()
+
+  const { front, frontImage } = z
+    .object({
+      frontImage: z.any().refine((file) => file.size > 0),
+      front: z.string(),
+    })
+    .or(
+      z.object({
+        frontImage: z.any().refine((file) => file.size === 0),
+        front: z.string().nonempty(),
+      })
+    )
+    .parse(parseForm(form))
+
+  const { back, backImage } = z
+    .object({
+      backImage: z.any().refine((file) => file.size > 0),
+      back: z.string(),
+    })
+    .or(
+      z.object({
+        backImage: z.any().refine((file) => file.size === 0),
+        back: z.string().nonempty(),
+      })
+    )
+    .parse(parseForm(form))
+
+  const {
+    tags: tagsOrTag,
+    randomSideAllowed,
+    folderId,
+    frontLanguage,
+    backLanguage,
+    frontDescription,
+    backDescription,
+  } = z
+    .object({
+      folderId: z.string(),
+      tags: z
+        .array(z.string().nonempty())
+        .default([])
+        .or(z.string().nonempty()),
+      randomSideAllowed: z.literal('on').optional(),
+      frontLanguage: z.enum(supportedLocales),
+      frontDescription: z.string(),
+      backLanguage: z.enum(supportedLocales),
+      backDescription: z.string(),
+    })
+    .parse(parseForm(form))
+
+  const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
+
+  const ownedTags = await db.tag.findMany({
+    where: {
+      id: {
+        in: tags,
+      },
+      owner: {
+        email,
+      },
+    },
+  })
+  if (ownedTags.length !== tags.length) {
+    return new Error('You need to own all tags you try to assign')
+  }
+
+  const [frontImageUrl, backImageUrl] = await Promise.all([
+    uploadImageToS3(frontImage),
+    uploadImageToS3(backImage),
+  ])
+
+  await db.flashcard.create({
+    data: {
+      front,
+      back,
+      frontLanguage,
+      backLanguage,
+      frontDescription,
+      backDescription,
+      frontImage: frontImageUrl,
+      backImage: backImageUrl,
+      randomSideAllowed: randomSideAllowed === 'on',
+      folder: { connect: { id: folderId } },
+      owner: { connect: { email } },
+      tags: { connect: tags.map((id) => ({ id })) },
+      lastSeen: new Date(Date.now() - ONE_DAY_IN_MS),
+    },
   })
 
-export const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
+  return redirect(`/flashcards/folder/${folderId}`)
+})
+
+const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
 
 export default function CreateFlashcard() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
   const [searchParams] = useSearchParams()
 
-  const [isCreating, { Form }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
-
-      const email = await requireUserEmail(request)
-
-      const { front, frontImage } = z
-        .object({
-          frontImage: z.any().refine((file) => file.size > 0),
-          front: z.string(),
-        })
-        .or(
-          z.object({
-            frontImage: z.any().refine((file) => file.size === 0),
-            front: z.string().nonempty(),
-          })
-        )
-        .parse(parseForm(form))
-
-      const { back, backImage } = z
-        .object({
-          backImage: z.any().refine((file) => file.size > 0),
-          back: z.string(),
-        })
-        .or(
-          z.object({
-            backImage: z.any().refine((file) => file.size === 0),
-            back: z.string().nonempty(),
-          })
-        )
-        .parse(parseForm(form))
-
-      const {
-        tags: tagsOrTag,
-        randomSideAllowed,
-        folderId,
-        frontLanguage,
-        backLanguage,
-        frontDescription,
-        backDescription,
-      } = z
-        .object({
-          folderId: z.string(),
-          tags: z
-            .array(z.string().nonempty())
-            .default([])
-            .or(z.string().nonempty()),
-          randomSideAllowed: z.literal('on').optional(),
-          frontLanguage: z.enum(supportedLocales),
-          frontDescription: z.string(),
-          backLanguage: z.enum(supportedLocales),
-          backDescription: z.string(),
-        })
-        .parse(parseForm(form))
-
-      const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
-
-      const ownedTags = await db.tag.findMany({
-        where: {
-          id: {
-            in: tags,
-          },
-          owner: {
-            email,
-          },
-        },
-      })
-      if (ownedTags.length !== tags.length) {
-        return new Error('You need to own all tags you try to assign')
-      }
-
-      const [frontImageUrl, backImageUrl] = await Promise.all([
-        uploadImageToS3(frontImage),
-        uploadImageToS3(backImage),
-      ])
-
-      await db.flashcard.create({
-        data: {
-          front,
-          back,
-          frontLanguage,
-          backLanguage,
-          frontDescription,
-          backDescription,
-          frontImage: frontImageUrl,
-          backImage: backImageUrl,
-          randomSideAllowed: randomSideAllowed === 'on',
-          folder: { connect: { id: folderId } },
-          owner: { connect: { email } },
-          tags: { connect: tags.map((id) => ({ id })) },
-          lastSeen: new Date(Date.now() - ONE_DAY_IN_MS),
-        },
-      })
-
-      return redirect(`/flashcards/folder/${folderId}`)
-    }
-  )
+  const isCreating = useSubmission(createFlashcard)
 
   const formatter = new Intl.DisplayNames('en-US', {
     type: 'language',
@@ -149,9 +156,9 @@ export default function CreateFlashcard() {
   })
 
   return (
-    <Form enctype="multipart/form-data">
+    <form enctype="multipart/form-data" action={createFlashcard} method="post">
       {isCreating.pending && <div>Creating...</div>}
-      {isCreating.error && <div>{isCreating.error.message}</div>}
+      {/*{isCreating.error && <div>{isCreating.error.message}</div>}*/}
       <div class="flex flex-col gap-2">
         <div class="flex gap-4">
           <div class="flex flex-col flex-grow">
@@ -246,6 +253,6 @@ export default function CreateFlashcard() {
           Create Flashcard
         </button>
       </div>
-    </Form>
+    </form>
   )
 }

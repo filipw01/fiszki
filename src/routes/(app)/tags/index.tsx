@@ -1,39 +1,39 @@
 import { mapTag } from '~/utils.server'
-import { requireUserEmail } from '~/session.server'
-import { createServerData$ } from 'solid-start/server'
+import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
-import { A, useRouteData } from 'solid-start'
 import { For } from 'solid-js'
 import { Tag } from '~/components/Tag'
 import { HeadingWithCreate } from '~/components/HeadingWithCreate'
+import { cache, createAsync } from '@solidjs/router'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const tags = await db.tag.findMany({
-      where: {
-        owner: { email },
-      },
-      include: {
-        _count: {
-          select: {
-            flashcards: true,
-          },
+const routeData = cache(async () => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const tags = await db.tag.findMany({
+    where: {
+      owner: { email },
+    },
+    include: {
+      _count: {
+        select: {
+          flashcards: true,
         },
       },
-    })
-
-    const mappedTags = tags.map((tag) => ({
-      ...mapTag(tag),
-      flashcardsCount: tag._count.flashcards,
-      id: tag.id,
-    }))
-
-    return { tags: mappedTags }
+    },
   })
 
+  const mappedTags = tags.map((tag) => ({
+    ...mapTag(tag),
+    flashcardsCount: tag._count.flashcards,
+    id: tag.id,
+  }))
+
+  return { tags: mappedTags }
+}, 'tags-index')
+
 export default function Index() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
   return (
     <div class="p-8">
       <HeadingWithCreate url="/tags/create">Tags</HeadingWithCreate>
@@ -42,12 +42,12 @@ export default function Index() {
         <For each={data()?.tags}>
           {(tag) => (
             <div class="flex items-center gap-2">
-              <A href={`/tags/${tag.id}`}>
+              <a href={`/tags/${tag.id}`}>
                 <Tag color={tag.color}>
                   {`${tag.name} (${tag.flashcardsCount})`}
                 </Tag>
-              </A>
-              <A href={`/tags/edit/${tag.id}`}>Edit</A>
+              </a>
+              <a href={`/tags/edit/${tag.id}`}>Edit</a>
             </div>
           )}
         </For>

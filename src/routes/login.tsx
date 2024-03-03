@@ -1,55 +1,56 @@
-import { A, FormError, useParams, useRouteData } from 'solid-start'
-import { createUserSession, isLoggedIn, login } from '~/session.server'
+import {
+  action,
+  RouteDefinition,
+  useParams,
+  useSubmission,
+} from '@solidjs/router'
+import { createUserSession, login } from '~/server/session.server'
 import { AuthFormContent } from '~/components/AuthFormContent'
 import { isNonEmptyString } from '~/utils.server'
-import {
-  createServerAction$,
-  createServerData$,
-  redirect,
-} from 'solid-start/server'
+import { loggedOutGuard } from '~/server-actions'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    if (await isLoggedIn(request)) {
-      const redirectTo = new URL(request.url).searchParams.get('redirectTo')
-      throw redirect(redirectTo ?? '/')
-    }
-    return {}
-  })
+// TODO: is this for preloading? when should we use it
+export const route = {
+  load: () => loggedOutGuard(),
+} satisfies RouteDefinition
+
+const loginAction = action(async (form: FormData) => {
+  'use server'
+
+  const email = form.get('email')
+  const password = form.get('password')
+
+  if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+    // throw new FormError('Missing email or password')
+    throw new Error('Missing email or password')
+  }
+
+  const result = await login({ email, password })
+  if (result === null) {
+    // throw new FormError('Invalid email or password')
+    throw new Error('Invalid email or password')
+  }
+
+  const redirectTo = form.get('redirectTo')
+
+  return createUserSession(
+    email,
+    typeof redirectTo === 'string' ? redirectTo : '/'
+  )
+}, 'login')
 
 export default function Login() {
-  const data = useRouteData<typeof routeData>()
-  data() // force routeData to run
-  const [loggingIn, { Form }] = createServerAction$(async (form: FormData) => {
-    const email = form.get('email')
-    const password = form.get('password')
-
-    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
-      throw new FormError('Missing email or password')
-    }
-
-    const result = await login({ email, password })
-    if (result === null) {
-      throw new FormError('Invalid email or password')
-    }
-
-    const redirectTo = form.get('redirectTo')
-
-    return createUserSession(
-      email,
-      typeof redirectTo === 'string' ? redirectTo : '/'
-    )
-  })
+  const loggingIn = useSubmission(loginAction)
 
   const params = useParams()
   return (
-    <Form class="h-full">
+    <form action={loginAction} method="post" class="h-full">
       <input type="hidden" name="redirectTo" value={params.redirectTo ?? '/'} />
-      {loggingIn.error && (
-        <p role="alert" id="error-message">
-          {loggingIn.error.message}
-        </p>
-      )}
+      {/*{loggingIn.error && (*/}
+      {/*  <p role="alert" id="error-message">*/}
+      {/*    {loggingIn.error.message}*/}
+      {/*  </p>*/}
+      {/*)}*/}
       {loggingIn.pending && <p>Logging in...</p>}
       <AuthFormContent>
         <AuthFormContent.Field type="email" name="email" label="Email" />
@@ -59,8 +60,8 @@ export default function Login() {
           label="Password"
         />
         <AuthFormContent.Submit>Login</AuthFormContent.Submit>
-        <A href="/signup">I don't have an account yet</A>
+        <a href="/signup">I don't have an account yet</a>
       </AuthFormContent>
-    </Form>
+    </form>
   )
 }

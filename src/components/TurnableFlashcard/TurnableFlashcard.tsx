@@ -1,19 +1,19 @@
 import { createSignal, Index, Show, JSX } from 'solid-js'
-import { A, refetchRouteData } from 'solid-start'
 import { Flashcard as FlashcardType, isNonEmptyString } from '~/utils.server'
 import { NewFlashcard } from '../NewFlashcard/NewFlashcard'
 import BinIcon from '~icons/ri/delete-bin-line'
 import EditIcon from '~icons/ri/edit-2-line'
 import SpeakerIcon from '~icons/ri/volume-up-line'
 import styles from './TurnableFlashcard.module.css'
-import server$ from 'solid-start/server'
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
 import { deleteFlashcard as serverDeleteFlashcard } from '~/flashcard.server'
+import { action, useAction } from '@solidjs/router'
 
-const server2deleteFlashcard = server$(async (id) => {
-  // @ts-ignore This is not typed here, take care of it later
-  const email = await requireUserEmail(this.request)
+const server2deleteFlashcard = action(async (id: string) => {
+  'use server'
+
+  const email = await requireUserEmail()
   if (!isNonEmptyString(id)) throw new Error('Missing data')
 
   await db.flashcard.findFirstOrThrow({
@@ -21,7 +21,7 @@ const server2deleteFlashcard = server$(async (id) => {
   })
 
   await serverDeleteFlashcard(id)
-})
+}, 'deleteFlashcard')
 
 export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
   const [isFront, setIsFront] = createSignal(true)
@@ -58,11 +58,11 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
     }
   }
 
+  const deleteFlashcardAction = useAction(server2deleteFlashcard)
   function deleteFlashcard() {
     setDeleting(true)
     timeoutId = setTimeout(async () => {
-      await server2deleteFlashcard(props.flashcard.id)
-      await refetchRouteData()
+      await deleteFlashcardAction(props.flashcard.id)
     }, 2500)
   }
 
@@ -118,9 +118,9 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
           </Show>
         </div>
         <ButtonWrapper color="#adb5bd" hoverColor="#6c757d">
-          <A href={`/flashcards/edit/${props.flashcard.id}`}>
+          <a href={`/flashcards/edit/${props.flashcard.id}`}>
             <EditIcon height={iconSize} width={iconSize} />
-          </A>
+          </a>
         </ButtonWrapper>
         <div class={styles.speakerWrapper}>
           <ButtonWrapper color="#729bd7" hoverColor="#3770C6">

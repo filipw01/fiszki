@@ -1,5 +1,4 @@
 import { FolderIcon } from '~/components/FolderIcon'
-import { A } from 'solid-start'
 import styles from './Folder.module.css'
 
 type Props = {
@@ -11,7 +10,7 @@ type Props = {
 
 export const Folder = (props: Props) => {
   return (
-    <A href={props.nameLink} class={styles.card}>
+    <a href={props.nameLink} class={styles.card}>
       <div class={styles.icon} style={{ '--icon-color': props.color }}>
         <FolderIcon width={42} height={34} />
       </div>
@@ -19,6 +18,6 @@ export const Folder = (props: Props) => {
         <p class={styles.name}>{props.name}</p>
         <p class={styles.counter}>{props.count + ' flashcards'}</p>
       </div>
-    </A>
+    </a>
   )
 }

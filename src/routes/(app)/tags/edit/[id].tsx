@@ -1,95 +1,106 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { isNonEmptyString } from '~/utils.server'
 import { Input } from '~/components/base/Input'
 import {
-  createServerAction$,
-  createServerData$,
+  useParams,
   redirect,
-} from 'solid-start/server'
+  action,
+  useSubmission,
+  createAsync,
+  cache,
+} from '@solidjs/router'
 import { db } from '~/db/db.server'
-import { FormError, RouteDataArgs, useParams, useRouteData } from 'solid-start'
 
-export const routeData = ({ params }: RouteDataArgs) =>
-  createServerData$(
-    async ([, id], { request }) => {
-      await requireUserEmail(request)
-      const tag = await db.tag.findUnique({ where: { id } })
-      if (!tag) {
-        throw new Error('Tag not found')
-      }
+const routeData = cache(async (id: string) => {
+  'use server'
+  await requireUserEmail()
+  const tag = await db.tag.findUnique({ where: { id: id } })
+  if (!tag) {
+    throw new Error('Tag not found')
+  }
 
-      return { tag }
+  return { tag }
+}, 'tags-edit-id')
+
+const update = action(async (form: FormData) => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const id = form.get('id')
+
+  if (!isNonEmptyString(id)) {
+    throw new Error('Missing id')
+    // TODO: how to throw FormError?
+    // throw new FormError('Missing id')
+  }
+
+  await db.tag.findFirstOrThrow({
+    where: {
+      id,
+      owner: { email },
     },
-    { key: () => ['tag', params.id] }
-  )
+  })
+
+  const name = form.get('name')
+  const color = form.get('color')
+
+  if (!isNonEmptyString(name) || !isNonEmptyString(color)) {
+    throw new Error('Missing data')
+    // TODO: how to throw FormError?
+    // throw new FormError('Missing data')
+  }
+
+  await db.tag.update({
+    where: {
+      id,
+    },
+    data: {
+      name,
+      color,
+      owner: { connect: { email } },
+    },
+  })
+  return redirect('/tags')
+})
+
+const deleteAction = action(async (form: FormData) => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const id = form.get('id')
+
+  if (!isNonEmptyString(id)) {
+    throw new Error('Missing id')
+    // TODO: how to throw FormError?
+    // throw new FormError('Missing id')
+  }
+
+  await db.tag.findFirstOrThrow({
+    where: {
+      id,
+      owner: { email },
+    },
+  })
+  await db.tag.delete({ where: { id } })
+  return redirect('/tags')
+})
 
 export default function EditFolder() {
-  const data = useRouteData<typeof routeData>()
+  // TODO: or instead cache + createAsync https://start.solidjs.com/core-concepts/data-loading
+  // const data = props.data
   const params = useParams()
   const id = params.id
+  const data = createAsync(() => routeData(id))
 
-  const [isUpdating, { Form }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const id = form.get('id')
-
-      if (!isNonEmptyString(id)) {
-        throw new FormError('Missing id')
-      }
-
-      await db.tag.findFirstOrThrow({
-        where: {
-          id,
-          owner: { email },
-        },
-      })
-
-      const name = form.get('name')
-      const color = form.get('color')
-
-      if (!isNonEmptyString(name) || !isNonEmptyString(color)) {
-        throw new FormError('Missing data')
-      }
-
-      await db.tag.update({
-        where: {
-          id,
-        },
-        data: {
-          name,
-          color,
-          owner: { connect: { email } },
-        },
-      })
-      return redirect('/tags')
-    }
-  )
-
-  const [isDeleting, { Form: DeleteForm }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const id = form.get('id')
-
-      if (!isNonEmptyString(id)) {
-        throw new FormError('Missing id')
-      }
-
-      await db.tag.findFirstOrThrow({
-        where: {
-          id,
-          owner: { email },
-        },
-      })
-      await db.tag.delete({ where: { id } })
-      return redirect('/tags')
-    }
-  )
+  const isUpdating = useSubmission(update)
+  const isDeleting = useSubmission(deleteAction)
 
   return (
     <div class="p-8">
       {isUpdating.pending && <div>Updating...</div>}
-      {isUpdating.error && <div>Error: {isUpdating.error.message}</div>}
-      <Form>
+      {/* TODO: how to read error from form */}
+      {/*{isUpdating.error && <div>Error: {isUpdating.error.message}</div>}*/}
+      <form action={update} method="post">
         <input type="hidden" name="id" value={id} />
         <div class="flex flex-col gap-2">
           <Input name="name" label="Name" value={data()?.tag.name} />
@@ -109,10 +120,15 @@ export default function EditFolder() {
             Save
           </button>
         </div>
-      </Form>
+      </form>
       {isDeleting.pending && <div>Deleting...</div>}
-      {isDeleting.error && <div>Error: {isDeleting.error.message}</div>}
-      <DeleteForm class="flex flex-col mt-8 gap-2">
+      {/* TODO: how to read form error */}
+      {/*{isDeleting.error && <div>Error: {isDeleting.error.message}</div>}*/}
+      <form
+        action={deleteAction}
+        method="post"
+        class="flex flex-col mt-8 gap-2"
+      >
         <input type="hidden" name="id" value={id} />
         <label>
           <input type="checkbox" required class="mr-2" />I confirm that I want
@@ -124,7 +140,7 @@ export default function EditFolder() {
         >
           Delete
         </button>
-      </DeleteForm>
+      </form>
     </div>
   )
 }

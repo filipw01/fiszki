@@ -1,67 +1,72 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Input } from '~/components/base/Input'
-import {
-  createServerAction$,
-  createServerData$,
-  redirect,
-} from 'solid-start/server'
 import { db } from '~/db/db.server'
 import { folderForm } from '~/schemas/folder'
-import { useRouteData, useSearchParams } from 'solid-start'
+import {
+  useSearchParams,
+  redirect,
+  cache,
+  createAsync,
+  useSubmission,
+  action,
+} from '@solidjs/router'
 import { For } from 'solid-js'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const folders = await db.folder.findMany({ where: { owner: { email } } })
-    return folders
-      .map((folder) => {
-        return {
-          ...folder,
-          name: getFolderNamePath(folder.id, folders),
-        }
-      })
-      .sort((a, b) => a.name.localeCompare(b.name))
+const routeData = cache(async () => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const folders = await db.folder.findMany({ where: { owner: { email } } })
+  return folders
+    .map((folder) => {
+      return {
+        ...folder,
+        name: getFolderNamePath(folder.id, folders),
+      }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+}, 'flashcards-folder-create')
+
+const createFolder = action(async (form: FormData) => {
+  'use server'
+
+  const email = await requireUserEmail()
+
+  const { name, color, parentFolderId } = folderForm.parse(parseForm(form))
+
+  if (parentFolderId) {
+    db.folder.findFirstOrThrow({
+      where: {
+        id: parentFolderId,
+        owner: { email },
+      },
+    })
+  }
+
+  await db.folder.create({
+    data: {
+      name,
+      color,
+      owner: { connect: { email } },
+      parentFolder: parentFolderId
+        ? { connect: { id: parentFolderId } }
+        : undefined,
+    },
   })
+  return redirect(
+    parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`
+  )
+}, 'create-folder')
 
 export default function CreateFolder() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
   const [searchParams] = useSearchParams()
-  const [isCreating, { Form }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-
-      const { name, color, parentFolderId } = folderForm.parse(parseForm(form))
-
-      if (parentFolderId) {
-        db.folder.findFirstOrThrow({
-          where: {
-            id: parentFolderId,
-            owner: { email },
-          },
-        })
-      }
-
-      await db.folder.create({
-        data: {
-          name,
-          color,
-          owner: { connect: { email } },
-          parentFolder: parentFolderId
-            ? { connect: { id: parentFolderId } }
-            : undefined,
-        },
-      })
-      return redirect(
-        parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`
-      )
-    }
-  )
+  const isCreating = useSubmission(createFolder)
   return (
-    <Form>
+    <form action={createFolder} method="post">
       {isCreating.pending && <div>Creating...</div>}
-      {isCreating.error && <div>{isCreating.error.message}</div>}
+      {/*{isCreating.error && <div>{isCreating.error.message}</div>}*/}
       <div class="flex flex-col p-8 gap-2">
         <Input name="name" label="Name" />
         <label class="flex">
@@ -99,6 +104,6 @@ export default function CreateFolder() {
           Create Folder
         </button>
       </div>
-    </Form>
+    </form>
   )
 }

@@ -1,7 +1,6 @@
 import catImage from '~/assets/cat.png'
 import { TagList } from '~/components/TagList'
 import { Tag } from '~/utils.server'
-import { A } from 'solid-start'
 import { createEffect, createMemo, JSX, Show } from 'solid-js'
 import { Motion } from '@motionone/solid'
 import JSConfetti from 'js-confetti'
@@ -92,7 +91,7 @@ export const Flashcard = (props: Props) => {
       >
         <Show when={props.isEditable}>
           <div class="absolute top-2 right-2 text-sm lg:text-lg">
-            <A href={`/flashcards/edit/${props.id}`}>Edit</A>
+            <a href={`/flashcards/edit/${props.id}`}>Edit</a>
           </div>
         </Show>
         <ConditionalButton onClick={props.onClick}>

@@ -1,140 +1,145 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, isNonEmptyString, parseForm } from '~/utils.server'
 import { Textarea } from '~/components/base/Textarea'
 import { db } from '~/db/db.server'
 import {
-  createServerAction$,
-  createServerData$,
+  useParams,
   redirect,
-} from 'solid-start/server'
-import { RouteDataArgs, useParams, useRouteData } from 'solid-start'
+  action,
+  createAsync,
+  useSubmission,
+  cache,
+} from '@solidjs/router'
 import { createMemo, For } from 'solid-js'
-import { supportedLocales } from '~/routes/(app)/flashcards/create'
 import { z } from 'zod'
 import { deleteFlashcard } from '~/flashcard.server'
 
-export const routeData = ({ params }: RouteDataArgs) =>
-  createServerData$(
-    async ([, flashcardId], { request }) => {
-      const email = await requireUserEmail(request)
-      const folders = await db.folder.findMany({
-        where: { owner: { email } },
-      })
-      const tags = await db.tag.findMany({
-        where: { owner: { email } },
-      })
-      const flashcard = await db.flashcard.findFirstOrThrow({
-        where: { id: flashcardId, owner: { email } },
-        include: { tags: true },
-      })
+const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
 
-      if (!flashcard) {
-        throw new Error('Not found')
+const routeData = cache(async (flashcardId: string) => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const folders = await db.folder.findMany({
+    where: { owner: { email } },
+  })
+  const tags = await db.tag.findMany({
+    where: { owner: { email } },
+  })
+  const flashcard = await db.flashcard.findFirstOrThrow({
+    where: { id: flashcardId, owner: { email } },
+    include: { tags: true },
+  })
+
+  if (!flashcard) {
+    throw new Error('Not found')
+  }
+
+  const foldersWithMappedName = folders
+    .map((folder) => {
+      return {
+        ...folder,
+        name: getFolderNamePath(folder.id, folders),
       }
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 
-      const foldersWithMappedName = folders
-        .map((folder) => {
-          return {
-            ...folder,
-            name: getFolderNamePath(folder.id, folders),
-          }
-        })
-        .sort((a, b) => a.name.localeCompare(b.name))
+  return { folders: foldersWithMappedName, tags, flashcard }
+}, 'flashcard-edit-id')
 
-      return { folders: foldersWithMappedName, tags, flashcard }
-    },
-    { key: () => ['flashcard', params.id] }
-  )
+const editFlashcard = action(async (form: FormData) => {
+  'use server'
+
+  const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
+
+  const email = await requireUserEmail()
+  const action = form.get('action')
+  const id = form.get('id')
+  if (!isNonEmptyString(id)) throw new Error('Missing data')
+
+  await db.flashcard.findFirstOrThrow({
+    where: { id, owner: { email } },
+  })
+
+  if (action === 'update') {
+    const {
+      backDescription,
+      backLanguage,
+      frontDescription,
+      frontLanguage,
+      front,
+      back,
+      randomSideAllowed,
+      folderId,
+      tags: tagsOrTag,
+    } = z
+      .object({
+        front: z.string().nonempty(),
+        back: z.string().nonempty(),
+        frontLanguage: z.enum(supportedLocales),
+        backLanguage: z.enum(supportedLocales),
+        folderId: z.string().nonempty(),
+        tags: z
+          .array(z.string().nonempty())
+          .default([])
+          .or(z.string().nonempty()),
+        backDescription: z.string(),
+        frontDescription: z.string(),
+        randomSideAllowed: z.literal('on').optional(),
+      })
+      .parse(parseForm(form))
+
+    const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
+
+    await db.folder.findFirstOrThrow({
+      where: {
+        id: folderId,
+        owner: { email },
+      },
+    })
+
+    const ownedTags = await db.tag.findMany({
+      where: {
+        id: {
+          in: tags,
+        },
+        owner: {
+          email,
+        },
+      },
+    })
+    if (ownedTags.length !== tags.length) {
+      throw new Error('You need to own all tags you try to assign')
+    }
+
+    await db.flashcard.update({
+      where: {
+        id,
+      },
+      data: {
+        front,
+        back,
+        frontDescription,
+        backDescription,
+        frontLanguage,
+        backLanguage,
+        randomSideAllowed: randomSideAllowed === 'on',
+        folder: { connect: { id: folderId } },
+        tags: { set: tags.map((id) => ({ id })) },
+      },
+    })
+    return redirect(`/flashcards/folder/${folderId}`)
+  } else if (action === 'delete') {
+    const flashcard = await deleteFlashcard(id)
+    return redirect(`/flashcards/folder/${flashcard.folderId}`)
+  }
+}, 'edit-flashcard')
 
 export default function EditFlashcard() {
-  const data = useRouteData<typeof routeData>()
   const params = useParams()
+  const data = createAsync(() => routeData(params.id))
 
-  const [isEditing, { Form }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const action = form.get('action')
-      const id = form.get('id')
-      if (!isNonEmptyString(id)) throw new Error('Missing data')
-
-      await db.flashcard.findFirstOrThrow({
-        where: { id, owner: { email } },
-      })
-
-      if (action === 'update') {
-        const {
-          backDescription,
-          backLanguage,
-          frontDescription,
-          frontLanguage,
-          front,
-          back,
-          randomSideAllowed,
-          folderId,
-          tags: tagsOrTag,
-        } = z
-          .object({
-            front: z.string().nonempty(),
-            back: z.string().nonempty(),
-            frontLanguage: z.enum(supportedLocales),
-            backLanguage: z.enum(supportedLocales),
-            folderId: z.string().nonempty(),
-            tags: z
-              .array(z.string().nonempty())
-              .default([])
-              .or(z.string().nonempty()),
-            backDescription: z.string(),
-            frontDescription: z.string(),
-            randomSideAllowed: z.literal('on').optional(),
-          })
-          .parse(parseForm(form))
-
-        const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
-
-        await db.folder.findFirstOrThrow({
-          where: {
-            id: folderId,
-            owner: { email },
-          },
-        })
-
-        const ownedTags = await db.tag.findMany({
-          where: {
-            id: {
-              in: tags,
-            },
-            owner: {
-              email,
-            },
-          },
-        })
-        if (ownedTags.length !== tags.length) {
-          throw new Error('You need to own all tags you try to assign')
-        }
-
-        await db.flashcard.update({
-          where: {
-            id,
-          },
-          data: {
-            front,
-            back,
-            frontDescription,
-            backDescription,
-            frontLanguage,
-            backLanguage,
-            randomSideAllowed: randomSideAllowed === 'on',
-            folder: { connect: { id: folderId } },
-            tags: { set: tags.map((id) => ({ id })) },
-          },
-        })
-        return redirect(`/flashcards/folder/${folderId}`)
-      } else if (action === 'delete') {
-        const flashcard = await deleteFlashcard(id)
-        return redirect(`/flashcards/folder/${flashcard.folderId}`)
-      }
-    }
-  )
+  const isEditing = useSubmission(editFlashcard)
   const tagIds = createMemo(() => data()?.flashcard.tags.map((tag) => tag.id))
 
   const formatter = new Intl.DisplayNames('en-US', {
@@ -151,8 +156,8 @@ export default function EditFlashcard() {
   return (
     <div>
       {isEditing.pending && <div>Updating...</div>}
-      {isEditing.error && <div>{isEditing.error.message}</div>}
-      <Form>
+      {/*{isEditing.error && <div>{isEditing.error.message}</div>}*/}
+      <form method="post" action={editFlashcard}>
         <input type="hidden" name="id" value={params.id} />
         <div class="flex flex-col gap-2">
           <div class="flex gap-4">
@@ -273,8 +278,12 @@ export default function EditFlashcard() {
             Save
           </button>
         </div>
-      </Form>
-      <Form method="post" class="flex flex-col mt-8 gap-2">
+      </form>
+      <form
+        action={editFlashcard}
+        method="post"
+        class="flex flex-col mt-8 gap-2"
+      >
         <input type="hidden" name="id" value={params.id} />
         <label>
           <input type="checkbox" required class="mr-2" />I confirm that I want
@@ -288,7 +297,7 @@ export default function EditFlashcard() {
         >
           Delete
         </button>
-      </Form>
+      </form>
     </div>
   )
 }

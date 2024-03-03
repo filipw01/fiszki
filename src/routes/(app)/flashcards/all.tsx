@@ -1,23 +1,22 @@
-import { requireUserEmail } from '~/session.server'
-import { createServerData$ } from 'solid-start/server'
+import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
-import { A, useRouteData } from 'solid-start'
+import { cache, createAsync } from '@solidjs/router'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    return await db.flashcard.findMany({
-      where: { owner: { email } },
-    })
+const routeData = cache(async () => {
+  'use server'
+  const email = await requireUserEmail()
+  return await db.flashcard.findMany({
+    where: { owner: { email } },
   })
+}, 'flashcards-all')
 
 export default function Flashcards() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
 
   return (
     <div class="flex flex-wrap gap-1">
       {data()?.map((flashcard) => (
-        <A
+        <a
           href={`/flashcards/edit/${flashcard.id}`}
           style={{
             width: '200px',
@@ -29,7 +28,7 @@ export default function Flashcards() {
           <p>{flashcard.front}</p>
           <br />
           <p>{flashcard.back}</p>
-        </A>
+        </a>
       ))}
     </div>
   )

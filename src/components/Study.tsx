@@ -8,79 +8,80 @@ import { TagList } from '~/components/TagList'
 import { LetterButton } from '~/components/LetterButton'
 import { Button } from '~/components/base/Button'
 import { Flashcard } from './Flashcard'
-import { createServerAction$ } from 'solid-start/server'
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
 import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { isServer } from 'solid-js/web'
 import { shuffle } from 'lodash-es'
+import { action, useSubmission } from '@solidjs/router'
 
 interface Props {
   flashcards: FlashcardType[]
 }
 
-export const Study = (props: Props) => {
-  const [isRepeating, { Form: RepeatForm }] = createServerAction$(
-    async (_form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const flashcardsInSession = await db.learningSession.findFirst({
-        where: {
-          ownerEmail: email,
-        },
+const repeat = action(async () => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const flashcardsInSession = await db.learningSession.findFirst({
+    where: {
+      ownerEmail: email,
+    },
+    select: {
+      uncompletedFlashcards: {
         select: {
-          uncompletedFlashcards: {
-            select: {
-              id: true,
-            },
-          },
+          id: true,
+        },
+      },
+    },
+  })
+  const shuffledFlashcards = shuffle(
+    flashcardsInSession?.uncompletedFlashcards ?? []
+  )
+  await db.$transaction(
+    shuffledFlashcards.map((flashcard, index) => {
+      return db.flashcard.update({
+        where: {
+          id: flashcard.id,
+        },
+        data: {
+          learningSessionSortingIndex: index,
         },
       })
-      const shuffledFlashcards = shuffle(
-        flashcardsInSession?.uncompletedFlashcards ?? []
-      )
-      await db.$transaction(
-        shuffledFlashcards.map((flashcard, index) => {
-          return db.flashcard.update({
-            where: {
-              id: flashcard.id,
-            },
-            data: {
-              learningSessionSortingIndex: index,
-            },
-          })
-        })
-      )
-    }
+    })
   )
+  // TODO: probably this doesn't work without page refresh
+})
 
-  const [isSubmitting, { Form }] = createServerAction$(
-    async (form: FormData, { request }) => {
-      const email = await requireUserEmail(request)
-      const rawFlashcardId = form.get('flashcardId')
-      const id = isNonEmptyString(rawFlashcardId) ? rawFlashcardId : null
-      const action = form.get('_action')
-      if (id !== null) {
-        db.flashcard.findFirstOrThrow({
-          where: {
-            id,
-            owner: {
-              email,
-            },
-          },
-        })
-        if (action === 'success') {
-          await actionSuccess(id, email)
-        }
-        if (action === 'failure') {
-          await actionFailure(id)
-        }
-      }
-      return null
-    },
-    {
-      invalidate: [], // we want to keep today's flashcards already fetched
+const check = action(async (form: FormData) => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const rawFlashcardId = form.get('flashcardId')
+  const id = isNonEmptyString(rawFlashcardId) ? rawFlashcardId : null
+  const action = form.get('_action')
+  if (id !== null) {
+    db.flashcard.findFirstOrThrow({
+      where: {
+        id,
+        owner: {
+          email,
+        },
+      },
+    })
+    if (action === 'success') {
+      await actionSuccess(id, email)
     }
-  )
+    if (action === 'failure') {
+      await actionFailure(id)
+    }
+  }
+  return null
+})
+export const Study = (props: Props) => {
+  const isRepeating = useSubmission(repeat)
+  const isSubmitting = useSubmission(check)
+
   const flashcardsCount = createMemo(() => props.flashcards.length)
   let input: HTMLTextAreaElement | undefined
   const [typedCorrectly, setTypedCorrectly] = createSignal<boolean | null>(null)
@@ -98,7 +99,6 @@ export const Study = (props: Props) => {
         input.focus()
       }
     })
-    setCurrentFlashcardIndex((prevIndex) => prevIndex + 1)
   }
 
   const handleCheck = () => {
@@ -120,10 +120,14 @@ export const Study = (props: Props) => {
         fallback={
           <div>
             No flashcards left
-            <RepeatForm onSubmit={() => setCurrentFlashcardIndex(0)}>
+            <form
+              action={repeat}
+              method="post"
+              onSubmit={() => setCurrentFlashcardIndex(0)}
+            >
               <Show when={isRepeating.pending}>Repeating...</Show>
               <Button color="check">Rinse and repeat</Button>
-            </RepeatForm>
+            </form>
           </div>
         }
       >
@@ -225,7 +229,10 @@ export const Study = (props: Props) => {
                   position="right"
                   color="skip"
                   size="small"
-                  onClick={nextFlashcard}
+                  onClick={() => {
+                    nextFlashcard()
+                    setCurrentFlashcardIndex((prevIndex) => prevIndex + 1)
+                  }}
                 >
                   skip
                 </Button>
@@ -233,13 +240,18 @@ export const Study = (props: Props) => {
             ) : (
               <div class="flex">
                 {isSubmitting.pending && <div>Submitting...</div>}
-                {isSubmitting.error && (
-                  <div>Error: {isSubmitting.error.message}</div>
-                )}
+                {/*{isSubmitting.error && (*/}
+                {/*  <div>Error: {isSubmitting.error.message}</div>*/}
+                {/*)}*/}
                 {!typedCorrectly() && (
-                  <Form
+                  <form
+                    action={check}
+                    method="post"
                     class="basis-0 flex-grow flex-shrink"
-                    onSubmit={nextFlashcard}
+                    onSubmit={() => {
+                      nextFlashcard()
+                      setCurrentFlashcardIndex((prevIndex) => prevIndex + 1)
+                    }}
                   >
                     <input
                       type="hidden"
@@ -254,9 +266,11 @@ export const Study = (props: Props) => {
                     >
                       wrong
                     </Button>
-                  </Form>
+                  </form>
                 )}
-                <Form
+                <form
+                  action={check}
+                  method="post"
                   class="basis-0 flex-grow flex-shrink"
                   onSubmit={nextFlashcard}
                 >
@@ -273,7 +287,7 @@ export const Study = (props: Props) => {
                       correct
                     </Button>
                   )}
-                </Form>
+                </form>
               </div>
             )}
           </div>

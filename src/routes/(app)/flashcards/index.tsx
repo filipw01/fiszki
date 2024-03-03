@@ -1,27 +1,27 @@
-import { requireUserEmail } from '~/session.server'
+import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
-import { createServerData$, redirect } from 'solid-start/server'
-import { useRouteData } from 'solid-start'
+import { cache, createAsync, redirect } from '@solidjs/router'
 
-export const routeData = () =>
-  createServerData$(async (_, { request }) => {
-    const email = await requireUserEmail(request)
-    const folder = await db.folder.findFirst({
-      where: {
-        owner: {
-          email,
-        },
-        parentFolderId: null,
+const routeData = cache(async () => {
+  'use server'
+
+  const email = await requireUserEmail()
+  const folder = await db.folder.findFirst({
+    where: {
+      owner: {
+        email,
       },
-    })
-    if (!folder) {
-      return redirect('/flashcards/folder/create')
-    }
-    return redirect(`/flashcards/folder/${folder.id}`)
+      parentFolderId: null,
+    },
   })
+  if (!folder) {
+    throw redirect('/flashcards/folder/create')
+  }
+  throw redirect(`/flashcards/folder/${folder.id}`)
+}, 'flashcards-index')
 
 export default function Index() {
-  const data = useRouteData<typeof routeData>()
+  const data = createAsync(() => routeData())
   data() // trigger routeData
   return null
 }
