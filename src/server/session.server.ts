@@ -3,6 +3,7 @@ import { redirect } from '@solidjs/router'
 import { db } from '~/db/db.server'
 import { isNonEmptyString } from '~/utils.server'
 import { useSession } from 'vinxi/http'
+import * as process from 'process'
 
 type LoginForm = {
   email: string
@@ -28,7 +29,7 @@ function getSession() {
   return useSession<{ email?: string }>({
     name: 'fiszki_session',
     maxAge: 60 * 60 * 24 * 30,
-    password: process.env.SESSION_SECRET,
+    password: secret,
   })
 }
 export async function login({ email, password }: LoginForm) {

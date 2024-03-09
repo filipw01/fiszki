@@ -2,7 +2,7 @@
 import { Suspense } from 'solid-js'
 import { Router } from '@solidjs/router'
 import { MetaProvider } from '@solidjs/meta'
-import { FileRoutes } from '@solidjs/start'
+import { FileRoutes } from '@solidjs/start/router'
 import './styles/app.css'
 import './styles/index.css'
 import './styles/global.css'

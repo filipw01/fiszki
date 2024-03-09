@@ -9,7 +9,7 @@
     "dev:css": "tailwindcss -w -i ./styles/app.css -o src/styles/app.css",
     "test": "vitest",
     "e2e": "playwright test",
-    "start": "vinxi start"
+    "start": "export $(grep -v '^#' .env | xargs) && vinxi start"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.345.0",
@@ -17,8 +17,8 @@
     "@motionone/solid": "^10.16.2",
     "@prisma/client": "^4.15.0",
     "@solidjs/meta": "^0.29.2",
-    "@solidjs/router": "^0.12.4",
-    "@solidjs/start": "^0.6.0",
+    "@solidjs/router": "^0.13.0",
+    "@solidjs/start": "^0.7.3",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.1.4",
     "js-confetti": "^0.11.0",
@@ -28,7 +28,7 @@
     "solid-js": "^1.8.15",
     "undici": "^5.22.1",
     "unplugin-icons": "^0.18.5",
-    "vinxi": "^0.3.4",
+    "vinxi": "^0.3.10",
     "zod": "^3.21.4"
   },
   "devDependencies": {

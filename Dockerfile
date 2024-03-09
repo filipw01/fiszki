@@ -46,7 +46,7 @@ WORKDIR /app
 
 COPY --from=production-deps /app/node_modules /app/node_modules
 
-COPY --from=build /app/dist /app/dist
+COPY --from=build /app/.output /app/.output
 ADD . .
 
 RUN npm install -D prisma
