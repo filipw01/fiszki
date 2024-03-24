@@ -52,4 +52,5 @@ ADD . .
 RUN npm install -D prisma
 RUN npx prisma generate
 
+CMD ["npx", "Ļ", "start"]
 CMD ["npm", "run", "start"]
