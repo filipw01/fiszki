@@ -51,5 +51,4 @@ ADD . .
 
 RUN npm install -D prisma
 
-CMD ["npx", "prisma", "generate"]
-CMD ["npm", "run", "start"]
+CMD ["npx", "prisma", "generate", "&&", "npm", "run", "start"]
