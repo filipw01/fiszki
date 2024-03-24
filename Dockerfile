@@ -50,7 +50,6 @@ COPY --from=build /app/.output /app/.output
 ADD . .
 
 RUN npm install -D prisma
-RUN npx prisma generate
 
-CMD ["npx", "Ļ", "start"]
+CMD ["npx", "prisma", "generate"]
 CMD ["npm", "run", "start"]
