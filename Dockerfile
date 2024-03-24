@@ -34,6 +34,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules /app/node_modules
 
 ADD . .
+RUN npx prisma generate
 RUN npm run build
 
 # Finally, build the production image with minimal footprint
@@ -49,7 +50,5 @@ COPY --from=production-deps /app/node_modules /app/node_modules
 COPY --from=build /app/.output /app/.output
 ADD . .
 
-RUN npm install -D prisma
-
 # run start_with_prisma_generate.sh with bash
-CMD ["bash", "start_with_prisma_generate.sh"]
+CMD ["npm", "start"]
