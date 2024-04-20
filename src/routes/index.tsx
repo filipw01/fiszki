@@ -35,12 +35,11 @@ const createLearningSessionAction = action(async (formData: FormData) => {
     day: z.string(),
 
   })
+  console.log(Object.fromEntries(formData.entries()))
   const { day } = schema.parse(Object.fromEntries(formData.entries()))
-  console.log(day)
 
   const dayNumber = parseInt(day)
   z.number().parse(dayNumber)
-  console.log( dayNumber)
   return redirect('/learning-session')
 }, 'createLearningSession')
 
