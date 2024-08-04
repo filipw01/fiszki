@@ -1,18 +1,14 @@
 import {
   action,
-  RouteDefinition,
+  createAsync,
   useParams,
   useSubmission,
+  useSearchParams,
 } from '@solidjs/router'
 import { createUserSession, login } from '~/server/session.server'
 import { AuthFormContent } from '~/components/AuthFormContent'
 import { isNonEmptyString } from '~/utils.server'
 import { loggedOutGuard } from '~/server-actions'
-
-// TODO: is this for preloading? when should we use it
-export const route = {
-  load: () => loggedOutGuard(),
-} satisfies RouteDefinition
 
 const loginAction = action(async (form: FormData) => {
   'use server'
@@ -40,9 +36,10 @@ const loginAction = action(async (form: FormData) => {
 }, 'login')
 
 export default function Login() {
+  createAsync(() => loggedOutGuard(), { deferStream: true })
   const loggingIn = useSubmission(loginAction)
 
-  const params = useParams()
+  const [params] = useSearchParams()
   return (
     <form action={loginAction} method="post" class="h-full">
       <input type="hidden" name="redirectTo" value={params.redirectTo ?? '/'} />

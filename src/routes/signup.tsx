@@ -2,23 +2,12 @@ import { createUserSession, register } from '~/server/session.server'
 import { AuthFormContent } from '~/components/AuthFormContent'
 import { isNonEmptyString } from '~/utils.server'
 import {
-  useParams,
-  RouteDefinition,
   action,
   useSubmission,
+  createAsync,
+  useSearchParams,
 } from '@solidjs/router'
 import { loggedOutGuard } from '~/server-actions'
-
-// createServerData$(async (_, { request }) => {
-//   if (await isLoggedIn(request)) {
-//     const redirectTo = new URL(request.url).searchParams.get('redirectTo')
-//     throw redirect(redirectTo ?? '/')
-//   }
-//   return {}
-// })
-export const route = {
-  load: () => loggedOutGuard(),
-} satisfies RouteDefinition
 
 const registerAction = action(async (form: FormData) => {
   'use server'
@@ -41,8 +30,9 @@ const registerAction = action(async (form: FormData) => {
 }, 'register')
 
 export default function Signup() {
+  createAsync(() => loggedOutGuard())
   const loggingIn = useSubmission(registerAction)
-  const params = useParams()
+  const [params] = useSearchParams()
   return (
     <form method="post" action={registerAction} class="h-full">
       <input type="hidden" name="redirectTo" value={params.redirectTo ?? '/'} />

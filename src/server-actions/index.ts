@@ -14,4 +14,5 @@ export const loggedOutGuard = cache(async () => {
   if (await isUserLoggedIn()) {
     throw redirect('/')
   }
+  return null
 }, 'loggedOutGuard')

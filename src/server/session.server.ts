@@ -4,6 +4,7 @@ import { db } from '~/db/db.server'
 import { isNonEmptyString } from '~/utils.server'
 import { useSession } from 'vinxi/http'
 import * as process from 'process'
+import { getRequestEvent } from 'solid-js/web'
 
 type LoginForm = {
   email: string
@@ -30,6 +31,9 @@ function getSession() {
     name: 'fiszki_session',
     maxAge: 60 * 60 * 24 * 30,
     password: secret,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+    },
   })
 }
 export async function login({ email, password }: LoginForm) {
@@ -53,14 +57,13 @@ export async function isUserLoggedIn() {
 
 export async function requireUserEmail() {
   'use server'
-  // redirectTo: string = new URL(request.url).pathname
+  const url = getRequestEvent()?.request.url
+  const redirectTo = url ? new URL(url).pathname : undefined
   const session = await getSession()
   const email = session.data.email
-  if (!isNonEmptyString(email)) {
-    // TODO: how to add redirect?
-    // const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
-    // throw redirect(`/login?${searchParams}`)
-    throw redirect(`/login`)
+  if (!isNonEmptyString(email) && redirectTo) {
+    const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
+    throw redirect(`/login?${searchParams}`)
   }
   return email
 }
