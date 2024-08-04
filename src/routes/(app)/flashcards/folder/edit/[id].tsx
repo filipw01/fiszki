@@ -55,10 +55,14 @@ const editFolder = action(async (form: FormData) => {
   const folders = await db.folder.findMany({ where: { owner: { email } } })
 
   if (!folders.some((folder) => folder.id === id)) {
-    throw new Error(`Couldn't find folder with id ${id}`)
+    return new Error(`Couldn't find folder with id ${id}`)
   }
 
-  const { parentFolderId, name, color } = folderForm.parse(parseForm(form))
+  const { data } = folderForm.safeParse(parseForm(form))
+  if (!data) {
+    return new Error('Wrong data format')
+  }
+  const { parentFolderId, name, color } = data
 
   const parentFolderIds: string[] = []
   let currentParentFolderId: string | null | undefined = parentFolderId
@@ -70,7 +74,7 @@ const editFolder = action(async (form: FormData) => {
   }
   const parentIndex = parentFolderIds.findIndex((parentId) => parentId === id)
   if (parentIndex > -1) {
-    throw new Error(
+    return new Error(
       `Cannot set folder as its own parent folder - parent: ${parentFolderId} can't have child: ${id} because parent is already a child of ${id} (${
         parentIndex + 1
       } levels deep)`,
@@ -121,10 +125,10 @@ const deleteFolder = action(async (form: FormData) => {
     },
   })
   if (!folder) {
-    throw new Error('Folder not found')
+    return new Error('Folder not found')
   }
   if (folder.folders.length > 0 || folder.flashcards.length > 0) {
-    throw new Error('Folder not empty')
+    return new Error('Folder not empty')
   }
   await db.folder.delete({ where: { id } })
   return redirect('/flashcards')
@@ -140,7 +144,7 @@ export default function EditFolder() {
     <div class="flex flex-col p-8">
       <form action={editFolder} method="post">
         {isEditing.pending && <div>Loading...</div>}
-        {/*{isEditing.error && <div>{isEditing.error.message}</div>}*/}
+        {isEditing.result && <div>{isEditing.result.message}</div>}
         <input type="hidden" name="id" value={params.id} />
         <div class="flex flex-col gap-2">
           <Input name="name" label="Name" value={data()?.editedFolder?.name} />
@@ -184,7 +188,7 @@ export default function EditFolder() {
         class="flex flex-col mt-8 gap-2"
       >
         {isDeleting.pending && <div>Loading...</div>}
-        {/*{isDeleting.error && <div>{isDeleting.error.message}</div>}*/}
+        {isDeleting.result && <div>{isDeleting.result.message}</div>}
         <input type="hidden" name="id" value={params.id} />
         <label>
           <input type="checkbox" required class="mr-2" />I confirm that I want

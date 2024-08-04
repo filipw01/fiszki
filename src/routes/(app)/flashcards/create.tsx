@@ -36,63 +36,100 @@ const routeData = cache(async () => {
   return { folders: foldersWithMappedName, tags }
 }, 'flashcards-create')
 
+const parseFlashcardsForm = (form: FormData) => {
+  const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
+
+  try {
+    const { front, frontImage } = z
+      .object({
+        frontImage: z.any().refine((file) => file.size > 0),
+        front: z.string(),
+      })
+      .or(
+        z.object({
+          frontImage: z.any().refine((file) => file.size === 0),
+          front: z.string().nonempty(),
+        }),
+      )
+      .parse(parseForm(form))
+
+    const { back, backImage } = z
+      .object({
+        backImage: z.any().refine((file) => file.size > 0),
+        back: z.string(),
+      })
+      .or(
+        z.object({
+          backImage: z.any().refine((file) => file.size === 0),
+          back: z.string().nonempty(),
+        }),
+      )
+      .parse(parseForm(form))
+
+    const {
+      tags: tagsOrTag,
+      randomSideAllowed,
+      folderId,
+      frontLanguage,
+      backLanguage,
+      frontDescription,
+      backDescription,
+    } = z
+      .object({
+        folderId: z.string(),
+        tags: z
+          .array(z.string().nonempty())
+          .default([])
+          .or(z.string().nonempty()),
+        randomSideAllowed: z.literal('on').optional(),
+        frontLanguage: z.enum(supportedLocales),
+        frontDescription: z.string(),
+        backLanguage: z.enum(supportedLocales),
+        backDescription: z.string(),
+      })
+      .parse(parseForm(form))
+    return {
+      front,
+      frontImage,
+      back,
+      backImage,
+      tagsOrTag,
+      randomSideAllowed,
+      folderId,
+      frontLanguage,
+      backLanguage,
+      frontDescription,
+      backDescription,
+    }
+  } catch (e) {
+    return new Error('Invalid form data', { cause: e })
+  }
+}
+
 const createFlashcard = action(async (form: FormData) => {
   'use server'
 
-  const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
-
-  const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
-
-  const email = await requireUserEmail()
-
-  const { front, frontImage } = z
-    .object({
-      frontImage: z.any().refine((file) => file.size > 0),
-      front: z.string(),
-    })
-    .or(
-      z.object({
-        frontImage: z.any().refine((file) => file.size === 0),
-        front: z.string().nonempty(),
-      }),
-    )
-    .parse(parseForm(form))
-
-  const { back, backImage } = z
-    .object({
-      backImage: z.any().refine((file) => file.size > 0),
-      back: z.string(),
-    })
-    .or(
-      z.object({
-        backImage: z.any().refine((file) => file.size === 0),
-        back: z.string().nonempty(),
-      }),
-    )
-    .parse(parseForm(form))
-
+  const result = parseFlashcardsForm(form)
+  if (result instanceof Error) {
+    return result
+  }
   const {
-    tags: tagsOrTag,
+    front,
+    frontImage,
+    back,
+    backImage,
+    tagsOrTag,
     randomSideAllowed,
     folderId,
     frontLanguage,
     backLanguage,
     frontDescription,
     backDescription,
-  } = z
-    .object({
-      folderId: z.string(),
-      tags: z
-        .array(z.string().nonempty())
-        .default([])
-        .or(z.string().nonempty()),
-      randomSideAllowed: z.literal('on').optional(),
-      frontLanguage: z.enum(supportedLocales),
-      frontDescription: z.string(),
-      backLanguage: z.enum(supportedLocales),
-      backDescription: z.string(),
-    })
-    .parse(parseForm(form))
+  } = result
+
+  const ONE_DAY_IN_MS = 1000 * 60 * 60 * 24
+
+  const email = await requireUserEmail()
 
   const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
 
@@ -158,7 +195,7 @@ export default function CreateFlashcard() {
   return (
     <form enctype="multipart/form-data" action={createFlashcard} method="post">
       {isCreating.pending && <div>Creating...</div>}
-      {/*{isCreating.error && <div>{isCreating.error.message}</div>}*/}
+      {isCreating.result && <div>{isCreating.result.message}</div>}
       <div class="flex flex-col gap-2">
         <div class="flex gap-4">
           <div class="flex flex-col flex-grow">

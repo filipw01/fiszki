@@ -29,9 +29,7 @@ const update = action(async (form: FormData) => {
   const id = form.get('id')
 
   if (!isNonEmptyString(id)) {
-    throw new Error('Missing id')
-    // TODO: how to throw FormError?
-    // throw new FormError('Missing id')
+    return new Error('Missing id')
   }
 
   await db.tag.findFirstOrThrow({
@@ -45,9 +43,7 @@ const update = action(async (form: FormData) => {
   const color = form.get('color')
 
   if (!isNonEmptyString(name) || !isNonEmptyString(color)) {
-    throw new Error('Missing data')
-    // TODO: how to throw FormError?
-    // throw new FormError('Missing data')
+    return new Error('Missing data')
   }
 
   await db.tag.update({
@@ -70,9 +66,7 @@ const deleteAction = action(async (form: FormData) => {
   const id = form.get('id')
 
   if (!isNonEmptyString(id)) {
-    throw new Error('Missing id')
-    // TODO: how to throw FormError?
-    // throw new FormError('Missing id')
+    return new Error('Missing id')
   }
 
   await db.tag.findFirstOrThrow({
@@ -86,8 +80,6 @@ const deleteAction = action(async (form: FormData) => {
 })
 
 export default function EditFolder() {
-  // TODO: or instead cache + createAsync https://start.solidjs.com/core-concepts/data-loading
-  // const data = props.data
   const params = useParams()
   const id = params.id
   const data = createAsync(() => routeData(id))
@@ -98,8 +90,7 @@ export default function EditFolder() {
   return (
     <div class="p-8">
       {isUpdating.pending && <div>Updating...</div>}
-      {/* TODO: how to read error from form */}
-      {/*{isUpdating.error && <div>Error: {isUpdating.error.message}</div>}*/}
+      {isUpdating.result && <div>Error: {isUpdating.result.message}</div>}
       <form action={update} method="post">
         <input type="hidden" name="id" value={id} />
         <div class="flex flex-col gap-2">
@@ -122,8 +113,7 @@ export default function EditFolder() {
         </div>
       </form>
       {isDeleting.pending && <div>Deleting...</div>}
-      {/* TODO: how to read form error */}
-      {/*{isDeleting.error && <div>Error: {isDeleting.error.message}</div>}*/}
+      {isDeleting.result && <div>Error: {isDeleting.result.message}</div>}
       <form
         action={deleteAction}
         method="post"

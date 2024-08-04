@@ -14,7 +14,9 @@ const server2deleteFlashcard = action(async (id: string) => {
   'use server'
 
   const email = await requireUserEmail()
-  if (!isNonEmptyString(id)) throw new Error('Missing data')
+  if (!isNonEmptyString(id)) {
+    return new Error('Missing data')
+  }
 
   await db.flashcard.findFirstOrThrow({
     where: { id, owner: { email } },

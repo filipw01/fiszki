@@ -61,9 +61,11 @@ export async function requireUserEmail() {
   const redirectTo = url ? new URL(url).pathname : undefined
   const session = await getSession()
   const email = session.data.email
-  if (!isNonEmptyString(email) && redirectTo) {
-    const searchParams = new URLSearchParams([['redirectTo', redirectTo]])
-    throw redirect(`/login?${searchParams}`)
+  if (!isNonEmptyString(email)) {
+    const paramsString = redirectTo
+      ? `?${new URLSearchParams([['redirectTo', redirectTo]])}`
+      : ''
+    throw redirect(`/login${paramsString}`)
   }
   return email
 }

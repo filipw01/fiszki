@@ -33,7 +33,11 @@ const createFolder = action(async (form: FormData) => {
 
   const email = await requireUserEmail()
 
-  const { name, color, parentFolderId } = folderForm.parse(parseForm(form))
+  const { data } = folderForm.safeParse(parseForm(form))
+  if (!data) {
+    return new Error('Wrong data format')
+  }
+  const { name, color, parentFolderId } = data
 
   if (parentFolderId) {
     db.folder.findFirstOrThrow({
@@ -66,7 +70,7 @@ export default function CreateFolder() {
   return (
     <form action={createFolder} method="post">
       {isCreating.pending && <div>Creating...</div>}
-      {/*{isCreating.error && <div>{isCreating.error.message}</div>}*/}
+      {isCreating.result && <div>{isCreating.result.message}</div>}
       <div class="flex flex-col p-8 gap-2">
         <Input name="name" label="Name" />
         <label class="flex">

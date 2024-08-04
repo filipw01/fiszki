@@ -25,7 +25,7 @@ const createTag = action(async (form: FormData) => {
   const color = form.get('color')
 
   if (!isNonEmptyString(name) || !isNonEmptyString(color)) {
-    throw new Error('Missing data')
+    return new Error('Missing data')
   }
 
   await db.tag.create({
@@ -47,7 +47,7 @@ export default function CreateTag() {
   return (
     <form class="p-8" method="post" action={createTag}>
       {isCreating.pending && <div>Creating...</div>}
-      {/*{isCreating.error && <div>{isCreating.error.message}</div>}*/}
+      {isCreating.result && <div>{isCreating.result.message}</div>}
       <div class="flex flex-col gap-2">
         <Input name="name" label="Name" />
         <label class="flex">

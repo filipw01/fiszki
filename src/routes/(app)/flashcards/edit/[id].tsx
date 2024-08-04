@@ -55,24 +55,16 @@ const editFlashcard = action(async (form: FormData) => {
   const email = await requireUserEmail()
   const action = form.get('action')
   const id = form.get('id')
-  if (!isNonEmptyString(id)) throw new Error('Missing data')
+  if (!isNonEmptyString(id)) {
+    return new Error('Missing data')
+  }
 
   await db.flashcard.findFirstOrThrow({
     where: { id, owner: { email } },
   })
 
   if (action === 'update') {
-    const {
-      backDescription,
-      backLanguage,
-      frontDescription,
-      frontLanguage,
-      front,
-      back,
-      randomSideAllowed,
-      folderId,
-      tags: tagsOrTag,
-    } = z
+    const { data } = z
       .object({
         front: z.string().nonempty(),
         back: z.string().nonempty(),
@@ -87,7 +79,21 @@ const editFlashcard = action(async (form: FormData) => {
         frontDescription: z.string(),
         randomSideAllowed: z.literal('on').optional(),
       })
-      .parse(parseForm(form))
+      .safeParse(parseForm(form))
+    if (!data) {
+      return new Error('Wrong data format')
+    }
+    const {
+      backDescription,
+      backLanguage,
+      frontDescription,
+      frontLanguage,
+      front,
+      back,
+      randomSideAllowed,
+      folderId,
+      tags: tagsOrTag,
+    } = data
 
     const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
 
@@ -109,7 +115,7 @@ const editFlashcard = action(async (form: FormData) => {
       },
     })
     if (ownedTags.length !== tags.length) {
-      throw new Error('You need to own all tags you try to assign')
+      return new Error('You need to own all tags you try to assign')
     }
 
     await db.flashcard.update({
@@ -156,7 +162,7 @@ export default function EditFlashcard() {
   return (
     <div>
       {isEditing.pending && <div>Updating...</div>}
-      {/*{isEditing.error && <div>{isEditing.error.message}</div>}*/}
+      {isEditing.result && <div>{isEditing.result.message}</div>}
       <form method="post" action={editFlashcard}>
         <input type="hidden" name="id" value={params.id} />
         <div class="flex flex-col gap-2">

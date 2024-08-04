@@ -1,7 +1,6 @@
 import {
   action,
   createAsync,
-  useParams,
   useSubmission,
   useSearchParams,
 } from '@solidjs/router'
@@ -17,19 +16,17 @@ const loginAction = action(async (form: FormData) => {
   const password = form.get('password')
 
   if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
-    // throw new FormError('Missing email or password')
-    throw new Error('Missing email or password')
+    return new Error('Missing email or password')
   }
 
   const result = await login({ email, password })
   if (result === null) {
-    // throw new FormError('Invalid email or password')
-    throw new Error('Invalid email or password')
+    return new Error('Invalid email or password')
   }
 
   const redirectTo = form.get('redirectTo')
 
-  return createUserSession(
+  await createUserSession(
     email,
     typeof redirectTo === 'string' ? redirectTo : '/',
   )
@@ -43,11 +40,11 @@ export default function Login() {
   return (
     <form action={loginAction} method="post" class="h-full">
       <input type="hidden" name="redirectTo" value={params.redirectTo ?? '/'} />
-      {/*{loggingIn.error && (*/}
-      {/*  <p role="alert" id="error-message">*/}
-      {/*    {loggingIn.error.message}*/}
-      {/*  </p>*/}
-      {/*)}*/}
+      {loggingIn.result && (
+        <p role="alert" id="error-message">
+          {loggingIn.result.message}
+        </p>
+      )}
       {loggingIn.pending && <p>Logging in...</p>}
       <AuthFormContent>
         <AuthFormContent.Field type="email" name="email" label="Email" />

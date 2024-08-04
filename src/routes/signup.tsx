@@ -16,14 +16,14 @@ const registerAction = action(async (form: FormData) => {
   const password = form.get('password')
 
   if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
-    throw new Error('Missing email or password')
+    return new Error('Missing email or password')
   }
 
   await register({ email, password })
 
   const redirectTo = form.get('redirectTo')
 
-  return createUserSession(
+  await createUserSession(
     email,
     typeof redirectTo === 'string' ? redirectTo : '/',
   )
@@ -36,11 +36,11 @@ export default function Signup() {
   return (
     <form method="post" action={registerAction} class="h-full">
       <input type="hidden" name="redirectTo" value={params.redirectTo ?? '/'} />
-      {/*{loggingIn.error && (*/}
-      {/*  <p role="alert" id="error-message">*/}
-      {/*    {loggingIn.error.message}*/}
-      {/*  </p>*/}
-      {/*)}*/}
+      {loggingIn.result && (
+        <p role="alert" id="error-message">
+          {loggingIn.result.message}
+        </p>
+      )}
       {loggingIn.pending && <p>Logging in...</p>}
       <AuthFormContent>
         <AuthFormContent.Field type="email" name="email" label="Email" />

@@ -145,7 +145,7 @@ export const actionSuccess = async (
     },
   })
   if (!flashcard) {
-    throw new Error('Flashcard not found')
+    return new Error('Flashcard not found')
   }
   const number = getNumberOfDays(flashcard.streak)
   await db.learningSession.update({

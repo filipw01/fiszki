@@ -69,7 +69,7 @@ const check = action(async (form: FormData) => {
       },
     })
     if (action === 'success') {
-      await actionSuccess(id, email)
+      return actionSuccess(id, email)
     }
     if (action === 'failure') {
       await actionFailure(id)
@@ -239,9 +239,9 @@ export const Study = (props: Props) => {
             ) : (
               <div class="flex">
                 {isSubmitting.pending && <div>Submitting...</div>}
-                {/*{isSubmitting.error && (*/}
-                {/*  <div>Error: {isSubmitting.error.message}</div>*/}
-                {/*)}*/}
+                {isSubmitting.result && (
+                  <div>Error: {isSubmitting.result.message}</div>
+                )}
                 {!typedCorrectly() && (
                   <form
                     action={check}

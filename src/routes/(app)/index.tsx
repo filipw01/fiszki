@@ -134,10 +134,17 @@ const createLearningSessionAction = action(async (formData: FormData) => {
     day: z.string(),
     folders: z.string(),
   })
-  const { day, folders } = schema.parse(Object.fromEntries(formData.entries()))
+  const { data } = schema.safeParse(Object.fromEntries(formData.entries()))
+  if (!data) {
+    return new Error('Invalid form data')
+  }
+  const { day, folders } = data
 
   const dayNumber = parseInt(day)
-  z.number().parse(dayNumber)
+  const { success } = z.number().safeParse(dayNumber)
+  if (!success) {
+    return new Error('Day must be a number')
+  }
   await createLearningSession(
     email,
     dayNumber,
@@ -251,13 +258,12 @@ export default function Calendar() {
       </Sidebar>
       <div class="overflow-auto p-4 flex-grow">
         {splittingEvenly.pending && <div>Splitting evenly...</div>}
-        {/*{splittingEvenly.error && <div>{splittingEvenly.error.message}</div>}*/}
         {creatingLearningSession.pending && (
           <div>Creating learning session...</div>
         )}
-        {/*{creatingLearningSession.error && (*/}
-        {/*  <div>{creatingLearningSession.error.message}</div>*/}
-        {/*)}*/}
+        {creatingLearningSession.result && (
+          <div>{creatingLearningSession.result.message}</div>
+        )}
         <Show when={data()?.learningSession}>
           <div class="flex justify-between bg-white p-4 shadow-sm mb-6 rounded-lg">
             {data()?.learningSession?._count.completedFlashcards}/
