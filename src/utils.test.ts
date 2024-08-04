@@ -35,23 +35,28 @@ describe('seededShuffle', () => {
     const baseArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
     const shuffledArray = seededShuffle(baseArray)
     const arrayChanges = Object.fromEntries(
-      baseArray.map((value, index) => [index, shuffledArray.findIndex((v) => v === value)])
+      baseArray.map((value, index) => [
+        index,
+        shuffledArray.findIndex((v) => v === value),
+      ]),
     )
     expect(shuffledArray).toStrictEqual(seededShuffle(baseArray))
     const otherArray = ['z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q']
     const otherShuffledArray = seededShuffle(otherArray)
-    const recreatedShuffledArray = (otherArray.map((value, index) => [index, value]) as [number, string][])
-      .sort((a, b) => arrayChanges[a[0]] > arrayChanges[b[0]] ? 1 : -1)
+    const recreatedShuffledArray = (
+      otherArray.map((value, index) => [index, value]) as [number, string][]
+    )
+      .sort((a, b) => (arrayChanges[a[0]] > arrayChanges[b[0]] ? 1 : -1))
       .map((a) => a[1])
 
     expect(otherShuffledArray).toStrictEqual(seededShuffle(otherArray))
-    expect(otherShuffledArray).toStrictEqual(
-      recreatedShuffledArray
-    )
+    expect(otherShuffledArray).toStrictEqual(recreatedShuffledArray)
   })
 
   it('should shuffle differently based on seed', () => {
     const baseArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
-    expect(seededShuffle(baseArray, 1000)).not.toStrictEqual(seededShuffle(baseArray, 500))
+    expect(seededShuffle(baseArray, 1000)).not.toStrictEqual(
+      seededShuffle(baseArray, 500),
+    )
   })
 })

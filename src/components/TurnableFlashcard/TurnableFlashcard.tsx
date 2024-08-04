@@ -34,11 +34,11 @@ export const TurnableFlashcard = (props: { flashcard: FlashcardType }) => {
     window.speechSynthesis.getVoices()
   }
   const handleSpeak: JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent> = (
-    e
+    e,
   ) => {
     e.stopPropagation()
     const utterance = new SpeechSynthesisUtterance(
-      isFront() ? props.flashcard.front : props.flashcard.back
+      isFront() ? props.flashcard.front : props.flashcard.back,
     )
     let lang = isFront()
       ? props.flashcard.frontLanguage

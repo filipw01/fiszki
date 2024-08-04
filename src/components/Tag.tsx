@@ -22,7 +22,7 @@ export const Tag = (props: Props) => {
         {
           'text-sm lg:text-lg': size() === 'big',
           'text-xs lg:text-sm': size() === 'small',
-        }
+        },
       )}
       style={{
         '--color': `${props.color.r}, ${props.color.g}, ${props.color.b}`,

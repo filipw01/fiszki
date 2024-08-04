@@ -8,7 +8,7 @@ export const useSidebarVisibility = () => {
   const value = useContext(SidebarVisibilityContext)
   if (!value) {
     throw new Error(
-      'useSidebarVisibility must be used within SidebarVisibilityContext'
+      'useSidebarVisibility must be used within SidebarVisibilityContext',
     )
   }
   return value

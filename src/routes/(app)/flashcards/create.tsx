@@ -54,7 +54,7 @@ const createFlashcard = action(async (form: FormData) => {
       z.object({
         frontImage: z.any().refine((file) => file.size === 0),
         front: z.string().nonempty(),
-      })
+      }),
     )
     .parse(parseForm(form))
 
@@ -67,7 +67,7 @@ const createFlashcard = action(async (form: FormData) => {
       z.object({
         backImage: z.any().refine((file) => file.size === 0),
         back: z.string().nonempty(),
-      })
+      }),
     )
     .parse(parseForm(form))
 

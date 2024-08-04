@@ -5,14 +5,18 @@
   border-radius: 16px;
   box-shadow: var(--shadow-elevation-low);
   will-change: transform;
-  transition: box-shadow 500ms, transform 500ms;
+  transition:
+    box-shadow 500ms,
+    transform 500ms;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
     box-shadow: var(--shadow-elevation-medium);
     transform: scale(1.02);
-    transition: box-shadow 200ms, transform 200ms;
+    transition:
+      box-shadow 200ms,
+      transform 200ms;
   }
 }
 
@@ -42,13 +46,17 @@
 
 .iconButton {
   color: var(--color);
-  transition: color 400ms, transform 400ms;
+  transition:
+    color 400ms,
+    transform 400ms;
   will-change: transform;
 }
 .iconButton:hover {
   color: var(--hover-color);
   transform: scale(1.1) rotate(4deg);
-  transition: color 200ms, transform 200ms;
+  transition:
+    color 200ms,
+    transform 200ms;
 }
 
 .iconButton:active {

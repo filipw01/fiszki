@@ -55,7 +55,7 @@ const createFolder = action(async (form: FormData) => {
     },
   })
   return redirect(
-    parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`
+    parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`,
   )
 }, 'create-folder')
 

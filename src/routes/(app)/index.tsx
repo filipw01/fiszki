@@ -71,10 +71,10 @@ const folders = async () => {
         flashcardsCount: await getNestedFlashcardsCount(folder, email),
         subfolders: [],
       }
-    })
+    }),
   )
   const foldersById = Object.fromEntries(
-    allFolders.map((folder) => [folder.id, folder])
+    allFolders.map((folder) => [folder.id, folder]),
   )
   const folders: Array<Folder> = []
   for (const folder of allFolders) {
@@ -87,8 +87,8 @@ const folders = async () => {
       } else {
         throw new Error(
           `Invalid folder structure, got ${JSON.stringify(
-            folder
-          )}, but folder with ${folder.parentFolderId} does not exist`
+            folder,
+          )}, but folder with ${folder.parentFolderId} does not exist`,
         )
       }
     }
@@ -122,16 +122,14 @@ const splitEvenly = action(async () => {
           },
           data: { nextStudy: new Date(daysFromNow(index)) },
         })
-      }
-    )
+      },
+    ),
   )
 }, 'splitEvenly')
 
 const createLearningSessionAction = action(async (formData: FormData) => {
   'use server'
-  console.log('request')
   const email = await requireUserEmail()
-  console.log(email)
   const schema = z.object({
     day: z.string(),
     folders: z.string(),
@@ -145,7 +143,7 @@ const createLearningSessionAction = action(async (formData: FormData) => {
   await createLearningSession(
     email,
     dayNumber,
-    folders === '' ? undefined : folders.split(',')
+    folders === '' ? undefined : folders.split(','),
   )
   return redirect('/learning-session')
 }, 'createLearningSession')
@@ -163,7 +161,7 @@ const weekDayNames = [
 const getAllSubfolders = (folder: Folder): Folder[] => {
   return folder.subfolders.reduce(
     (acc, subfolder) => [...acc, subfolder, ...getAllSubfolders(subfolder)],
-    [] as Folder[]
+    [] as Folder[],
   )
 }
 export default function Calendar() {
@@ -179,7 +177,7 @@ export default function Calendar() {
   })
 
   const flashcardsByNextStudy = createMemo(() =>
-    groupBy(flashcards(), 'nextStudy')
+    groupBy(flashcards(), 'nextStudy'),
   )
 
   const currentWeekDay = new Date(Date.now()).getDay()
@@ -189,7 +187,7 @@ export default function Calendar() {
   const todayFlashcards = createMemo(() => {
     return flashcards()?.filter(
       (flashcard) =>
-        new Date(flashcard.nextStudy).getTime() <= new Date(isoDate).getTime()
+        new Date(flashcard.nextStudy).getTime() <= new Date(isoDate).getTime(),
     )
   })
 
@@ -197,7 +195,7 @@ export default function Calendar() {
     return todayFlashcards()?.filter(
       (flashcard) =>
         flashcard.lastSeen >
-        new Date(new Date().toISOString().slice(0, 10)).getTime()
+        new Date(new Date().toISOString().slice(0, 10)).getTime(),
     )
   })
 
@@ -205,7 +203,7 @@ export default function Calendar() {
     return todayFlashcards()?.filter(
       (flashcard) =>
         flashcard.lastSeen <=
-        new Date(new Date().toISOString().slice(0, 10)).getTime()
+        new Date(new Date().toISOString().slice(0, 10)).getTime(),
     )
   })
 
@@ -223,7 +221,7 @@ export default function Calendar() {
     if (selectedFolders().find((folder) => folder === id)) {
       if (
         subfolders.every((subfolder) =>
-          selectedFolders().find((folder) => folder === subfolder.id)
+          selectedFolders().find((folder) => folder === subfolder.id),
         )
       ) {
         setFolders(selectedFolders().filter((folder) => folder !== id))
@@ -281,7 +279,7 @@ export default function Calendar() {
             .fill(undefined)
             .map((_, index) => {
               const day = new Date(
-                Date.now() - (normalizedCurrentWeekDay - index) * MS_IN_DAY
+                Date.now() - (normalizedCurrentWeekDay - index) * MS_IN_DAY,
               )
               return (
                 <div class="day day--past">
@@ -291,7 +289,7 @@ export default function Calendar() {
             })}
           <div class="day day--present">
             <form action={createLearningSessionAction} method="post">
-              <input type="hidden" name="day" value="0" />
+              <input type="hidden" name="day" value={0} />
               <input
                 type="hidden"
                 name="folders"
@@ -339,8 +337,8 @@ export default function Calendar() {
           {new Array(
             Math.ceil(
               (todayNotSeenFlashcards()?.length ||
-                (todaySeenFlashcards()?.length ?? 0)) / 10
-            )
+                (todaySeenFlashcards()?.length ?? 0)) / 10,
+            ),
           )
             .fill(undefined)
             .map((_, index) => {
@@ -382,7 +380,7 @@ const FolderComponent = (props: {
   const [isOpen, setIsOpen] = createSignal(true)
   const areAllSubfoldersSelected = createMemo(() => {
     return getAllSubfolders(props.folder).every((subfolder) =>
-      props.selectedFolders.includes(subfolder.id)
+      props.selectedFolders.includes(subfolder.id),
     )
   })
   const isFolderSelected = createMemo(() => {
@@ -405,7 +403,7 @@ const FolderComponent = (props: {
               'transition-transform absolute -left-1 -translate-x-full',
               {
                 'rotate-90': isOpen(),
-              }
+              },
             )}
           >
             <ArrowIcon class="w-3 h-3" />
@@ -442,7 +440,7 @@ const FolderComponent = (props: {
             value={props.folder.id}
             checked={
               !!props.selectedFolders.find(
-                (folder) => folder === props.folder.id
+                (folder) => folder === props.folder.id,
               )
             }
             onChange={() => props.onSelect(props.folder.id)}

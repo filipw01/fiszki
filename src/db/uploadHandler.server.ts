@@ -31,7 +31,7 @@ export const uploadImageToS3 = async (file: File | null) => {
       Body: await file.arrayBuffer(),
       ContentLength: file.size,
       ContentType: file.type,
-    })
+    }),
   )
   return `${s3Url}/${key}`
 }
@@ -41,6 +41,6 @@ export const deleteFromS3 = async (key: string) => {
     new DeleteObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
-    })
+    }),
   )
 }

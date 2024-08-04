@@ -78,6 +78,5 @@ export async function createUserSession(email: string, redirectTo: string) {
 
   const session = await getSession()
   await session.update({ email })
-  // TODO: this redirect throws some error about async hooks
   throw redirect(redirectTo)
 }

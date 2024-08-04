@@ -21,7 +21,7 @@ async function seed() {
               owner: { connect: { email: user.email } },
             },
           })
-        })
+        }),
     )
   ).map((tag) => tag.id)
 
@@ -66,7 +66,7 @@ async function seed() {
               .fill(undefined)
               .map(() => {
                 return tagIds[faker.datatype.number({ max: tagIds.length - 1 })]
-              })
+              }),
           ),
         ]
 
@@ -77,7 +77,7 @@ async function seed() {
             tagIds: randomTagIds,
           }),
         })
-      })
+      }),
   )
 }
 

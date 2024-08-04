@@ -5,7 +5,7 @@ import { daysFromNow } from '~/utils'
 export const createLearningSession = async (
   email: string,
   dayNumber: number,
-  foldersIds?: string[]
+  foldersIds?: string[],
 ) => {
   const minDay = dayNumber > 0 ? new Date(daysFromNow(dayNumber)) : undefined
   const maxDay = new Date(daysFromNow(dayNumber + 1))

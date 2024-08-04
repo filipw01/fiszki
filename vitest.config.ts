@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/dist/config'
+import { defineConfig } from 'vitest/config'
 import devtools from 'solid-devtools/vite'
 import Icons from 'unplugin-icons/vite'
 

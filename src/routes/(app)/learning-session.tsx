@@ -34,7 +34,7 @@ const routeData = cache(async () => {
   })
   if (learningSession === null) throw redirect('/')
   return learningSession.uncompletedFlashcards.map((flashcard) =>
-    mapFlashcard(flashcard, folders)
+    mapFlashcard(flashcard, folders),
   )
 }, 'learningSession')
 

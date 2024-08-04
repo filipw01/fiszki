@@ -21,7 +21,7 @@ export const Button = (props: Props) => {
           'rounded-b-3xl': position === 'standalone',
           'rounded-bl-3xl': position === 'left',
           'rounded-br-3xl': position === 'right',
-        }
+        },
       )}
       style={{
         ...(color !== undefined

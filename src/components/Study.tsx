@@ -36,7 +36,7 @@ const repeat = action(async () => {
     },
   })
   const shuffledFlashcards = shuffle(
-    flashcardsInSession?.uncompletedFlashcards ?? []
+    flashcardsInSession?.uncompletedFlashcards ?? [],
   )
   await db.$transaction(
     shuffledFlashcards.map((flashcard, index) => {
@@ -48,9 +48,8 @@ const repeat = action(async () => {
           learningSessionSortingIndex: index,
         },
       })
-    })
+    }),
   )
-  // TODO: probably this doesn't work without page refresh
 })
 
 const check = action(async (form: FormData) => {
@@ -88,7 +87,7 @@ export const Study = (props: Props) => {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = createSignal(0)
 
   const currentFlashcard = createMemo(
-    () => props.flashcards[currentFlashcardIndex()]
+    () => props.flashcards[currentFlashcardIndex()],
   )
 
   const nextFlashcard = () => {
@@ -200,8 +199,8 @@ export const Study = (props: Props) => {
                 typedCorrectly() === null
                   ? undefined
                   : typedCorrectly()
-                  ? 'color: rgb(138, 201, 38)'
-                  : 'color: rgb(218, 80, 5)'
+                    ? 'color: rgb(138, 201, 38)'
+                    : 'color: rgb(218, 80, 5)'
               }
               placeholder="Hm.."
               ref={input}

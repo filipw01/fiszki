@@ -3,7 +3,7 @@ import { db } from '~/db/db.server'
 
 export async function getNestedFlashcardsCount(
   folder: Prisma.FolderGetPayload<{}>,
-  email: string
+  email: string,
 ): Promise<number> {
   const folders = await db.folder.findMany({
     where: {

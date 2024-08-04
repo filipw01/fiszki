@@ -40,10 +40,10 @@ const routeData = cache(async () => {
         flashcardsCount: await getNestedFlashcardsCount(folder, email),
         subfolders: [],
       }
-    })
+    }),
   )
   const foldersById = Object.fromEntries(
-    allFolders.map((folder) => [folder.id, folder])
+    allFolders.map((folder) => [folder.id, folder]),
   )
   const folders: Array<Folder> = []
   for (const folder of allFolders) {
@@ -56,8 +56,8 @@ const routeData = cache(async () => {
       } else {
         throw new Error(
           `Invalid folder structure, got ${JSON.stringify(
-            folder
-          )}, but folder with ${folder.parentFolderId} does not exist`
+            folder,
+          )}, but folder with ${folder.parentFolderId} does not exist`,
         )
       }
     }
@@ -83,7 +83,7 @@ export default function Flashcards(props: RouteSectionProps) {
         setSelectedFolders(newSelectedFolders)
       } else {
         const allSubfolders: Record<string, true> = Object.fromEntries(
-          subfolders.map((subfolder) => [subfolder.id, true])
+          subfolders.map((subfolder) => [subfolder.id, true]),
         )
         setSelectedFolders({ ...selectedFolders(), ...allSubfolders })
       }
@@ -123,7 +123,7 @@ const FolderComponent = (
     preexistingPadding: number
     selectedFolders: Record<string, true>
     onSelect: (id: string) => void
-  }
+  },
 ) => {
   const params = useParams()
   const [isOpen, setIsOpen] = createSignal(true)

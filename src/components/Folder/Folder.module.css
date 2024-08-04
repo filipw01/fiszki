@@ -7,7 +7,9 @@
   background-color: hsl(0 0% 100%);
   box-shadow: var(--shadow-elevation-low);
   will-change: transform;
-  transition: box-shadow 500ms, transform 500ms;
+  transition:
+    box-shadow 500ms,
+    transform 500ms;
 }
 
 .icon {
@@ -19,7 +21,9 @@
   .card:hover {
     box-shadow: var(--shadow-elevation-medium);
     transform: scale(1.02);
-    transition: box-shadow 200ms, transform 200ms;
+    transition:
+      box-shadow 200ms,
+      transform 200ms;
 
     .icon {
       transform: rotate(-6deg);

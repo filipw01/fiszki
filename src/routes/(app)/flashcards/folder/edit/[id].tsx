@@ -23,7 +23,7 @@ const routeData = cache(async (prohibitedFolderId: string) => {
   while (currentProhibitedFolder) {
     prohibitedFolders.push(currentProhibitedFolder)
     currentProhibitedFolder = folders.find(
-      (folder) => folder.parentFolderId === currentProhibitedFolder
+      (folder) => folder.parentFolderId === currentProhibitedFolder,
     )?.id
   }
 
@@ -65,7 +65,7 @@ const editFolder = action(async (form: FormData) => {
   while (currentParentFolderId) {
     parentFolderIds.push(currentParentFolderId)
     currentParentFolderId = folders.find(
-      (f) => f.id === currentParentFolderId
+      (f) => f.id === currentParentFolderId,
     )?.parentFolderId
   }
   const parentIndex = parentFolderIds.findIndex((parentId) => parentId === id)
@@ -73,7 +73,7 @@ const editFolder = action(async (form: FormData) => {
     throw new Error(
       `Cannot set folder as its own parent folder - parent: ${parentFolderId} can't have child: ${id} because parent is already a child of ${id} (${
         parentIndex + 1
-      } levels deep)`
+      } levels deep)`,
     )
   }
 
@@ -90,7 +90,7 @@ const editFolder = action(async (form: FormData) => {
     },
   })
   return redirect(
-    parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`
+    parentFolderId ? `/flashcards/folder/${parentFolderId}` : `/flashcards`,
   )
 }, 'edit-folder')
 

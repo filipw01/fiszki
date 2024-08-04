@@ -12,7 +12,7 @@ export const deleteFlashcard = async (id: string) => {
         const key = image.replace(`${s3Url}/`, '')
         return deleteFromS3(key)
       }
-    })
+    }),
   )
   return flashcard
 }

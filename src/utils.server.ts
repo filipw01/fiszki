@@ -68,7 +68,7 @@ export function mapFlashcard(
   }: Prisma.FlashcardGetPayload<{
     include: { folder: true; tags: true }
   }>,
-  folders: Prisma.FolderGetPayload<{}>[]
+  folders: Prisma.FolderGetPayload<{}>[],
 ): Flashcard {
   const folderPath = getFolderNamePath(folderId, folders)
   return {
@@ -82,7 +82,7 @@ export function mapFlashcard(
 
 export function getFolderNamePath(
   folderId: string,
-  folders: Prisma.FolderGetPayload<{}>[]
+  folders: Prisma.FolderGetPayload<{}>[],
 ) {
   let nextFolderId: string | null = folderId
   const folderPath = []
@@ -99,7 +99,7 @@ export function getFolderNamePath(
 
 export function getFolderPath(
   folderId: string,
-  folders: Prisma.FolderGetPayload<{}>[]
+  folders: Prisma.FolderGetPayload<{}>[],
 ) {
   let nextFolderId: string | null = folderId
   const folderPath = []
@@ -137,7 +137,7 @@ export const indexLoader = async (email: string) => {
 
 export const actionSuccess = async (
   flashcardId: string,
-  ownerEmail: string
+  ownerEmail: string,
 ) => {
   const flashcard = await db.flashcard.findUnique({
     where: {

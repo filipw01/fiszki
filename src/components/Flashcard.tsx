@@ -25,7 +25,7 @@ export const Flashcard = (props: Props) => {
     window.speechSynthesis.getVoices()
   }
   const handleSpeak: JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent> = (
-    e
+    e,
   ) => {
     e.stopPropagation()
     const utterance = new SpeechSynthesisUtterance(props.text)
@@ -49,8 +49,8 @@ export const Flashcard = (props: Props) => {
     props.correct === null || props.correct === undefined
       ? undefined
       : props.correct
-      ? 'border: 3px solid rgba(138, 201, 38, 1)'
-      : 'border: 3px solid rgba(218, 80, 5, 1)'
+        ? 'border: 3px solid rgba(138, 201, 38, 1)'
+        : 'border: 3px solid rgba(218, 80, 5, 1)',
   )
 
   createEffect(() => {
@@ -70,20 +70,20 @@ export const Flashcard = (props: Props) => {
             props.correct === null || props.correct === undefined
               ? undefined
               : props.correct
-              ? [
-                  'translateY(0px)',
-                  'translateY(-30px)',
-                  'translateY(-30px)',
-                  'translateY(0px)',
-                ]
-              : [
-                  'translateX(0px)',
-                  'translateX(10px)',
-                  'translateX(-10px)',
-                  'translateX(0px)',
-                  'translateX(10px)',
-                  'translateX(0px)',
-                ],
+                ? [
+                    'translateY(0px)',
+                    'translateY(-30px)',
+                    'translateY(-30px)',
+                    'translateY(0px)',
+                  ]
+                : [
+                    'translateX(0px)',
+                    'translateX(10px)',
+                    'translateX(-10px)',
+                    'translateX(0px)',
+                    'translateX(10px)',
+                    'translateX(0px)',
+                  ],
         }}
         class="relative flex flex-col justify-center items-center rounded-3xl p-4 lg:p-8 text-center bg-white aspect-square break-words lg:text-5xl text-2xl leading-normal lg:leading-normal"
         style={border()}
@@ -111,9 +111,9 @@ export const Flashcard = (props: Props) => {
                 style={`margin-top: ${
                   props.image ? '1rem' : 0
                 }; font-weight: ${getTextLengthBasedFontWeight(
-                  props.text
+                  props.text,
                 )}; font-size: ${getLengthBasedFontSize(
-                  props.text.length + (props.example?.length ?? 0)
+                  props.text.length + (props.example?.length ?? 0),
                 )}`}
               >
                 {props.text}
@@ -124,7 +124,7 @@ export const Flashcard = (props: Props) => {
                 class="text-dark-gray"
                 style={`font-size: ${getLengthBasedFontSize(
                   props.text.length + props.example!.length,
-                  true
+                  true,
                 )}`}
               >
                 <hr />

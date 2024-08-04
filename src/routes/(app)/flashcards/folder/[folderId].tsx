@@ -41,7 +41,7 @@ const flashcardsFolderId = cache(async (folderId: string) => {
       folder.folders.map(async (folder) => ({
         ...folder,
         flashcardsCount: await getNestedFlashcardsCount(folder, email),
-      }))
+      })),
     ),
   }
 }, 'folder-folderId')

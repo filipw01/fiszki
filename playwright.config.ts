@@ -1,5 +1,5 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
+import type { PlaywrightTestConfig } from '@playwright/test'
+import { devices } from '@playwright/test'
 import { config } from 'dotenv'
 
 config()
@@ -16,7 +16,7 @@ const playwrightConfig: PlaywrightTestConfig = {
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 5000
+    timeout: 5000,
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -69,6 +69,6 @@ const playwrightConfig: PlaywrightTestConfig = {
     command: 'npm run dev',
     port: 3000,
   },
-};
+}
 
-export default playwrightConfig;
+export default playwrightConfig

@@ -36,7 +36,7 @@ const registerAction = action(async (form: FormData) => {
 
   return createUserSession(
     email,
-    typeof redirectTo === 'string' ? redirectTo : '/'
+    typeof redirectTo === 'string' ? redirectTo : '/',
   )
 }, 'register')
 

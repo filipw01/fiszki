@@ -12,7 +12,7 @@ export const Sidebar = (props: { children: JSX.Element }) => {
         'md:bg-transparent md:static md:translate-x-0',
         {
           '-translate-x-full': !isSidebarOpen(),
-        }
+        },
       )}
     >
       {props.children}
