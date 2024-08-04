@@ -135,11 +135,9 @@ const createLearningSessionAction = action(async (formData: FormData) => {
     folders: z.string(),
   })
   const { day, folders } = schema.parse(Object.fromEntries(formData.entries()))
-  console.log(day, folders)
 
   const dayNumber = parseInt(day)
   z.number().parse(dayNumber)
-  console.log(email, dayNumber, folders)
   await createLearningSession(
     email,
     dayNumber,
