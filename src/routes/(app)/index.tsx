@@ -1,5 +1,6 @@
 import { indexLoader } from '~/utils.server'
 import { chunk, groupBy } from 'lodash-es'
+import * as v from 'valibot'
 import { clsx, daysFromNow } from '~/utils'
 import {
   useParams,
@@ -23,7 +24,6 @@ import ArrowIcon from '~icons/ri/arrow-right-s-line'
 import CheckmarkIcon from '~icons/ri/check-line'
 import ArrowDownIcon from '~icons/ri/arrow-down-line'
 import FolderIcon from '~icons/ri/folder-line'
-import { z } from 'zod'
 
 type Folder = Prisma.FolderGetPayload<{}> & {
   flashcardsCount: number
@@ -130,18 +130,21 @@ const splitEvenly = action(async () => {
 const createLearningSessionAction = action(async (formData: FormData) => {
   'use server'
   const email = await requireUserEmail()
-  const schema = z.object({
-    day: z.string(),
-    folders: z.string(),
+  const schema = v.object({
+    day: v.string(),
+    folders: v.string(),
   })
-  const { data } = schema.safeParse(Object.fromEntries(formData.entries()))
-  if (!data) {
+  const paringResult = v.safeParse(
+    schema,
+    Object.fromEntries(formData.entries()),
+  )
+  if (!paringResult.success) {
     return new Error('Invalid form data')
   }
-  const { day, folders } = data
+  const { day, folders } = paringResult.output
 
   const dayNumber = parseInt(day)
-  const { success } = z.number().safeParse(dayNumber)
+  const { success } = v.safeParse(v.number(), dayNumber)
   if (!success) {
     return new Error('Day must be a number')
   }

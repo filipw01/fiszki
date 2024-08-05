@@ -1,3 +1,4 @@
+import * as v from 'valibot'
 import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Input } from '~/components/base/Input'
@@ -33,11 +34,11 @@ const createFolder = action(async (form: FormData) => {
 
   const email = await requireUserEmail()
 
-  const { data } = folderForm.safeParse(parseForm(form))
-  if (!data) {
+  const parsingResult = v.safeParse(folderForm, parseForm(form))
+  if (!parsingResult.success) {
     return new Error('Wrong data format')
   }
-  const { name, color, parentFolderId } = data
+  const { name, color, parentFolderId } = parsingResult.output
 
   if (parentFolderId) {
     db.folder.findFirstOrThrow({

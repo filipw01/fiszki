@@ -1,3 +1,4 @@
+import * as v from 'valibot'
 import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, isNonEmptyString, parseForm } from '~/utils.server'
 import { Input } from '~/components/base/Input'
@@ -58,11 +59,11 @@ const editFolder = action(async (form: FormData) => {
     return new Error(`Couldn't find folder with id ${id}`)
   }
 
-  const { data } = folderForm.safeParse(parseForm(form))
-  if (!data) {
+  const parsingResult = v.safeParse(folderForm, parseForm(form))
+  if (!parsingResult.success) {
     return new Error('Wrong data format')
   }
-  const { parentFolderId, name, color } = data
+  const { name, color, parentFolderId } = parsingResult.output
 
   const parentFolderIds: string[] = []
   let currentParentFolderId: string | null | undefined = parentFolderId

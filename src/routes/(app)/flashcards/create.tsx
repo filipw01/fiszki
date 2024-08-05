@@ -1,3 +1,4 @@
+import * as v from 'valibot'
 import { requireUserEmail } from '~/server/session.server'
 import { getFolderNamePath, parseForm } from '~/utils.server'
 import { Textarea } from '~/components/base/Textarea'
@@ -12,7 +13,6 @@ import {
 } from '@solidjs/router'
 import { uploadImageToS3 } from '~/db/uploadHandler.server'
 import { For } from 'solid-js'
-import { z } from 'zod'
 
 const routeData = cache(async () => {
   'use server'
@@ -39,33 +39,56 @@ const routeData = cache(async () => {
 const parseFlashcardsForm = (form: FormData) => {
   const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
 
+  const frontSchema = v.union([
+    v.object({
+      frontImage: v.pipe(
+        v.any(),
+        v.check((file) => file.size > 0),
+      ),
+      front: v.string(),
+    }),
+    v.object({
+      frontImage: v.pipe(
+        v.any(),
+        v.check((file) => file.size === 0),
+      ),
+      front: v.pipe(v.string(), v.minLength(1)),
+    }),
+  ])
+
+  const backSchema = v.union([
+    v.object({
+      backImage: v.pipe(
+        v.any(),
+        v.check((file) => file.size > 0),
+      ),
+      back: v.string(),
+    }),
+    v.object({
+      backImage: v.pipe(
+        v.any(),
+        v.check((file) => file.size === 0),
+      ),
+      back: v.pipe(v.string(), v.minLength(1)),
+    }),
+  ])
+
+  const restSchema = v.object({
+    folderId: v.string(),
+    tags: v.union([
+      v.optional(v.array(v.pipe(v.string(), v.minLength(1))), []),
+      v.pipe(v.string(), v.minLength(1)),
+    ]),
+    randomSideAllowed: v.optional(v.literal('on')),
+    frontLanguage: v.picklist(supportedLocales),
+    backLanguage: v.picklist(supportedLocales),
+    frontDescription: v.string(),
+    backDescription: v.string(),
+  })
+
   try {
-    const { front, frontImage } = z
-      .object({
-        frontImage: z.any().refine((file) => file.size > 0),
-        front: z.string(),
-      })
-      .or(
-        z.object({
-          frontImage: z.any().refine((file) => file.size === 0),
-          front: z.string().nonempty(),
-        }),
-      )
-      .parse(parseForm(form))
-
-    const { back, backImage } = z
-      .object({
-        backImage: z.any().refine((file) => file.size > 0),
-        back: z.string(),
-      })
-      .or(
-        z.object({
-          backImage: z.any().refine((file) => file.size === 0),
-          back: z.string().nonempty(),
-        }),
-      )
-      .parse(parseForm(form))
-
+    const { front, frontImage } = v.parse(frontSchema, parseForm(form))
+    const { back, backImage } = v.parse(backSchema, parseForm(form))
     const {
       tags: tagsOrTag,
       randomSideAllowed,
@@ -74,20 +97,8 @@ const parseFlashcardsForm = (form: FormData) => {
       backLanguage,
       frontDescription,
       backDescription,
-    } = z
-      .object({
-        folderId: z.string(),
-        tags: z
-          .array(z.string().nonempty())
-          .default([])
-          .or(z.string().nonempty()),
-        randomSideAllowed: z.literal('on').optional(),
-        frontLanguage: z.enum(supportedLocales),
-        frontDescription: z.string(),
-        backLanguage: z.enum(supportedLocales),
-        backDescription: z.string(),
-      })
-      .parse(parseForm(form))
+    } = v.parse(restSchema, parseForm(form))
+
     return {
       front,
       frontImage,

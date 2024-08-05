@@ -11,7 +11,7 @@ import {
   cache,
 } from '@solidjs/router'
 import { createMemo, For } from 'solid-js'
-import { z } from 'zod'
+import * as v from 'valibot'
 import { deleteFlashcard } from '~/flashcard.server'
 
 const supportedLocales = ['en-GB', 'en-US', 'ko-KR', 'es-ES'] as const
@@ -64,23 +64,24 @@ const editFlashcard = action(async (form: FormData) => {
   })
 
   if (action === 'update') {
-    const { data } = z
-      .object({
-        front: z.string().nonempty(),
-        back: z.string().nonempty(),
-        frontLanguage: z.enum(supportedLocales),
-        backLanguage: z.enum(supportedLocales),
-        folderId: z.string().nonempty(),
-        tags: z
-          .array(z.string().nonempty())
-          .default([])
-          .or(z.string().nonempty()),
-        backDescription: z.string(),
-        frontDescription: z.string(),
-        randomSideAllowed: z.literal('on').optional(),
-      })
-      .safeParse(parseForm(form))
-    if (!data) {
+    const parsingResult = v.safeParse(
+      v.object({
+        front: v.pipe(v.string(), v.minLength(1)),
+        back: v.pipe(v.string(), v.minLength(1)),
+        frontLanguage: v.picklist(supportedLocales),
+        backLanguage: v.picklist(supportedLocales),
+        folderId: v.pipe(v.string(), v.minLength(1)),
+        tags: v.union([
+          v.optional(v.array(v.pipe(v.string(), v.minLength(1))), []),
+          v.pipe(v.string(), v.minLength(1)),
+        ]),
+        backDescription: v.string(),
+        frontDescription: v.string(),
+        randomSideAllowed: v.optional(v.literal('on')),
+      }),
+      parseForm(form),
+    )
+    if (!parsingResult.success) {
       return new Error('Wrong data format')
     }
     const {
@@ -93,7 +94,7 @@ const editFlashcard = action(async (form: FormData) => {
       randomSideAllowed,
       folderId,
       tags: tagsOrTag,
-    } = data
+    } = parsingResult.output
 
     const tags = Array.isArray(tagsOrTag) ? tagsOrTag : [tagsOrTag]
 
