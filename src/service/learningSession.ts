@@ -1,4 +1,4 @@
-import { shuffle } from 'lodash-es'
+import { shuffle } from 'remeda'
 import { db } from '~/db/db.server'
 import { daysFromNow } from '~/utils'
 

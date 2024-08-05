@@ -12,7 +12,7 @@ import { requireUserEmail } from '~/server/session.server'
 import { db } from '~/db/db.server'
 import { createMemo, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import { isServer } from 'solid-js/web'
-import { shuffle } from 'lodash-es'
+import { shuffle } from 'remeda'
 import { action, useSubmission } from '@solidjs/router'
 
 interface Props {

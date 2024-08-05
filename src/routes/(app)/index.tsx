@@ -1,5 +1,5 @@
 import { indexLoader } from '~/utils.server'
-import { chunk, groupBy } from 'lodash-es'
+import { chunk, groupBy } from 'remeda'
 import * as v from 'valibot'
 import { clsx, daysFromNow } from '~/utils'
 import {
@@ -177,15 +177,17 @@ export default function Calendar() {
   const [selectedFolders, setFolders] = useFolders()
   const flashcards = createMemo(() => {
     if (data === undefined) return []
-    return data()?.data.flashcards.filter((flashcard) => {
-      return selectedFolders().length > 0
-        ? selectedFolders().includes(flashcard.folder.id)
-        : true
-    })
+    return (
+      data()?.data.flashcards.filter((flashcard) => {
+        return selectedFolders().length > 0
+          ? selectedFolders().includes(flashcard.folder.id)
+          : true
+      }) ?? []
+    )
   })
 
   const flashcardsByNextStudy = createMemo(() =>
-    groupBy(flashcards(), 'nextStudy'),
+    groupBy(flashcards(), ({ nextStudy }) => nextStudy),
   )
 
   const currentWeekDay = new Date(Date.now()).getDay()
@@ -193,14 +195,14 @@ export default function Calendar() {
   const isoDate = daysFromNow(0)
 
   const todayFlashcards = createMemo(() => {
-    return flashcards()?.filter(
+    return flashcards().filter(
       (flashcard) =>
         new Date(flashcard.nextStudy).getTime() <= new Date(isoDate).getTime(),
     )
   })
 
   const todaySeenFlashcards = createMemo(() => {
-    return todayFlashcards()?.filter(
+    return todayFlashcards().filter(
       (flashcard) =>
         flashcard.lastSeen >
         new Date(new Date().toISOString().slice(0, 10)).getTime(),
@@ -208,7 +210,7 @@ export default function Calendar() {
   })
 
   const todayNotSeenFlashcards = createMemo(() => {
-    return todayFlashcards()?.filter(
+    return todayFlashcards().filter(
       (flashcard) =>
         flashcard.lastSeen <=
         new Date(new Date().toISOString().slice(0, 10)).getTime(),
@@ -303,7 +305,7 @@ export default function Calendar() {
                 value={selectedFolders().join(',')}
               />
               <button>
-                {todaySeenFlashcards()?.length}/{todayFlashcards()?.length}
+                {todaySeenFlashcards().length}/{todayFlashcards().length}
                 <div class="day__date">{Number(isoDate.slice(-2))}</div>
               </button>
             </form>
@@ -331,7 +333,7 @@ export default function Calendar() {
               )
             })}
         </div>
-        {todaySeenFlashcards()?.length === todayFlashcards()?.length && (
+        {todaySeenFlashcards().length === todayFlashcards().length && (
           <div style="font-size: 2rem; margin-top: 2rem">
             All flashcards seen today!
           </div>
@@ -343,8 +345,8 @@ export default function Calendar() {
         >
           {new Array(
             Math.ceil(
-              (todayNotSeenFlashcards()?.length ||
-                (todaySeenFlashcards()?.length ?? 0)) / 10,
+              (todayNotSeenFlashcards().length ||
+                (todaySeenFlashcards().length ?? 0)) / 10,
             ),
           )
             .fill(undefined)
